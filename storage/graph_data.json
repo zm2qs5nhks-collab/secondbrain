@@ -1,0 +1,271 @@
+{
+  "entities": [
+    {
+      "name": "独立知识库",
+      "type": "概念"
+    },
+    {
+      "name": "笔记",
+      "type": "内容"
+    },
+    {
+      "name": "文件",
+      "type": "内容"
+    },
+    {
+      "name": "网页收藏",
+      "type": "内容"
+    },
+    {
+      "name": "个性化遗忘曲线",
+      "type": "概念"
+    },
+    {
+      "name": "SM-2算法",
+      "type": "方法"
+    },
+    {
+      "name": "复习行为",
+      "type": "概念"
+    },
+    {
+      "name": "复习提醒",
+      "type": "概念"
+    },
+    {
+      "name": "定制化学习路径",
+      "type": "概念"
+    },
+    {
+      "name": "个人掌握度",
+      "type": "概念"
+    },
+    {
+      "name": "标签分布",
+      "type": "概念"
+    },
+    {
+      "name": "学习优先级",
+      "type": "概念"
+    },
+    {
+      "name": "Redis",
+      "type": "技术"
+    },
+    {
+      "name": "缓存策略",
+      "type": "方法"
+    },
+    {
+      "name": "电商秒杀场景",
+      "type": "场景"
+    },
+    {
+      "name": "高并发",
+      "type": "概念"
+    },
+    {
+      "name": "库存锁",
+      "type": "概念"
+    },
+    {
+      "name": "1930",
+      "type": "年份"
+    },
+    {
+      "name": "1934",
+      "type": "年份"
+    },
+    {
+      "name": "1938",
+      "type": "年份"
+    },
+    {
+      "name": "1950",
+      "type": "年份"
+    },
+    {
+      "name": "1954",
+      "type": "年份"
+    },
+    {
+      "name": "1958",
+      "type": "年份"
+    },
+    {
+      "name": "1962",
+      "type": "年份"
+    },
+    {
+      "name": "1966",
+      "type": "年份"
+    },
+    {
+      "name": "1970",
+      "type": "年份"
+    },
+    {
+      "name": "1974",
+      "type": "年份"
+    },
+    {
+      "name": "1978",
+      "type": "年份"
+    },
+    {
+      "name": "1982",
+      "type": "年份"
+    },
+    {
+      "name": "乌拉圭",
+      "type": "国家"
+    },
+    {
+      "name": "意大利",
+      "type": "国家"
+    },
+    {
+      "name": "德国",
+      "type": "国家"
+    },
+    {
+      "name": "巴西",
+      "type": "国家"
+    },
+    {
+      "name": "英格兰",
+      "type": "国家"
+    },
+    {
+      "name": "阿根廷",
+      "type": "国家"
+    }
+  ],
+  "relations": [
+    {
+      "source": "独立知识库",
+      "target": "笔记",
+      "relation": "包含"
+    },
+    {
+      "source": "独立知识库",
+      "target": "文件",
+      "relation": "包含"
+    },
+    {
+      "source": "独立知识库",
+      "target": "网页收藏",
+      "relation": "包含"
+    },
+    {
+      "source": "SM-2算法",
+      "target": "个性化遗忘曲线",
+      "relation": "应用于"
+    },
+    {
+      "source": "SM-2算法",
+      "target": "复习行为",
+      "relation": "依赖"
+    },
+    {
+      "source": "SM-2算法",
+      "target": "复习提醒",
+      "relation": "生成"
+    },
+    {
+      "source": "定制化学习路径",
+      "target": "个人掌握度",
+      "relation": "使用"
+    },
+    {
+      "source": "定制化学习路径",
+      "target": "标签分布",
+      "relation": "使用"
+    },
+    {
+      "source": "定制化学习路径",
+      "target": "学习优先级",
+      "relation": "产生"
+    },
+    {
+      "source": "Redis",
+      "target": "缓存策略",
+      "relation": "应用于"
+    },
+    {
+      "source": "Redis",
+      "target": "库存锁",
+      "relation": "解决"
+    },
+    {
+      "source": "电商秒杀场景",
+      "target": "高并发",
+      "relation": "包含"
+    },
+    {
+      "source": "高并发",
+      "target": "库存锁",
+      "relation": "导致"
+    },
+    {
+      "source": "1930",
+      "target": "乌拉圭",
+      "relation": "冠军"
+    },
+    {
+      "source": "1934",
+      "target": "意大利",
+      "relation": "冠军"
+    },
+    {
+      "source": "1938",
+      "target": "意大利",
+      "relation": "冠军"
+    },
+    {
+      "source": "1950",
+      "target": "乌拉圭",
+      "relation": "冠军"
+    },
+    {
+      "source": "1954",
+      "target": "德国",
+      "relation": "冠军"
+    },
+    {
+      "source": "1958",
+      "target": "巴西",
+      "relation": "冠军"
+    },
+    {
+      "source": "1962",
+      "target": "巴西",
+      "relation": "冠军"
+    },
+    {
+      "source": "1966",
+      "target": "英格兰",
+      "relation": "冠军"
+    },
+    {
+      "source": "1970",
+      "target": "巴西",
+      "relation": "冠军"
+    },
+    {
+      "source": "1974",
+      "target": "德国",
+      "relation": "冠军"
+    },
+    {
+      "source": "1978",
+      "target": "阿根廷",
+      "relation": "冠军"
+    },
+    {
+      "source": "1982",
+      "target": "意大利",
+      "relation": "冠军"
+    }
+  ]
+}

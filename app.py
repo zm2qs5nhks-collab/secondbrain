@@ -1,0 +1,671 @@
+"""
+第二大脑 —— 图形化界面 (Streamlit)
+启动命令: streamlit run app.py
+"""
+
+import sys
+import os
+sys.path.insert(0, os.path.dirname(__file__))
+
+import streamlit as st
+import json
+import time
+from pathlib import Path
+
+st.set_page_config(
+    page_title="第二大脑",
+    layout="wide",
+    initial_sidebar_state="expanded",
+)
+
+import config
+
+if not config.SUPABASE_URL or not config.SUPABASE_KEY:
+    st.error("""
+    ### 需要配置 Supabase 云数据库
+
+    1. 访问 [supabase.com](https://supabase.com) 免费注册
+    2. 创建项目，获取 **Project URL** 和 **anon public key**
+    3. 在项目 `.env` 文件或 Streamlit Cloud 的 Secrets 中配置：
+       ```
+       SUPABASE_URL=https://xxx.supabase.co
+       SUPABASE_KEY=eyJxxx...
+       ```
+    4. 在 Supabase 的 SQL Editor 中执行 `setup_supabase.sql` 创建数据表
+    """)
+    st.stop()
+
+from storage import vector_store, metadata_store
+from storage.db import table
+from scheduler import forgetting_curve as fc
+from tools import add_knowledge, search_knowledge, manage_knowledge, reminder
+
+# ─── 侧边栏导航 ───
+st.sidebar.title("🧠 第二大脑")
+st.sidebar.caption("个人知识管理 Agent")
+st.sidebar.caption(f"数据库: 已连接")
+
+page = st.sidebar.radio(
+    "导航",
+    ["仪表盘", "知识问答", "导入笔记", "笔记管理", "复习提醒", "知识图谱", "学习路径", "设置"],
+    index=0,
+)
+
+st.sidebar.divider()
+stats_count = metadata_store.count()
+st.sidebar.metric("知识库笔记数", stats_count)
+
+# ═══════════════════════════════════════════
+#  页面一：仪表盘
+# ═══════════════════════════════════════════
+if page == "仪表盘":
+    st.title("🧠 第二大脑 —— 仪表盘")
+    st.markdown("---")
+
+    c1, c2, c3, c4 = st.columns(4)
+    all_notes = metadata_store.list_notes()
+    total = len(all_notes)
+    tags_set = set()
+    for n in all_notes:
+        tags_set.update(n.get("tags", []))
+    high_imp = sum(1 for n in all_notes if n.get("importance") == "high")
+    reminders = fc.get_notes_for_review()
+
+    c1.metric("总笔记数", total)
+    c2.metric("标签种类", len(tags_set))
+    c3.metric("高重要度", high_imp)
+    c4.metric("待复习", len(reminders))
+
+    st.markdown("---")
+
+    col_left, col_right = st.columns([2, 1])
+
+    with col_left:
+        st.subheader("最近笔记")
+        if all_notes:
+            for note in all_notes[:8]:
+                tags_str = " ".join([f"`{t}`" for t in note.get("tags", [])])
+                imp = "🔴" if note.get("importance") == "high" else "🔵"
+                with st.container():
+                    st.markdown(f"{imp} **{note['id']}** — {note['preview']}")
+                    if tags_str:
+                        st.caption(tags_str)
+        else:
+            st.info("知识库还是空的，去「导入笔记」添加第一条吧！")
+
+    with col_right:
+        st.subheader("标签分布")
+        if tags_set:
+            tag_counts = {}
+            for n in all_notes:
+                for t in n.get("tags", []):
+                    tag_counts[t] = tag_counts.get(t, 0) + 1
+            sorted_tags = sorted(tag_counts.items(), key=lambda x: x[1], reverse=True)
+            for tag, cnt in sorted_tags[:10]:
+                bar_len = min(cnt * 10, 50)
+                st.markdown(f"**{tag}** `×{cnt}`")
+                st.progress(min(cnt / max(tag_counts.values()), 1.0))
+        else:
+            st.caption("暂无标签数据")
+
+# ═══════════════════════════════════════════
+#  页面二：知识问答（对话）
+# ═══════════════════════════════════════════
+elif page == "知识问答":
+    st.title("💬 知识问答")
+    st.caption("和你的第二大脑对话，它会自动调用工具完成任务")
+
+    if "chat_history" not in st.session_state:
+        st.session_state.chat_history = []
+    if "agent" not in st.session_state:
+        from agent.core import SecondBrainAgent
+        st.session_state.agent = SecondBrainAgent()
+
+    for msg in st.session_state.chat_history:
+        role = msg["role"]
+        avatar = "🧑" if role == "user" else "🧠"
+        with st.chat_message(role, avatar=avatar):
+            st.markdown(msg["content"])
+
+    user_input = st.chat_input("输入你的问题...")
+
+    if user_input:
+        st.session_state.chat_history.append({"role": "user", "content": user_input})
+        with st.chat_message("user", avatar="🧑"):
+            st.markdown(user_input)
+
+        with st.chat_message("assistant", avatar="🧠"):
+            with st.spinner("思考中..."):
+                try:
+                    response = st.session_state.agent.chat(user_input)
+                except Exception as e:
+                    response = f"出错了: {e}"
+            st.markdown(response)
+
+        st.session_state.chat_history.append(
+            {"role": "assistant", "content": response}
+        )
+
+    with st.sidebar:
+        if st.button("清空对话历史"):
+            st.session_state.chat_history = []
+            if "agent" in st.session_state:
+                st.session_state.agent.memory.clear()
+            st.rerun()
+
+# ═══════════════════════════════════════════
+#  页面三：导入笔记
+# ═══════════════════════════════════════════
+elif page == "导入笔记":
+    st.title("📥 导入笔记")
+    st.markdown("支持从**本地文件**、**直接输入**、**网页URL**三种方式导入知识。")
+    st.markdown("---")
+
+    tab_file, tab_text, tab_url = st.tabs(["本地文件", "手动输入", "网页抓取"])
+
+    # ─── Tab 1: 本地文件 ───
+    with tab_file:
+        st.subheader("上传文件")
+        st.caption("支持 .txt, .md 格式")
+        uploaded_files = st.file_uploader(
+            "选择文件",
+            type=["txt", "md"],
+            accept_multiple_files=True,
+        )
+
+        file_tags = st.text_input("文件标签（逗号分隔）", key="file_tags",
+                                   placeholder="如：Python, 笔记, 课程")
+        file_importance = st.selectbox("重要程度", ["normal", "high", "low"],
+                                        key="file_imp")
+
+        if uploaded_files and st.button("开始导入文件", type="primary"):
+            tags = [t.strip() for t in file_tags.split(",") if t.strip()]
+            success_count = 0
+            for f in uploaded_files:
+                content = f.read().decode("utf-8", errors="ignore")
+                if content.strip():
+                    result = json.loads(add_knowledge.execute({
+                        "content": content,
+                        "tags": tags if tags else ["文件导入"],
+                        "importance": file_importance,
+                    }))
+                    if result.get("status") == "success":
+                        success_count += 1
+            st.success(f"成功导入 {success_count}/{len(uploaded_files)} 个文件！")
+
+    # ─── Tab 2: 手动输入 ───
+    with tab_text:
+        st.subheader("手动输入笔记")
+        note_content = st.text_area(
+            "笔记内容",
+            height=200,
+            placeholder="在这里输入你想保存的知识内容...\n\n例如：TCP三次握手：SYN → SYN+ACK → ACK",
+        )
+        note_tags = st.text_input("标签（逗号分隔）", key="note_tags",
+                                   placeholder="如：TCP, 网络, 面试")
+        note_importance = st.selectbox("重要程度", ["normal", "high", "low"],
+                                        key="note_imp")
+
+        if st.button("保存笔记", type="primary") and note_content.strip():
+            tags = [t.strip() for t in note_tags.split(",") if t.strip()]
+            result = json.loads(add_knowledge.execute({
+                "content": note_content,
+                "tags": tags if tags else ["手动输入"],
+                "importance": note_importance,
+            }))
+            if result.get("status") == "success":
+                st.success(f"笔记已保存！ID: {result['note_id']}")
+                st.balloons()
+            else:
+                st.error(result.get("error", "保存失败"))
+
+    # ─── Tab 3: 网页抓取 ───
+    with tab_url:
+        st.subheader("从网页导入知识")
+        st.caption("输入文章URL，自动提取正文内容并保存到知识库")
+
+        url_input = st.text_input(
+            "网页URL",
+            placeholder="https://example.com/article",
+        )
+        url_tags = st.text_input("标签（逗号分隔）", key="url_tags",
+                                  placeholder="如：技术博客, 架构设计")
+
+        if st.button("抓取并保存", type="primary") and url_input.strip():
+            with st.spinner("正在抓取网页内容..."):
+                try:
+                    from tools.fetch_web import fetch_url
+                    result = fetch_url(url_input)
+                    st.session_state["fetched"] = result
+                except Exception as e:
+                    st.error(f"抓取失败: {e}")
+                    st.stop()
+
+            if result.get("content"):
+                st.success(f"抓取成功！标题: {result.get('title', '无标题')}")
+                st.caption(f"内容长度: {result['length']} 字符")
+
+                with st.expander("预览内容", expanded=False):
+                    st.text(result["content"][:2000])
+
+                tags = [t.strip() for t in url_tags.split(",") if t.strip()]
+                if st.button("确认保存到知识库", type="primary"):
+                    save_result = json.loads(add_knowledge.execute({
+                        "content": f"[来源: {result.get('title', result['url'])}]\n\n{result['content']}",
+                        "tags": tags if tags else ["网页收藏"],
+                        "importance": "normal",
+                    }))
+                    if save_result.get("status") == "success":
+                        st.success(f"已保存！ID: {save_result['note_id']}")
+                        st.balloons()
+
+# ═══════════════════════════════════════════
+#  页面四：笔记管理
+# ═══════════════════════════════════════════
+elif page == "笔记管理":
+    st.title("📚 笔记管理")
+    st.markdown("---")
+
+    all_notes = metadata_store.list_notes()
+
+    col1, col2 = st.columns([3, 1])
+    with col2:
+        st.subheader("筛选")
+        filter_tag = st.text_input("按标签筛选", placeholder="输入标签")
+        filter_imp = st.multiselect("按重要度", ["high", "normal", "low"])
+        sort_by = st.selectbox("排序", ["最新创建", "最近访问", "访问次数"])
+
+    if filter_tag:
+        all_notes = [n for n in all_notes if filter_tag in n.get("tags", [])]
+    if filter_imp:
+        all_notes = [n for n in all_notes if n.get("importance") in filter_imp]
+    if sort_by == "最近访问":
+        all_notes.sort(key=lambda x: x.get("last_accessed", 0), reverse=True)
+    elif sort_by == "访问次数":
+        all_notes.sort(key=lambda x: x.get("access_count", 0), reverse=True)
+
+    with col1:
+        st.subheader(f"共 {len(all_notes)} 条笔记")
+        for note in all_notes:
+            tags_str = " ".join([f"`{t}`" for t in note.get("tags", [])])
+            imp_icon = {"high": "🔴", "normal": "🔵", "low": "⚪"}.get(
+                note.get("importance", "normal"), "🔵"
+            )
+
+            with st.expander(f"{imp_icon} {note['preview'][:60]}"):
+                st.markdown(f"**ID:** `{note['id']}`")
+                st.markdown(f"**标签:** {tags_str or '无'}")
+                st.markdown(f"**重要度:** {note.get('importance', 'normal')}")
+                st.markdown(f"**创建时间:** {time.strftime('%Y-%m-%d %H:%M', time.localtime(note['created_at']))}")
+                st.markdown(f"**访问次数:** {note.get('access_count', 0)}")
+
+                retention = fc.calculate_retention(note["id"])
+                st.progress(retention)
+                st.caption(f"记忆保留率: {retention*100:.0f}%")
+
+                if st.button(f"删除", key=f"del_{note['id']}"):
+                    metadata_store.delete_note(note["id"])
+                    st.warning(f"已删除 {note['id']}")
+                    st.rerun()
+
+# ═══════════════════════════════════════════
+#  页面五：复习提醒
+# ═══════════════════════════════════════════
+elif page == "复习提醒":
+    st.title("⏰ 复习提醒")
+    st.markdown("基于**遗忘曲线算法**，智能追踪你的知识记忆状态。")
+    st.markdown("---")
+
+    tab_review, tab_curves = st.tabs(["待复习列表", "遗忘曲线分析"])
+
+    # ─── Tab 1: 待复习列表 ───
+    with tab_review:
+        reminders = fc.get_notes_for_review(threshold=0.6)
+
+        if not reminders:
+            st.success("🎉 目前没有需要复习的内容，继续保持！")
+        else:
+            st.warning(f"有 **{len(reminders)}** 条知识需要复习")
+
+            for r in reminders:
+                note = metadata_store.get_note(r["note_id"])
+                preview = note["preview"] if note else "未知内容"
+                tags = note.get("tags", []) if note else []
+
+                urgency_color = {"紧急": "🔴", "重要": "🟡", "一般": "🟢"}.get(
+                    r["urgency"], "⚪"
+                )
+
+                with st.container():
+                    st.markdown(f"### {urgency_color} {r['urgency']} — {preview}")
+                    col_a, col_b, col_c = st.columns(3)
+                    col_a.metric("记忆保留率", f"{r['retention']*100:.0f}%")
+                    col_b.metric("距上次复习", f"{r['days_since_review']}天")
+                    col_c.metric("已复习次数", r["review_count"])
+
+                    st.progress(r["retention"])
+
+                    if tags:
+                        st.caption(" ".join([f"`{t}`" for t in tags]))
+
+                    if st.button(f"标记已复习", key=f"review_{r['note_id']}"):
+                        fc.record_access(r["note_id"])
+                        st.success("已记录复习！保留率已更新。")
+                        st.rerun()
+
+    # ─── Tab 2: 遗忘曲线分析 ───
+    with tab_curves:
+        st.subheader("遗忘曲线可视化")
+        st.caption("每条笔记的遗忘衰减曲线，展示记忆保留率随时间变化趋势")
+
+        import pandas as pd
+        curves = fc.get_all_curves_data()
+
+        if not curves:
+            st.info("暂无遗忘曲线数据，请先添加笔记并浏览后查看。")
+        else:
+            # ─── 全部笔记曲线叠加图 ───
+            st.markdown("#### 全部笔记遗忘曲线对比")
+            chart_data = []
+            for curve in curves:
+                preview = curve["note_id"][:12]
+                for pt in curve["points"]:
+                    chart_data.append({
+                        "天数": pt["day"],
+                        "保留率": pt["retention"],
+                        "笔记": preview,
+                    })
+
+            if chart_data:
+                df_all = pd.DataFrame(chart_data)
+                st.line_chart(
+                    df_all.pivot(index="天数", columns="笔记", values="保留率"),
+                    use_container_width=True,
+                )
+
+            st.markdown("---")
+
+            # ─── 单条笔记详细分析 ───
+            st.markdown("#### 单条笔记遗忘曲线")
+            note_options = [c["note_id"] for c in curves]
+            selected_note = st.selectbox("选择笔记", note_options, format_func=lambda x: x[:20])
+
+            if selected_note:
+                curve = next((c for c in curves if c["note_id"] == selected_note), None)
+                if curve:
+                    col1, col2, col3, col4 = st.columns(4)
+                    col1.metric("当前保留率", f"{curve['current_retention']*100:.0f}%")
+                    col2.metric("距上次复习", f"{curve['days_since']}天")
+                    col3.metric("已复习次数", curve["access_count"])
+                    col4.metric("稳定系数", curve["stability"])
+
+                    chart_points = [{"day": p["day"], "保留率": p["retention"]} for p in curve["points"]]
+                    st.line_chart(
+                        pd.DataFrame(chart_points).set_index("day"),
+                        use_container_width=True,
+                    )
+
+                    # 复习节点标记
+                    note_rec_res = table("forgetting").select("review_dates").eq("note_id", selected_note).execute()
+                    if note_rec_res.data:
+                        review_dates = note_rec_res.data[0].get("review_dates") or []
+                        if review_dates:
+                            st.markdown("**历史复习时间点:**")
+                            for rd in review_dates:
+                                st.caption(f"📅 {time.strftime('%Y-%m-%d %H:%M', time.localtime(rd))}")
+
+                    retention = curve["current_retention"]
+                    if retention < 0.3:
+                        st.error("⚠️ 记忆保留率极低，强烈建议立即复习！")
+                    elif retention < 0.6:
+                        st.warning("📌 记忆正在衰退，建议尽快复习。")
+                    else:
+                        st.success("✅ 记忆状态良好，继续保持。")
+
+# ═══════════════════════════════════════════
+#  页面六：知识图谱
+# ═══════════════════════════════════════════
+elif page == "知识图谱":
+    st.title("🕸️ 知识图谱")
+    st.markdown("基于 **LLM 实体抽取 + NetworkX** 构建真正的知识图谱，支持多跳推理关联发现。")
+    st.markdown("---")
+
+    from storage.graph import KnowledgeGraph
+    from storage.extractor import extract_from_text
+    from storage.reasoning import discover_cross_domain_links, find_related_concepts, get_importance_scores
+
+    if "kg" not in st.session_state:
+        st.session_state.kg = KnowledgeGraph()
+    kg = st.session_state.kg
+
+    tab_add, tab_viz, tab_reason, tab_analysis = st.tabs(["添加笔记", "图谱总览", "多跳推理", "节点分析"])
+
+    # ─── Tab 1: 添加笔记 ───
+    with tab_add:
+        st.subheader("输入笔记，自动抽取实体关系")
+        note_content = st.text_area(
+            "笔记内容",
+            height=150,
+            placeholder="例如：Redis是一个开源的内存数据结构存储系统，广泛用于缓存策略。在电商秒杀场景中，Redis可以解决高并发下的库存扣减问题。",
+        )
+
+        if st.button("提取并加入图谱", type="primary") and note_content.strip():
+            with st.spinner("LLM 正在抽取实体关系..."):
+                result = extract_from_text(note_content)
+
+            entities = result.get("entities", [])
+            relations = result.get("relations", [])
+
+            if entities:
+                st.success(f"抽取完成：{len(entities)} 个实体，{len(relations)} 条关系")
+                col1, col2 = st.columns(2)
+                with col1:
+                    st.markdown("**实体**")
+                    for e in entities:
+                        st.markdown(f"- {e['name']} ({e['type']})")
+                with col2:
+                    st.markdown("**关系**")
+                    for r in relations:
+                        st.markdown(f"- {r['source']} →{r['relation']}→ {r['target']}")
+
+                kg.add_entities(entities)
+                kg.add_relations(relations)
+                kg.save()
+                st.rerun()
+            else:
+                st.warning("未抽取到实体，请尝试更详细的内容。")
+
+    # ─── Tab 2: 图谱总览 ───
+    with tab_viz:
+        if len(kg.graph.nodes) == 0:
+            st.info("图谱为空，请先在「添加笔记」页面输入内容。")
+        else:
+            dot_lines = ["digraph KG {", "  rankdir=LR;", "  bgcolor=transparent;"]
+            dot_lines.append('  node [shape=box, style="rounded,filled", fontname="Microsoft YaHei", fontsize=10];')
+            dot_lines.append('  edge [fontname="Microsoft YaHei", fontsize=8, color="#666666"];')
+
+            type_colors = {
+                "技术": "#4ECDC4", "概念": "#FFE66D", "场景": "#FF6B6B",
+                "工具": "#95E1D3", "框架": "#A8D8EA", "方法": "#DCD6F7",
+            }
+            for node, data in kg.graph.nodes(data=True):
+                ntype = data.get("type", "未知")
+                color = type_colors.get(ntype, "#CCCCCC")
+                safe = node.replace('"', '\\"')
+                dot_lines.append(f'  "{safe}" [label="{safe}\\n({ntype})", fillcolor="{color}"];')
+            for u, v, data in kg.graph.edges(data=True):
+                rel = data.get("relation", "")
+                safe_u = u.replace('"', '\\"')
+                safe_v = v.replace('"', '\\"')
+                dot_lines.append(f'  "{safe_u}" -> "{safe_v}" [label="{rel}"];')
+            dot_lines.append("}")
+            st.graphviz_chart("\n".join(dot_lines), use_container_width=True)
+
+            st.markdown("---")
+            col1, col2, col3 = st.columns(3)
+            col1.metric("实体节点", len(kg.graph.nodes))
+            col2.metric("关系边", len(kg.graph.edges))
+            pr = kg.pagerank()
+            top = max(pr.items(), key=lambda x: x[1])[0] if pr else "-"
+            col3.metric("核心节点", top)
+
+    # ─── Tab 3: 多跳推理 ───
+    with tab_reason:
+        if len(kg.graph.nodes) < 2:
+            st.info("需要至少 2 个实体才能推理。")
+        else:
+            tab_cross, tab_query = st.tabs(["跨领域关联发现", "指定节点查询"])
+
+            with tab_cross:
+                st.subheader("跨领域关联")
+                st.caption("发现不同领域实体之间的多跳连接路径")
+                if st.button("发现跨领域关联", type="primary", key="cross_btn"):
+                    with st.spinner("正在计算..."):
+                        links = discover_cross_domain_links(kg)
+                    if not links:
+                        st.info("未发现跨领域关联")
+                    else:
+                        st.success(f"发现 {len(links)} 条跨领域关联")
+                        for link in links[:10]:
+                            path_str = " → ".join(link["path"])
+                            st.markdown(f"**{link['source']}** ({link['source_type']}) ↔ **{link['target']}** ({link['target_type']})")
+                            st.caption(f"路径 ({link['hops']}跳): {path_str}")
+                            for edge in link["edges"]:
+                                st.caption(f"  {edge['from']} —[{edge['relation']}]→ {edge['to']}")
+                            st.divider()
+
+            with tab_query:
+                st.subheader("指定节点查询")
+                node_list = [n["name"] for n in kg.get_all_nodes()]
+                selected = st.selectbox("选择起始节点", node_list)
+                hops = st.slider("最大跳数", 1, 4, 2, key="hop_slider")
+                if st.button("查询关联", type="primary", key="query_btn"):
+                    with st.spinner("正在推理..."):
+                        related = find_related_concepts(kg, selected, max_hops=hops)
+                    if not related:
+                        st.info("未找到跨领域关联")
+                    else:
+                        for r in related:
+                            path_str = " → ".join(r["path"])
+                            st.markdown(f"**{r['concept']}** ({r['type']}) — {r['hops']}跳")
+                            st.caption(f"路径: {path_str}")
+
+    # ─── Tab 4: 节点分析 ───
+    with tab_analysis:
+        if len(kg.graph.nodes) == 0:
+            st.info("图谱为空。")
+        else:
+            scores = get_importance_scores(kg)
+            import pandas as pd
+            df = pd.DataFrame(scores)
+            st.dataframe(df, use_container_width=True)
+            st.markdown("---")
+            st.subheader("PageRank 分布")
+            st.bar_chart(df.set_index("name")["pagerank"])
+
+# ═══════════════════════════════════════════
+#  页面七：学习路径
+# ═══════════════════════════════════════════
+elif page == "学习路径":
+    st.title("🎯 个性化学习路径")
+    st.markdown("根据遗忘曲线和标签掌握度，智能推荐下一步学习方向。")
+    st.markdown("---")
+
+    from storage.learning_path import get_learning_path, get_weak_notes
+
+    path_data = get_learning_path()
+
+    c1, c2, c3 = st.columns(3)
+    c1.metric("总笔记数", path_data["total_notes"])
+    c2.metric("标签维度", path_data["total_tags"])
+    c3.metric("整体保留率", f"{path_data['overall_retention']*100:.0f}%")
+
+    st.markdown("---")
+
+    recommendations = path_data["recommendations"]
+    if not recommendations:
+        st.info("数据不足，添加更多笔记后即可生成个性化学习路径。")
+    else:
+        st.subheader("学习建议")
+
+        for rec in recommendations:
+            tag = rec["tag"]
+            reason = rec["reason"]
+            urgency = rec["urgency"]
+            total = rec["total_notes"]
+
+            icon = {"high": "🔴", "medium": "🟡", "explore": "🟢"}.get(urgency, "⚪")
+            label = {"high": "紧急复习", "medium": "建议复习", "explore": "拓展深入"}.get(urgency, "一般")
+
+            with st.container():
+                st.markdown(f"### {icon} **{tag}** — {label}")
+                st.markdown(f"💡 {reason}")
+                st.caption(f"涉及 {total} 条笔记")
+
+                for n in rec["notes"]:
+                    ret = n["retention"]
+                    color = "🟢" if ret > 0.7 else ("🟡" if ret > 0.4 else "🔴")
+                    st.markdown(f"{color} {n['preview']}  — 保留率 {ret*100:.0f}%")
+
+                if urgency in ("high", "medium") and st.button(
+                    f"开始复习 {tag}", key=f"start_review_{tag}"
+                ):
+                    fc.record_access(rec["notes"][0]["id"])
+                    st.success(f"已记录对「{tag}」的复习，保留率已更新！")
+                    st.rerun()
+
+    st.markdown("---")
+    st.subheader("最急需复习的笔记")
+    weak_notes = get_weak_notes(5)
+    if weak_notes:
+        for wn in weak_notes:
+            ret = wn["retention"]
+            tags_str = " ".join([f"`{t}`" for t in wn["tags"]])
+            st.markdown(
+                f"🔴 **{wn['preview']}** — 保留率 {ret*100:.0f}%"
+            )
+            if tags_str:
+                st.caption(tags_str)
+    else:
+        st.success("没有需要紧急复习的笔记，表现优秀！")
+
+# ═══════════════════════════════════════════
+#  页面八：设置
+# ═══════════════════════════════════════════
+elif page == "设置":
+    st.title("⚙️ 设置")
+    st.markdown("---")
+
+    st.subheader("API 配置")
+    import config
+    st.text_input("API Base URL", value=config.OPENAI_BASE_URL, key="api_url",
+                   disabled=True)
+    st.text_input("模型名称", value=config.MODEL_NAME, key="model_name",
+                   disabled=True)
+    st.caption("修改API配置请编辑项目根目录下的 .env 文件")
+
+    st.markdown("---")
+    st.subheader("数据管理")
+
+    col1, col2, col3 = st.columns(3)
+    with col1:
+        if st.button("清空知识库", type="primary"):
+            st.warning("此操作不可恢复！")
+            if st.button("确认清空", type="primary"):
+                vector_store.delete_all()
+                st.success("知识库已清空")
+                st.rerun()
+
+    with col2:
+        if st.button("导出笔记为JSON"):
+            notes = metadata_store.list_notes()
+            st.download_button(
+                "下载 JSON",
+                data=json.dumps(notes, ensure_ascii=False, indent=2),
+                file_name="knowledge_base_export.json",
+                mime="application/json",
+            )
+
+    with col3:
+        st.metric("向量库文档数", vector_store.count())
+        st.metric("元数据笔记数", metadata_store.count())
