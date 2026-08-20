@@ -748,16 +748,19 @@ elif page == "设置":
     current_embedding = long_term.get_preference("embedding_model", config.EMBEDDING_MODEL, user_id=USER_ID)
 
     new_url = st.text_input("API Base URL", value=current_url, key="api_url")
-    new_key = st.text_input("API Key", value=current_key, type="password", key="api_key_input")
+    new_key = st.text_input("API Key（留空则保持原配置）", value="", type="password", key="api_key_input",
+                            placeholder="输入新 Key 以更新，留空不修改")
     new_model = st.text_input("模型名称", value=current_model, key="model_name_input")
     new_embedding = st.text_input("Embedding 模型", value=current_embedding, key="embedding_input")
 
     if st.button("保存 API 配置", type="primary"):
         long_term.update_preference("api_base_url", new_url, user_id=USER_ID)
-        long_term.update_preference("api_key", new_key, user_id=USER_ID)
+        if new_key:
+            long_term.update_preference("api_key", new_key, user_id=USER_ID)
+            current_key = new_key
         long_term.update_preference("model_name", new_model, user_id=USER_ID)
         long_term.update_preference("embedding_model", new_embedding, user_id=USER_ID)
-        set_user_settings(USER_ID, api_key=new_key, base_url=new_url,
+        set_user_settings(USER_ID, api_key=current_key, base_url=new_url,
                           model_name=new_model, embedding_model=new_embedding)
         st.success("配置已保存并生效！")
 
