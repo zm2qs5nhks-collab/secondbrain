@@ -2,6 +2,7 @@
 元数据存储 —— PostgreSQL 版
 """
 
+import json
 import time
 import uuid
 from storage.db import query_one, query_all, execute
@@ -13,8 +14,8 @@ def add_note(content_preview: str, tags: list[str] = None,
     note_id = f"note_{uuid.uuid4().hex[:8]}"
     execute(
         """INSERT INTO notes (id, preview, tags, source, importance, user_id, created_at, last_accessed, access_count)
-           VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)""",
-        (note_id, content_preview[:200], tags or [], source, importance,
+           VALUES (%s, %s, %s::jsonb, %s, %s, %s, %s, %s, %s)""",
+        (note_id, content_preview[:200], json.dumps(tags or [], ensure_ascii=False), source, importance,
          user_id, time.time(), time.time(), 0),
     )
     return note_id
