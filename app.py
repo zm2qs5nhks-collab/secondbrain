@@ -83,6 +83,16 @@ if st.session_state.user_id is None:
 # ─── 登录成功 ───
 USER_ID = st.session_state.user_id
 
+from memory import long_term
+from agent.llm import set_user_settings
+set_user_settings(
+    USER_ID,
+    api_key=long_term.get_preference("api_key", config.OPENAI_API_KEY, user_id=USER_ID),
+    base_url=long_term.get_preference("api_base_url", config.OPENAI_BASE_URL, user_id=USER_ID),
+    model_name=long_term.get_preference("model_name", config.MODEL_NAME, user_id=USER_ID),
+    embedding_model=long_term.get_preference("embedding_model", config.EMBEDDING_MODEL, user_id=USER_ID),
+)
+
 from storage import vector_store, metadata_store
 from scheduler import forgetting_curve as fc
 from tools import add_knowledge, search_knowledge, manage_knowledge, reminder
@@ -730,12 +740,26 @@ elif page == "设置":
     st.markdown("---")
 
     st.subheader("API 配置")
-    import config
-    st.text_input("API Base URL", value=config.OPENAI_BASE_URL, key="api_url",
-                   disabled=True)
-    st.text_input("模型名称", value=config.MODEL_NAME, key="model_name",
-                   disabled=True)
-    st.caption("修改API配置请编辑项目根目录下的 .env 文件")
+    from memory import long_term
+
+    current_url = long_term.get_preference("api_base_url", config.OPENAI_BASE_URL, user_id=USER_ID)
+    current_key = long_term.get_preference("api_key", config.OPENAI_API_KEY, user_id=USER_ID)
+    current_model = long_term.get_preference("model_name", config.MODEL_NAME, user_id=USER_ID)
+    current_embedding = long_term.get_preference("embedding_model", config.EMBEDDING_MODEL, user_id=USER_ID)
+
+    new_url = st.text_input("API Base URL", value=current_url, key="api_url")
+    new_key = st.text_input("API Key", value=current_key, type="password", key="api_key_input")
+    new_model = st.text_input("模型名称", value=current_model, key="model_name_input")
+    new_embedding = st.text_input("Embedding 模型", value=current_embedding, key="embedding_input")
+
+    if st.button("保存 API 配置", type="primary"):
+        long_term.update_preference("api_base_url", new_url, user_id=USER_ID)
+        long_term.update_preference("api_key", new_key, user_id=USER_ID)
+        long_term.update_preference("model_name", new_model, user_id=USER_ID)
+        long_term.update_preference("embedding_model", new_embedding, user_id=USER_ID)
+        set_user_settings(USER_ID, api_key=new_key, base_url=new_url,
+                          model_name=new_model, embedding_model=new_embedding)
+        st.success("配置已保存并生效！")
 
     st.markdown("---")
     st.subheader("数据管理")
