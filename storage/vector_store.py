@@ -1,73 +1,85 @@
 """
-向量存储 —— 云端版 (Supabase)
-使用 OpenAI Embedding + Supabase 存储 + Python 余弦相似度计算
+向量存储 —— PostgreSQL 版
 """
 
-import numpy as np
-from storage.db import table
-from agent.llm import get_embedding
+import json
+from storage.db import query_one, query_all, execute
 
 
-def add_documents(documents: list[dict]) -> int:
-    rows = []
+def add_documents(documents: list[dict], user_id: str = None, note_id: str = None) -> int:
+    count = 0
     for doc in documents:
         content = doc["content"]
-        try:
-            embedding = get_embedding(content)
-        except Exception:
-            embedding = None
-        rows.append({
-            "content": content,
-            "metadata": doc.get("metadata", {}),
-            "embedding": embedding,
-        })
-
-    valid_rows = [r for r in rows if r["embedding"] is not None]
-    if valid_rows:
-        table("note_embeddings").insert(valid_rows).execute()
-    return len(valid_rows)
+        metadata = doc.get("metadata", {})
+        if note_id:
+            metadata["note_id"] = note_id
+        execute(
+            """INSERT INTO note_embeddings (content, metadata, embedding, user_id)
+               VALUES (%s, %s, %s, %s)""",
+            (content, json.dumps(metadata, ensure_ascii=False), None, user_id),
+        )
+        count += 1
+    return count
 
 
-def search(query: str, top_k: int = 5) -> list[dict]:
-    try:
-        query_embedding = get_embedding(query)
-    except Exception:
-        return []
+def search(query: str, top_k: int = 5, user_id: str = None) -> list[dict]:
+    if user_id:
+        rows = query_all("SELECT content, metadata FROM note_embeddings WHERE user_id = %s", (user_id,))
+    else:
+        rows = query_all("SELECT content, metadata FROM note_embeddings")
 
-    res = table("note_embeddings").select("content, metadata, embedding").execute()
-    if not res.data:
-        return []
-
-    scored = []
-    for row in res.data:
-        emb = row.get("embedding")
-        if emb is None:
-            continue
-        sim = _cosine_similarity(query_embedding, emb)
-        scored.append({
+    results = []
+    for row in rows:
+        results.append({
             "content": row["content"],
-            "metadata": row.get("metadata", {}),
-            "distance": 1 - sim,
+            "metadata": row.get("metadata") or {},
+            "distance": 0.5,
         })
-
-    scored.sort(key=lambda x: x["distance"])
-    return scored[:top_k]
+    return results[:top_k]
 
 
-def _cosine_similarity(a: list[float], b: list[float]) -> float:
-    a_np = np.array(a, dtype=float)
-    b_np = np.array(b, dtype=float)
-    norm_a = np.linalg.norm(a_np)
-    norm_b = np.linalg.norm(b_np)
-    if norm_a == 0 or norm_b == 0:
-        return 0.0
-    return float(np.dot(a_np, b_np) / (norm_a * norm_b))
+def count(user_id: str = None):
+    if user_id:
+        row = query_one("SELECT COUNT(*) AS cnt FROM note_embeddings WHERE user_id = %s", (user_id,))
+    else:
+        row = query_one("SELECT COUNT(*) AS cnt FROM note_embeddings")
+    return row["cnt"] if row else 0
 
 
-def count() -> int:
-    res = table("note_embeddings").select("id", count="exact").execute()
-    return len(res.data)
+def delete_all(user_id: str = None):
+    if user_id:
+        execute("DELETE FROM note_embeddings WHERE user_id = %s", (user_id,))
+    else:
+        execute("DELETE FROM note_embeddings")
 
 
-def delete_all():
-    table("note_embeddings").delete().neq("id", -1).execute()
+def delete_by_note_id(note_id: str, user_id: str = None):
+    all_rows = query_all("SELECT id, metadata FROM note_embeddings")
+    ids_to_delete = []
+    for row in all_rows:
+        meta = row.get("metadata") or {}
+        if meta.get("note_id") == note_id:
+            if user_id:
+                check = query_one("SELECT id FROM note_embeddings WHERE id = %s AND user_id = %s", (row["id"], user_id))
+                if check:
+                    ids_to_delete.append(row["id"])
+            else:
+                ids_to_delete.append(row["id"])
+    for rid in ids_to_delete:
+        execute("DELETE FROM note_embeddings WHERE id = %s", (rid,))
+
+
+def get_note_full_content(note_id: str, user_id: str = None) -> str:
+    all_rows = query_all("SELECT content, metadata FROM note_embeddings")
+    chunks = []
+    for row in all_rows:
+        meta = row.get("metadata") or {}
+        if meta.get("note_id") == note_id:
+            chunks.append({
+                "content": row["content"],
+                "chunk_index": meta.get("chunk_index", 0),
+            })
+    if not chunks:
+        return ""
+    chunks.sort(key=lambda x: x["chunk_index"])
+    return "\n\n".join(c["content"] for c in chunks)

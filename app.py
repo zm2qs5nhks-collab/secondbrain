@@ -20,30 +20,76 @@ st.set_page_config(
 
 import config
 
-if not config.SUPABASE_URL or not config.SUPABASE_KEY:
-    st.error("""
-    ### 需要配置 Supabase 云数据库
+from storage.db import query_one, execute
 
-    1. 访问 [supabase.com](https://supabase.com) 免费注册
-    2. 创建项目，获取 **Project URL** 和 **anon public key**
-    3. 在项目 `.env` 文件或 Streamlit Cloud 的 Secrets 中配置：
-       ```
-       SUPABASE_URL=https://xxx.supabase.co
-       SUPABASE_KEY=eyJxxx...
-       ```
-    4. 在 Supabase 的 SQL Editor 中执行 `setup_supabase.sql` 创建数据表
-    """)
+# ═══════════════════════════════════════════
+#  登录/注册页面
+# ═══════════════════════════════════════════
+if "user_id" not in st.session_state:
+    st.session_state.user_id = None
+if "user_email" not in st.session_state:
+    st.session_state.user_email = None
+
+if st.session_state.user_id is None:
+    st.title("🧠 第二大脑")
+    st.caption("登录后开始管理你的知识库")
+
+    tab_login, tab_register = st.tabs(["登录", "注册"])
+
+    with tab_login:
+        login_email = st.text_input("邮箱", key="login_email")
+        login_pwd = st.text_input("密码", type="password", key="login_pwd")
+        if st.button("登录", type="primary"):
+            if not login_email or not login_pwd:
+                st.error("请输入邮箱和密码")
+            else:
+                import hashlib
+                pwd_hash = hashlib.sha256(login_pwd.encode()).hexdigest()
+                user = query_one(
+                    "SELECT id, email FROM users WHERE email = %s AND password_hash = %s",
+                    (login_email, pwd_hash),
+                )
+                if user:
+                    st.session_state.user_id = str(user["id"])
+                    st.session_state.user_email = user["email"]
+                    st.rerun()
+                else:
+                    st.error("邮箱或密码错误")
+
+    with tab_register:
+        reg_email = st.text_input("邮箱", key="reg_email")
+        reg_pwd = st.text_input("密码", type="password", key="reg_pwd")
+        reg_pwd2 = st.text_input("确认密码", type="password", key="reg_pwd2")
+        if st.button("注册", type="primary"):
+            if not reg_email or not reg_pwd:
+                st.error("请输入邮箱和密码")
+            elif reg_pwd != reg_pwd2:
+                st.error("两次密码不一致")
+            else:
+                existing = query_one("SELECT id FROM users WHERE email = %s", (reg_email,))
+                if existing:
+                    st.error("该邮箱已注册")
+                else:
+                    import hashlib
+                    pwd_hash = hashlib.sha256(reg_pwd.encode()).hexdigest()
+                    execute(
+                        "INSERT INTO users (email, password_hash) VALUES (%s, %s)",
+                        (reg_email, pwd_hash),
+                    )
+                    st.success("注册成功！请切换到登录标签登录。")
+
     st.stop()
 
+# ─── 登录成功 ───
+USER_ID = st.session_state.user_id
+
 from storage import vector_store, metadata_store
-from storage.db import table
 from scheduler import forgetting_curve as fc
 from tools import add_knowledge, search_knowledge, manage_knowledge, reminder
 
 # ─── 侧边栏导航 ───
 st.sidebar.title("🧠 第二大脑")
-st.sidebar.caption("个人知识管理 Agent")
-st.sidebar.caption(f"数据库: 已连接")
+st.sidebar.caption(f"已登录: {st.session_state.user_email}")
 
 page = st.sidebar.radio(
     "导航",
@@ -52,24 +98,65 @@ page = st.sidebar.radio(
 )
 
 st.sidebar.divider()
-stats_count = metadata_store.count()
+stats_count = metadata_store.count(user_id=USER_ID)
 st.sidebar.metric("知识库笔记数", stats_count)
+
+if st.sidebar.button("退出登录"):
+    st.session_state.user_id = None
+    st.session_state.user_email = None
+    if "agent" in st.session_state:
+        del st.session_state.agent
+    if "chat_history" in st.session_state:
+        del st.session_state.chat_history
+    st.rerun()
+
+
+def tts_button(text):
+    import json as _j
+    safe = _j.dumps(text[:200], ensure_ascii=False)
+    html = f"""
+    <button onclick="speak({safe})" style="background:none;border:1px solid #ccc;border-radius:8px;padding:2px 10px;cursor:pointer;font-size:13px;margin-top:4px">🔊 朗读</button>
+    <script>
+    function speak(t) {{ var u = new SpeechSynthesisUtterance(t); u.lang = 'zh-CN'; speechSynthesis.speak(u); }}
+    </script>
+    """
+    st.markdown(html, unsafe_allow_html=True)
+
 
 # ═══════════════════════════════════════════
 #  页面一：仪表盘
 # ═══════════════════════════════════════════
 if page == "仪表盘":
-    st.title("🧠 第二大脑 —— 仪表盘")
-    st.markdown("---")
+    import datetime
+    hour = datetime.datetime.now().hour
+    if hour < 6:
+        greeting = "🌙 夜深了，还在学习真棒"
+    elif hour < 9:
+        greeting = "🌅 早上好！今天也是学习的好日子"
+    elif hour < 12:
+        greeting = "☀️ 上午好，保持专注哦"
+    elif hour < 14:
+        greeting = "🌤️ 中午好，休息一下再继续"
+    elif hour < 18:
+        greeting = "🌇 下午好，一起加油吧"
+    else:
+        greeting = "🌆 晚上好，今天有什么收获吗"
+
+    st.title("🧠 第二大脑")
+    st.markdown(f"### {greeting}")
+
+    due = fc.get_notes_for_review(user_id=USER_ID)
+    if due:
+        st.info(f"💡 你有 **{len(due)}** 条知识需要复习啦，去「复习提醒」看看吧")
 
     c1, c2, c3, c4 = st.columns(4)
-    all_notes = metadata_store.list_notes()
+    all_notes = metadata_store.list_notes(user_id=USER_ID)
     total = len(all_notes)
     tags_set = set()
     for n in all_notes:
         tags_set.update(n.get("tags", []))
     high_imp = sum(1 for n in all_notes if n.get("importance") == "high")
-    reminders = fc.get_notes_for_review()
+    reminders = fc.get_notes_for_review(user_id=USER_ID)
 
     c1.metric("总笔记数", total)
     c2.metric("标签种类", len(tags_set))
@@ -102,7 +189,6 @@ if page == "仪表盘":
                     tag_counts[t] = tag_counts.get(t, 0) + 1
             sorted_tags = sorted(tag_counts.items(), key=lambda x: x[1], reverse=True)
             for tag, cnt in sorted_tags[:10]:
-                bar_len = min(cnt * 10, 50)
                 st.markdown(f"**{tag}** `×{cnt}`")
                 st.progress(min(cnt / max(tag_counts.values()), 1.0))
         else:
@@ -114,18 +200,21 @@ if page == "仪表盘":
 elif page == "知识问答":
     st.title("💬 知识问答")
     st.caption("和你的第二大脑对话，它会自动调用工具完成任务")
+    st.caption("💡 可以闲聊、问知识、让我记东西、帮你复习")
 
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = []
     if "agent" not in st.session_state:
         from agent.core import SecondBrainAgent
-        st.session_state.agent = SecondBrainAgent()
+        st.session_state.agent = SecondBrainAgent(user_id=USER_ID)
 
     for msg in st.session_state.chat_history:
         role = msg["role"]
         avatar = "🧑" if role == "user" else "🧠"
         with st.chat_message(role, avatar=avatar):
             st.markdown(msg["content"])
+            if role == "assistant" and msg.get("content"):
+                tts_button(msg["content"])
 
     user_input = st.chat_input("输入你的问题...")
 
@@ -141,6 +230,7 @@ elif page == "知识问答":
                 except Exception as e:
                     response = f"出错了: {e}"
             st.markdown(response)
+            tts_button(response)
 
         st.session_state.chat_history.append(
             {"role": "assistant", "content": response}
@@ -163,7 +253,6 @@ elif page == "导入笔记":
 
     tab_file, tab_text, tab_url = st.tabs(["本地文件", "手动输入", "网页抓取"])
 
-    # ─── Tab 1: 本地文件 ───
     with tab_file:
         st.subheader("上传文件")
         st.caption("支持 .txt, .md 格式")
@@ -188,12 +277,11 @@ elif page == "导入笔记":
                         "content": content,
                         "tags": tags if tags else ["文件导入"],
                         "importance": file_importance,
-                    }))
+                    }, user_id=USER_ID))
                     if result.get("status") == "success":
                         success_count += 1
             st.success(f"成功导入 {success_count}/{len(uploaded_files)} 个文件！")
 
-    # ─── Tab 2: 手动输入 ───
     with tab_text:
         st.subheader("手动输入笔记")
         note_content = st.text_area(
@@ -212,14 +300,13 @@ elif page == "导入笔记":
                 "content": note_content,
                 "tags": tags if tags else ["手动输入"],
                 "importance": note_importance,
-            }))
+            }, user_id=USER_ID))
             if result.get("status") == "success":
                 st.success(f"笔记已保存！ID: {result['note_id']}")
                 st.balloons()
             else:
                 st.error(result.get("error", "保存失败"))
 
-    # ─── Tab 3: 网页抓取 ───
     with tab_url:
         st.subheader("从网页导入知识")
         st.caption("输入文章URL，自动提取正文内容并保存到知识库")
@@ -235,29 +322,33 @@ elif page == "导入笔记":
             with st.spinner("正在抓取网页内容..."):
                 try:
                     from tools.fetch_web import fetch_url
-                    result = fetch_url(url_input)
-                    st.session_state["fetched"] = result
+                    fetched = fetch_url(url_input)
+                    st.session_state["fetched"] = fetched
                 except Exception as e:
                     st.error(f"抓取失败: {e}")
                     st.stop()
 
-            if result.get("content"):
-                st.success(f"抓取成功！标题: {result.get('title', '无标题')}")
-                st.caption(f"内容长度: {result['length']} 字符")
+        fetched = st.session_state.get("fetched")
+        if fetched and fetched.get("content"):
+            st.success(f"抓取成功！标题: {fetched.get('title', '无标题')}")
+            st.caption(f"内容长度: {fetched['length']} 字符")
 
-                with st.expander("预览内容", expanded=False):
-                    st.text(result["content"][:2000])
+            with st.expander("预览内容", expanded=False):
+                st.text(fetched["content"][:2000])
 
-                tags = [t.strip() for t in url_tags.split(",") if t.strip()]
-                if st.button("确认保存到知识库", type="primary"):
+            tags = [t.strip() for t in url_tags.split(",") if t.strip()]
+            if st.button("确认保存到知识库", type="primary"):
+                with st.spinner("正在保存..."):
                     save_result = json.loads(add_knowledge.execute({
-                        "content": f"[来源: {result.get('title', result['url'])}]\n\n{result['content']}",
+                        "content": f"[来源: {fetched.get('title', fetched['url'])}]\n\n{fetched['content']}",
                         "tags": tags if tags else ["网页收藏"],
                         "importance": "normal",
-                    }))
-                    if save_result.get("status") == "success":
-                        st.success(f"已保存！ID: {save_result['note_id']}")
-                        st.balloons()
+                    }, user_id=USER_ID))
+                if save_result.get("note_id"):
+                    st.success(f"已保存！ID: {save_result['note_id']}")
+                    st.balloons()
+                else:
+                    st.error(f"保存失败: {save_result.get('error', '未知错误')}")
 
 # ═══════════════════════════════════════════
 #  页面四：笔记管理
@@ -266,7 +357,7 @@ elif page == "笔记管理":
     st.title("📚 笔记管理")
     st.markdown("---")
 
-    all_notes = metadata_store.list_notes()
+    all_notes = metadata_store.list_notes(user_id=USER_ID)
 
     col1, col2 = st.columns([3, 1])
     with col2:
@@ -299,12 +390,22 @@ elif page == "笔记管理":
                 st.markdown(f"**创建时间:** {time.strftime('%Y-%m-%d %H:%M', time.localtime(note['created_at']))}")
                 st.markdown(f"**访问次数:** {note.get('access_count', 0)}")
 
-                retention = fc.calculate_retention(note["id"])
+                retention = fc.calculate_retention(note["id"], user_id=USER_ID)
                 st.progress(retention)
                 st.caption(f"记忆保留率: {retention*100:.0f}%")
 
+                from storage.vector_store import get_note_full_content
+                full_content = get_note_full_content(note["id"], user_id=USER_ID)
+                if full_content:
+                    st.markdown("---")
+                    st.markdown("**完整内容：**")
+                    st.text_area("笔记内容", value=full_content, height=200,
+                                 disabled=True, key=f"content_{note['id']}")
+                else:
+                    st.info("完整内容未找到（可能是旧数据，重新添加笔记即可）")
+
                 if st.button(f"删除", key=f"del_{note['id']}"):
-                    metadata_store.delete_note(note["id"])
+                    metadata_store.delete_note(note["id"], user_id=USER_ID)
                     st.warning(f"已删除 {note['id']}")
                     st.rerun()
 
@@ -318,9 +419,8 @@ elif page == "复习提醒":
 
     tab_review, tab_curves = st.tabs(["待复习列表", "遗忘曲线分析"])
 
-    # ─── Tab 1: 待复习列表 ───
     with tab_review:
-        reminders = fc.get_notes_for_review(threshold=0.6)
+        reminders = fc.get_notes_for_review(threshold=0.6, user_id=USER_ID)
 
         if not reminders:
             st.success("🎉 目前没有需要复习的内容，继续保持！")
@@ -328,7 +428,7 @@ elif page == "复习提醒":
             st.warning(f"有 **{len(reminders)}** 条知识需要复习")
 
             for r in reminders:
-                note = metadata_store.get_note(r["note_id"])
+                note = metadata_store.get_note(r["note_id"], user_id=USER_ID)
                 preview = note["preview"] if note else "未知内容"
                 tags = note.get("tags", []) if note else []
 
@@ -349,22 +449,20 @@ elif page == "复习提醒":
                         st.caption(" ".join([f"`{t}`" for t in tags]))
 
                     if st.button(f"标记已复习", key=f"review_{r['note_id']}"):
-                        fc.record_access(r["note_id"])
+                        fc.record_access(r["note_id"], user_id=USER_ID)
                         st.success("已记录复习！保留率已更新。")
                         st.rerun()
 
-    # ─── Tab 2: 遗忘曲线分析 ───
     with tab_curves:
         st.subheader("遗忘曲线可视化")
         st.caption("每条笔记的遗忘衰减曲线，展示记忆保留率随时间变化趋势")
 
         import pandas as pd
-        curves = fc.get_all_curves_data()
+        curves = fc.get_all_curves_data(user_id=USER_ID)
 
         if not curves:
             st.info("暂无遗忘曲线数据，请先添加笔记并浏览后查看。")
         else:
-            # ─── 全部笔记曲线叠加图 ───
             st.markdown("#### 全部笔记遗忘曲线对比")
             chart_data = []
             for curve in curves:
@@ -385,7 +483,6 @@ elif page == "复习提醒":
 
             st.markdown("---")
 
-            # ─── 单条笔记详细分析 ───
             st.markdown("#### 单条笔记遗忘曲线")
             note_options = [c["note_id"] for c in curves]
             selected_note = st.selectbox("选择笔记", note_options, format_func=lambda x: x[:20])
@@ -405,10 +502,10 @@ elif page == "复习提醒":
                         use_container_width=True,
                     )
 
-                    # 复习节点标记
-                    note_rec_res = table("forgetting").select("review_dates").eq("note_id", selected_note).execute()
-                    if note_rec_res.data:
-                        review_dates = note_rec_res.data[0].get("review_dates") or []
+                    from storage.db import query_one as q1
+                    note_rec = q1("SELECT review_dates FROM forgetting WHERE note_id = %s AND user_id = %s", (selected_note, USER_ID))
+                    if note_rec:
+                        review_dates = note_rec.get("review_dates") or []
                         if review_dates:
                             st.markdown("**历史复习时间点:**")
                             for rd in review_dates:
@@ -440,7 +537,6 @@ elif page == "知识图谱":
 
     tab_add, tab_viz, tab_reason, tab_analysis = st.tabs(["添加笔记", "图谱总览", "多跳推理", "节点分析"])
 
-    # ─── Tab 1: 添加笔记 ───
     with tab_add:
         st.subheader("输入笔记，自动抽取实体关系")
         note_content = st.text_area(
@@ -475,7 +571,6 @@ elif page == "知识图谱":
             else:
                 st.warning("未抽取到实体，请尝试更详细的内容。")
 
-    # ─── Tab 2: 图谱总览 ───
     with tab_viz:
         if len(kg.graph.nodes) == 0:
             st.info("图谱为空，请先在「添加笔记」页面输入内容。")
@@ -509,7 +604,6 @@ elif page == "知识图谱":
             top = max(pr.items(), key=lambda x: x[1])[0] if pr else "-"
             col3.metric("核心节点", top)
 
-    # ─── Tab 3: 多跳推理 ───
     with tab_reason:
         if len(kg.graph.nodes) < 2:
             st.info("需要至少 2 个实体才能推理。")
@@ -550,7 +644,6 @@ elif page == "知识图谱":
                             st.markdown(f"**{r['concept']}** ({r['type']}) — {r['hops']}跳")
                             st.caption(f"路径: {path_str}")
 
-    # ─── Tab 4: 节点分析 ───
     with tab_analysis:
         if len(kg.graph.nodes) == 0:
             st.info("图谱为空。")
@@ -573,7 +666,7 @@ elif page == "学习路径":
 
     from storage.learning_path import get_learning_path, get_weak_notes
 
-    path_data = get_learning_path()
+    path_data = get_learning_path(user_id=USER_ID)
 
     c1, c2, c3 = st.columns(3)
     c1.metric("总笔记数", path_data["total_notes"])
@@ -610,13 +703,13 @@ elif page == "学习路径":
                 if urgency in ("high", "medium") and st.button(
                     f"开始复习 {tag}", key=f"start_review_{tag}"
                 ):
-                    fc.record_access(rec["notes"][0]["id"])
+                    fc.record_access(rec["notes"][0]["id"], user_id=USER_ID)
                     st.success(f"已记录对「{tag}」的复习，保留率已更新！")
                     st.rerun()
 
     st.markdown("---")
     st.subheader("最急需复习的笔记")
-    weak_notes = get_weak_notes(5)
+    weak_notes = get_weak_notes(5, user_id=USER_ID)
     if weak_notes:
         for wn in weak_notes:
             ret = wn["retention"]
@@ -652,13 +745,13 @@ elif page == "设置":
         if st.button("清空知识库", type="primary"):
             st.warning("此操作不可恢复！")
             if st.button("确认清空", type="primary"):
-                vector_store.delete_all()
+                vector_store.delete_all(user_id=USER_ID)
                 st.success("知识库已清空")
                 st.rerun()
 
     with col2:
         if st.button("导出笔记为JSON"):
-            notes = metadata_store.list_notes()
+            notes = metadata_store.list_notes(user_id=USER_ID)
             st.download_button(
                 "下载 JSON",
                 data=json.dumps(notes, ensure_ascii=False, indent=2),
@@ -667,5 +760,5 @@ elif page == "设置":
             )
 
     with col3:
-        st.metric("向量库文档数", vector_store.count())
-        st.metric("元数据笔记数", metadata_store.count())
+        st.metric("向量库文档数", vector_store.count(user_id=USER_ID))
+        st.metric("元数据笔记数", metadata_store.count(user_id=USER_ID))

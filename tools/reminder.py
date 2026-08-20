@@ -26,9 +26,9 @@ def get_schema() -> dict:
     }
 
 
-def execute(arguments: dict) -> str:
+def execute(arguments: dict, user_id: str = None) -> str:
     threshold = arguments.get("threshold", 0.5)
-    reminders = fc.get_notes_for_review(threshold=threshold)
+    reminders = fc.get_notes_for_review(threshold=threshold, user_id=user_id)
 
     if not reminders:
         return json.dumps({
@@ -39,7 +39,7 @@ def execute(arguments: dict) -> str:
 
     formatted = []
     for r in reminders[:5]:
-        note = metadata_store.get_note(r["note_id"])
+        note = metadata_store.get_note(r["note_id"], user_id=user_id)
         preview = note["preview"] if note else "未知内容"
         formatted.append({
             "note_id": r["note_id"],

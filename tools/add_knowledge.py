@@ -39,7 +39,7 @@ def get_schema() -> dict:
     }
 
 
-def execute(arguments: dict) -> str:
+def execute(arguments: dict, user_id: str = None) -> str:
     content = arguments.get("content", "")
     tags = arguments.get("tags", [])
     importance = arguments.get("importance", "normal")
@@ -48,20 +48,22 @@ def execute(arguments: dict) -> str:
         return json.dumps({"error": "内容不能为空"}, ensure_ascii=False)
 
     documents = document_parser.parse_text(content, source="user_input")
-    count = vector_store.add_documents(documents)
 
     note_id = metadata_store.add_note(
         content_preview=content,
         tags=tags,
         source="user_input",
         importance=importance,
+        user_id=user_id,
     )
 
-    fc.record_access(note_id)
+    count = vector_store.add_documents(documents, user_id=user_id, note_id=note_id)
+
+    fc.record_access(note_id, user_id=user_id)
 
     if tags:
         for tag in tags:
-            long_term.add_topic(tag, [note_id])
+            long_term.add_topic(tag, [note_id], user_id=user_id)
 
     graph_result = {}
     try:

@@ -40,7 +40,7 @@ def get_schema() -> dict:
     }
 
 
-def execute(arguments: dict) -> str:
+def execute(arguments: dict, user_id: str = None) -> str:
     action = arguments.get("action", "")
     kg = get_kg()
 

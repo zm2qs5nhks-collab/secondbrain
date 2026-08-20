@@ -31,14 +31,14 @@ def get_schema() -> dict:
     }
 
 
-def execute(arguments: dict) -> str:
+def execute(arguments: dict, user_id: str = None) -> str:
     query = arguments.get("query", "")
     top_k = arguments.get("top_k", 5)
 
     if not query.strip():
         return json.dumps({"error": "搜索内容不能为空"}, ensure_ascii=False)
 
-    results = vector_store.search(query, top_k=top_k)
+    results = vector_store.search(query, top_k=top_k, user_id=user_id)
 
     if not results:
         return json.dumps({

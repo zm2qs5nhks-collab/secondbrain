@@ -1,0 +1,1347 @@
+<!DOCTYPE html><html><head>
+      <title>second-brain-agent</title>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      
+      <link rel="stylesheet" href="file:///c:\Users\ASUS\.vscode\extensions\shd101wyy.markdown-preview-enhanced-0.8.30\crossnote\dependencies\katex\katex.min.css">
+      
+      
+      
+      
+      
+      
+      
+      <style>
+      code[class*=language-],pre[class*=language-]{color:#333;background:0 0;font-family:Consolas,"Liberation Mono",Menlo,Courier,monospace;text-align:left;white-space:pre;word-spacing:normal;word-break:normal;word-wrap:normal;line-height:1.4;-moz-tab-size:8;-o-tab-size:8;tab-size:8;-webkit-hyphens:none;-moz-hyphens:none;-ms-hyphens:none;hyphens:none}pre[class*=language-]{padding:.8em;overflow:auto;border-radius:3px;background:#f5f5f5}:not(pre)>code[class*=language-]{padding:.1em;border-radius:.3em;white-space:normal;background:#f5f5f5}.token.blockquote,.token.comment{color:#969896}.token.cdata{color:#183691}.token.doctype,.token.macro.property,.token.punctuation,.token.variable{color:#333}.token.builtin,.token.important,.token.keyword,.token.operator,.token.rule{color:#a71d5d}.token.attr-value,.token.regex,.token.string,.token.url{color:#183691}.token.atrule,.token.boolean,.token.code,.token.command,.token.constant,.token.entity,.token.number,.token.property,.token.symbol{color:#0086b3}.token.prolog,.token.selector,.token.tag{color:#63a35c}.token.attr-name,.token.class,.token.class-name,.token.function,.token.id,.token.namespace,.token.pseudo-class,.token.pseudo-element,.token.url-reference .token.variable{color:#795da3}.token.entity{cursor:help}.token.title,.token.title .token.punctuation{font-weight:700;color:#1d3e81}.token.list{color:#ed6a43}.token.inserted{background-color:#eaffea;color:#55a532}.token.deleted{background-color:#ffecec;color:#bd2c00}.token.bold{font-weight:700}.token.italic{font-style:italic}.language-json .token.property{color:#183691}.language-markup .token.tag .token.punctuation{color:#333}.language-css .token.function,code.language-css{color:#0086b3}.language-yaml .token.atrule{color:#63a35c}code.language-yaml{color:#183691}.language-ruby .token.function{color:#333}.language-markdown .token.url{color:#795da3}.language-makefile .token.symbol{color:#795da3}.language-makefile .token.variable{color:#183691}.language-makefile .token.builtin{color:#0086b3}.language-bash .token.keyword{color:#0086b3}pre[data-line]{position:relative;padding:1em 0 1em 3em}pre[data-line] .line-highlight-wrapper{position:absolute;top:0;left:0;background-color:transparent;display:block;width:100%}pre[data-line] .line-highlight{position:absolute;left:0;right:0;padding:inherit 0;margin-top:1em;background:hsla(24,20%,50%,.08);background:linear-gradient(to right,hsla(24,20%,50%,.1) 70%,hsla(24,20%,50%,0));pointer-events:none;line-height:inherit;white-space:pre}pre[data-line] .line-highlight:before,pre[data-line] .line-highlight[data-end]:after{content:attr(data-start);position:absolute;top:.4em;left:.6em;min-width:1em;padding:0 .5em;background-color:hsla(24,20%,50%,.4);color:#f4f1ef;font:bold 65%/1.5 sans-serif;text-align:center;vertical-align:.3em;border-radius:999px;text-shadow:none;box-shadow:0 1px #fff}pre[data-line] .line-highlight[data-end]:after{content:attr(data-end);top:auto;bottom:.4em}html body{font-family:'Helvetica Neue',Helvetica,'Segoe UI',Arial,freesans,sans-serif;font-size:16px;line-height:1.6;color:#333;background-color:#fff;overflow:initial;box-sizing:border-box;word-wrap:break-word}html body>:first-child{margin-top:0}html body h1,html body h2,html body h3,html body h4,html body h5,html body h6{line-height:1.2;margin-top:1em;margin-bottom:16px;color:#000}html body h1{font-size:2.25em;font-weight:300;padding-bottom:.3em}html body h2{font-size:1.75em;font-weight:400;padding-bottom:.3em}html body h3{font-size:1.5em;font-weight:500}html body h4{font-size:1.25em;font-weight:600}html body h5{font-size:1.1em;font-weight:600}html body h6{font-size:1em;font-weight:600}html body h1,html body h2,html body h3,html body h4,html body h5{font-weight:600}html body h5{font-size:1em}html body h6{color:#5c5c5c}html body strong{color:#000}html body del{color:#5c5c5c}html body a:not([href]){color:inherit;text-decoration:none}html body a{color:#08c;text-decoration:none}html body a:hover{color:#00a3f5;text-decoration:none}html body img{max-width:100%}html body>p{margin-top:0;margin-bottom:16px;word-wrap:break-word}html body>ol,html body>ul{margin-bottom:16px}html body ol,html body ul{padding-left:2em}html body ol.no-list,html body ul.no-list{padding:0;list-style-type:none}html body ol ol,html body ol ul,html body ul ol,html body ul ul{margin-top:0;margin-bottom:0}html body li{margin-bottom:0}html body li.task-list-item{list-style:none}html body li>p{margin-top:0;margin-bottom:0}html body .task-list-item-checkbox{margin:0 .2em .25em -1.8em;vertical-align:middle}html body .task-list-item-checkbox:hover{cursor:pointer}html body blockquote{margin:16px 0;font-size:inherit;padding:0 15px;color:#5c5c5c;background-color:#f0f0f0;border-left:4px solid #d6d6d6}html body blockquote>:first-child{margin-top:0}html body blockquote>:last-child{margin-bottom:0}html body hr{height:4px;margin:32px 0;background-color:#d6d6d6;border:0 none}html body table{margin:10px 0 15px 0;border-collapse:collapse;border-spacing:0;display:block;width:100%;overflow:auto;word-break:normal;word-break:keep-all}html body table th{font-weight:700;color:#000}html body table td,html body table th{border:1px solid #d6d6d6;padding:6px 13px}html body dl{padding:0}html body dl dt{padding:0;margin-top:16px;font-size:1em;font-style:italic;font-weight:700}html body dl dd{padding:0 16px;margin-bottom:16px}html body code{font-family:Menlo,Monaco,Consolas,'Courier New',monospace;font-size:.85em;color:#000;background-color:#f0f0f0;border-radius:3px;padding:.2em 0}html body code::after,html body code::before{letter-spacing:-.2em;content:'\00a0'}html body pre>code{padding:0;margin:0;word-break:normal;white-space:pre;background:0 0;border:0}html body .highlight{margin-bottom:16px}html body .highlight pre,html body pre{padding:1em;overflow:auto;line-height:1.45;border:#d6d6d6;border-radius:3px}html body .highlight pre{margin-bottom:0;word-break:normal}html body pre code,html body pre tt{display:inline;max-width:initial;padding:0;margin:0;overflow:initial;line-height:inherit;word-wrap:normal;background-color:transparent;border:0}html body pre code:after,html body pre code:before,html body pre tt:after,html body pre tt:before{content:normal}html body blockquote,html body dl,html body ol,html body p,html body pre,html body ul{margin-top:0;margin-bottom:16px}html body kbd{color:#000;border:1px solid #d6d6d6;border-bottom:2px solid #c7c7c7;padding:2px 4px;background-color:#f0f0f0;border-radius:3px}@media print{html body{background-color:#fff}html body h1,html body h2,html body h3,html body h4,html body h5,html body h6{color:#000;page-break-after:avoid}html body blockquote{color:#5c5c5c}html body pre{page-break-inside:avoid}html body table{display:table}html body img{display:block;max-width:100%;max-height:100%}html body code,html body pre{word-wrap:break-word;white-space:pre}}.markdown-preview{width:100%;height:100%;box-sizing:border-box}.markdown-preview ul{list-style:disc}.markdown-preview ul ul{list-style:circle}.markdown-preview ul ul ul{list-style:square}.markdown-preview ol{list-style:decimal}.markdown-preview ol ol,.markdown-preview ul ol{list-style-type:lower-roman}.markdown-preview ol ol ol,.markdown-preview ol ul ol,.markdown-preview ul ol ol,.markdown-preview ul ul ol{list-style-type:lower-alpha}.markdown-preview .newpage,.markdown-preview .pagebreak{page-break-before:always}.markdown-preview pre.line-numbers{position:relative;padding-left:3.8em;counter-reset:linenumber}.markdown-preview pre.line-numbers>code{position:relative}.markdown-preview pre.line-numbers .line-numbers-rows{position:absolute;pointer-events:none;top:1em;font-size:100%;left:0;width:3em;letter-spacing:-1px;border-right:1px solid #999;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}.markdown-preview pre.line-numbers .line-numbers-rows>span{pointer-events:none;display:block;counter-increment:linenumber}.markdown-preview pre.line-numbers .line-numbers-rows>span:before{content:counter(linenumber);color:#999;display:block;padding-right:.8em;text-align:right}.markdown-preview .mathjax-exps .MathJax_Display{text-align:center!important}.markdown-preview:not([data-for=preview]) .code-chunk .code-chunk-btn-group{display:none}.markdown-preview:not([data-for=preview]) .code-chunk .status{display:none}.markdown-preview:not([data-for=preview]) .code-chunk .output-div{margin-bottom:16px}.markdown-preview .md-toc{padding:0}.markdown-preview .md-toc .md-toc-details{margin:0;padding:0;border:none}.markdown-preview .md-toc summary.md-toc-link-wrapper{cursor:pointer;list-style-position:outside}.markdown-preview .md-toc summary.md-toc-link-wrapper::marker{font-size:.85em}.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link{display:inline;padding:.25rem 0}.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link div,.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link p{display:inline}.markdown-preview .md-toc .md-toc-link-wrapper.highlighted .md-toc-link{font-weight:800}.markdown-preview .md-toc .md-toc-link-wrapper[data-level='0']{margin-left:12px}.markdown-preview .md-toc .md-toc-link-wrapper[data-level='1']{margin-left:28px}.markdown-preview .md-toc .md-toc-link-wrapper[data-level='2']{margin-left:44px}.markdown-preview .md-toc .md-toc-link-wrapper[data-level='3']{margin-left:60px}.markdown-preview .md-toc .md-toc-link-wrapper[data-level='4']{margin-left:76px}.markdown-preview .md-toc .md-toc-link-wrapper[data-level='5']{margin-left:80px}.markdown-preview a.tag,.markdown-preview a.tag:active,.markdown-preview a.tag:link,.markdown-preview a.tag:visited,.markdown-preview span.tag:not(.token){display:inline-block;background-color:var(--vscode-badge-background,rgba(127,127,127,.18));color:var(--vscode-badge-foreground,currentColor);border-radius:2em;font-size:.85em;font-weight:500;padding:.05em .55em;line-height:1.5;white-space:nowrap;text-decoration:none;text-shadow:none;box-shadow:none;transition:background-color .12s ease,opacity .12s ease}.markdown-preview a.tag{cursor:pointer}.markdown-preview a.tag:focus,.markdown-preview a.tag:hover{background-color:var(--vscode-badge-background,rgba(127,127,127,.32));color:var(--vscode-badge-foreground,currentColor);opacity:.85;text-decoration:none;outline:0}.markdown-preview .wikilink-embed-content{border-left:3px solid var(--vscode-textBlockQuote-border,rgba(128,128,128,.3));background:var(--vscode-textBlockQuote-background,rgba(128,128,128,.05));margin:.5em 0;padding:.5em .75em;border-radius:0 3px 3px 0}.markdown-preview .wikilink-embed-content.wikilink-embed-error{border-left-color:var(--vscode-errorForeground,#cf222e);color:var(--vscode-errorForeground,#cf222e);font-style:italic;opacity:.8}.markdown-preview .wikilink-embed-content h1:first-child,.markdown-preview .wikilink-embed-content h2:first-child,.markdown-preview .wikilink-embed-content h3:first-child,.markdown-preview .wikilink-embed-content h4:first-child,.markdown-preview .wikilink-embed-content h5:first-child,.markdown-preview .wikilink-embed-content h6:first-child{margin-top:.25em}.markdown-preview .wikilink-embed-content .wikilink-embed-content{margin:.25em 0;padding:.25em .5em}.markdown-preview .block-id{display:none}.scrollbar-style::-webkit-scrollbar{width:8px}.scrollbar-style::-webkit-scrollbar-track{border-radius:10px;background-color:transparent}.scrollbar-style::-webkit-scrollbar-thumb{border-radius:5px;background-color:var(--vscode-scrollbarSlider-background,rgba(150,150,150,.66));border:4px solid var(--vscode-scrollbarSlider-background,rgba(150,150,150,.66));background-clip:content-box}.scrollbar-style::-webkit-scrollbar-thumb:hover{background-color:var(--vscode-scrollbarSlider-hoverBackground,rgba(120,120,120,.66))}html body[for=html-export]:not([data-presentation-mode]){position:relative;width:100%;height:100%;top:0;left:0;margin:0;padding:0;overflow:auto}html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{position:relative;top:0;min-height:100vh}@media screen and (min-width:914px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{padding:2em calc(50% - 457px + 2em)}}@media screen and (max-width:914px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{padding:2em}}@media screen and (max-width:450px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{font-size:14px!important;padding:1em}}@media print{html body[for=html-export]:not([data-presentation-mode]) #sidebar-toc-btn{display:none}}html body[for=html-export]:not([data-presentation-mode]) #sidebar-toc-btn{position:fixed;bottom:8px;left:8px;font-size:28px;cursor:pointer;color:inherit;z-index:99;width:32px;text-align:center;opacity:.4}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] #sidebar-toc-btn{opacity:1}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc{position:fixed;top:0;left:0;width:300px;height:100%;padding:32px 0 48px 0;font-size:14px;box-shadow:0 0 4px rgba(150,150,150,.33);box-sizing:border-box;overflow:auto;background-color:inherit}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar{width:8px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar-track{border-radius:10px;background-color:transparent}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar-thumb{border-radius:5px;background-color:var(--vscode-scrollbarSlider-background,rgba(150,150,150,.66));border:4px solid var(--vscode-scrollbarSlider-background,rgba(150,150,150,.66));background-clip:content-box}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar-thumb:hover{background-color:var(--vscode-scrollbarSlider-hoverBackground,rgba(120,120,120,.66))}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc a{text-decoration:none}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc{padding:0 16px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-details{margin:0;padding:0;border:none}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link{display:inline;padding:.25rem 0}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link div,html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link p{display:inline}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper.highlighted .md-toc-link{font-weight:800}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper[data-level='0']{padding-left:0}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper[data-level='1']{padding-left:16px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper[data-level='2']{padding-left:32px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper[data-level='3']{padding-left:48px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper[data-level='4']{padding-left:64px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper[data-level='5']{padding-left:80px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{left:300px;width:calc(100% - 300px);padding:2em calc(50% - 457px - 300px / 2);margin:0;box-sizing:border-box}@media screen and (max-width:1274px){html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{padding:2em}}@media screen and (max-width:450px){html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{width:100%}}html body[for=html-export]:not([data-presentation-mode]):not([html-show-sidebar-toc]) .markdown-preview{left:50%;transform:translateX(-50%)}html body[for=html-export]:not([data-presentation-mode]):not([html-show-sidebar-toc]) .md-sidebar-toc{display:none}
+/* Please visit the URL below for more information: */
+/*   https://shd101wyy.github.io/markdown-preview-enhanced/#/customize-css */
+
+      </style>
+      <!-- The content below will be included at the end of the <head> element. -->
+<script type="text/javascript">
+  document.addEventListener("DOMContentLoaded", function () {
+    // your code here
+  });
+</script>
+    </head>
+    <body for="html-export">
+      <div class="crossnote markdown-preview  ">
+      
+<h1 id="-第二大脑--个人知识管理-agent">🧠 第二大脑 —— 个人知识管理 Agent </h1>
+<blockquote>
+<p>一个能读取你的笔记和文档，在你遗忘关键信息时主动提醒你，并帮你发现知识之间隐藏联系的 AI Agent。</p>
+</blockquote>
+<hr>
+<h2 id="目录">目录 </h2>
+<ul>
+<li><a href="#%E9%A1%B9%E7%9B%AE%E6%A6%82%E8%BF%B0">项目概述</a></li>
+<li><a href="#%E6%A0%B8%E5%BF%83%E5%88%9B%E6%96%B0%E7%82%B9">核心创新点</a></li>
+<li><a href="#%E5%8A%9F%E8%83%BD%E8%AE%BE%E8%AE%A1">功能设计</a></li>
+<li><a href="#%E6%8A%80%E6%9C%AF%E6%9E%B6%E6%9E%84">技术架构</a></li>
+<li><a href="#%E6%8A%80%E6%9C%AF%E6%A0%88%E9%80%89%E5%9E%8B">技术栈选型</a></li>
+<li><a href="#%E5%BC%80%E5%8F%91%E8%AE%A1%E5%88%92">开发计划</a></li>
+<li><a href="#%E9%A1%B9%E7%9B%AE%E7%BB%93%E6%9E%84">项目结构</a></li>
+<li><a href="#%E6%A0%B8%E5%BF%83%E6%A8%A1%E5%9D%97%E8%AE%BE%E8%AE%A1">核心模块设计</a></li>
+<li><a href="#agent-%E5%B7%A5%E4%BD%9C%E6%B5%81%E7%A8%8B">Agent 工作流程</a></li>
+<li><a href="#%E8%AE%B0%E5%BF%86%E7%B3%BB%E7%BB%9F%E8%AE%BE%E8%AE%A1">记忆系统设计</a></li>
+<li><a href="#%E4%B8%BB%E5%8A%A8%E6%8E%A8%E9%80%81%E6%9C%BA%E5%88%B6">主动推送机制</a></li>
+<li><a href="#prompt-%E8%AE%BE%E8%AE%A1">Prompt 设计</a></li>
+<li><a href="#%E9%81%BF%E5%9D%91%E6%8C%87%E5%8D%97">避坑指南</a></li>
+<li><a href="#%E5%AD%A6%E4%B9%A0%E6%94%B6%E8%8E%B7">学习收获</a></li>
+</ul>
+<hr>
+<h2 id="项目概述">项目概述 </h2>
+<h3 id="痛点">痛点 </h3>
+<p>现代人每天接触大量知识——文章、笔记、课程、灵感片段——但这些信息散落在各个平台，且随着时间推移逐渐遗忘。现有的知识管理工具（Notion、Obsidian、Logseq）都是<strong>被动工具</strong>：你必须主动搜索才能找到需要的内容。</p>
+<h3 id="解决方案">解决方案 </h3>
+<p>构建一个<strong>主动型知识管理 Agent</strong>，它能够：</p>
+<ol>
+<li>自动导入和理解你的知识内容</li>
+<li>在你需要时快速语义检索</li>
+<li>在你不需要时主动推送"你快忘了的重要知识"</li>
+<li>发现你不同笔记之间隐藏的关联</li>
+</ol>
+<h3 id="与现有产品的差异">与现有产品的差异 </h3>
+<table>
+<thead>
+<tr>
+<th>产品</th>
+<th>模式</th>
+<th>局限</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Notion AI</td>
+<td>被动等待提问</td>
+<td>不会主动提醒你任何事</td>
+</tr>
+<tr>
+<td>Obsidian</td>
+<td>关键词搜索</td>
+<td>搜不到"意思相近但用词不同"的内容</td>
+</tr>
+<tr>
+<td>Logseq</td>
+<td>本地知识图谱</td>
+<td>无记忆能力，无主动推送</td>
+</tr>
+<tr>
+<td>ChatGPT</td>
+<td>每次对话无状态</td>
+<td>不记得你之前学过什么</td>
+</tr>
+<tr>
+<td><strong>本项目</strong></td>
+<td><strong>主动推送 + 语义检索 + 长期记忆</strong></td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="核心创新点">核心创新点 </h2>
+<h3 id="创新一从被动搜索到主动推送">创新一：从被动搜索到主动推送 </h3>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>传统模式：  用户想起某个知识 → 打开搜索 → 输入关键词 → 浏览结果
+本项目：    Agent 发现你快忘了 → 主动推送 → "这个概念你3天没碰了，要复习吗？"
+</code></pre><p>Agent 具备自主性——不需要用户触发就能行动。这是 Agent 与传统工具的根本区别。</p>
+<h3 id="创新二知识关联发现">创新二：知识关联发现 </h3>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>用户分别存了：
+  - 笔记 A："Redis 的 LRU 淘汰策略"
+  - 笔记 B："电商秒杀系统的架构设计"
+
+Agent 主动发现：
+  "笔记 A 和笔记 B 有潜在关联：Redis 的 LRU 策略可以用于
+   秒杀系统的热点商品缓存淘汰，要我把这个关联整理成一段分析吗？"
+</code></pre><p>Agent 具备推理能力——不只是检索，还能发现隐藏联系。</p>
+<h3 id="创新三基于遗忘曲线的智能复习">创新三：基于遗忘曲线的智能复习 </h3>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>Agent 记住：
+  - 这个概念是什么时候学的
+  - 用户复习了几次
+  - 每次复习后的掌握程度
+
+Agent 决策：
+  - 学了1天没复习 → 高优先级推送
+  - 学了7天复习过2次且掌握好 → 降低优先级
+  - 学了30天完全没碰 → 紧急推送
+</code></pre><p>Agent 具备记忆管理能力——不只是存储，还有衰减和优先级。</p>
+<hr>
+<h2 id="功能设计">功能设计 </h2>
+<h3 id="功能一知识入库tool-add_knowledge">功能一：知识入库（Tool: add_knowledge） </h3>
+<p><strong>描述：</strong> 用户通过文件拖入或文字输入的方式，将知识内容导入系统。</p>
+<p><strong>支持的输入方式：</strong></p>
+<table>
+<thead>
+<tr>
+<th>输入方式</th>
+<th>格式</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>文本文件</td>
+<td><code>.txt</code>, <code>.md</code></td>
+<td>直接读取并解析</td>
+</tr>
+<tr>
+<td>网页链接</td>
+<td>URL</td>
+<td>抓取正文内容（后期实现）</td>
+</tr>
+<tr>
+<td>文字输入</td>
+<td>自然语言</td>
+<td>用户直接说一句话，Agent 提取关键信息存储</td>
+</tr>
+</tbody>
+</table>
+<p><strong>处理流程：</strong></p>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>输入内容
+  → 文档解析（提取纯文本）
+  → 文本分块（按语义段落切分）
+  → 向量化（Embedding）
+  → 存入向量数据库（附带元数据：时间、标签、来源）
+  → 更新长期记忆（知识图谱）
+</code></pre><h3 id="功能二知识检索tool-search_knowledge">功能二：知识检索（Tool: search_knowledge） </h3>
+<p><strong>描述：</strong> 用户用自然语言提问，Agent 从知识库中找到最相关的内容并用 LLM 总结回答。</p>
+<p><strong>示例：</strong></p>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>用户："我之前记过关于 Redis 的内容吗？"
+
+Agent 内部流程：
+  1. 将用户问题向量化
+  2. 在 ChromaDB 中检索 top-5 最相似的文档块
+  3. 将检索结果 + 用户问题一起传给 LLM
+  4. LLM 生成总结性回答，并标注信息来源
+
+Agent 回答：
+  "你有3条关于 Redis 的笔记：
+   1. 4月12日记录的 'Redis LRU 淘汰策略'（文件：notes/cache.md）
+   2. 4月15日记录的 'Redis 分布式锁实现'（文件：notes/distributed.md）
+   3. 4月20日记录的 'Redis 与 MySQL 缓存一致性'（文件：notes/cache.md）
+   
+   需要我详细展开哪一条？"
+</code></pre><h3 id="功能三主动推送tool-send_reminder">功能三：主动推送（Tool: send_reminder） </h3>
+<p><strong>描述：</strong> Agent 定时扫描知识库，基于遗忘曲线算法识别"即将被遗忘的重要知识"，主动推送复习提醒。</p>
+<p><strong>推送触发条件：</strong></p>
+<table>
+<thead>
+<tr>
+<th>条件</th>
+<th>示例</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>遗忘曲线预警</td>
+<td>某知识点超过 N 天未被访问，且重要性较高</td>
+</tr>
+<tr>
+<td>知识关联发现</td>
+<td>新入库的内容与已有内容存在语义关联</td>
+</tr>
+<tr>
+<td>定期总结</td>
+<td>每周自动生成"本周知识回顾"</td>
+</tr>
+</tbody>
+</table>
+<p><strong>推送内容示例：</strong></p>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>📢 知识提醒
+你3天前学的「Redis 缓存策略」和今天刚存的「电商秒杀方案」
+有很强的关联。Redis 的 LRU 淘汰策略可以直接应用于秒杀场景
+的热点商品缓存管理。
+
+要不要我把这个关联整理成一段分析？
+[查看详情] [稍后提醒] [忽略]
+</code></pre><h3 id="功能四对话式管理agent-自主决策">功能四：对话式管理（Agent 自主决策） </h3>
+<p><strong>描述：</strong> Agent 可以通过自然语言对话完成复杂的知识管理任务，自主决定调用哪些工具、按什么顺序。</p>
+<p><strong>示例对话：</strong></p>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>用户："帮我总结一下这周学了什么"
+
+Agent 内部决策：
+  1. 调用 search_knowledge 检索最近7天的所有笔记
+  2. 调用 LLM 对内容进行分类和总结
+  3. 生成结构化的周报
+
+Agent 回答：
+  "本周你共记录了8条笔记，主要集中在3个主题：
+   
+   📌 Redis 缓存（3条）
+     - LRU 淘汰策略、分布式锁、缓存一致性
+   
+   📌 系统设计（3条）
+     - 秒杀架构、限流方案、消息队列
+   
+   📌 Python 进阶（2条）
+     - GIL 全局锁、异步编程
+   
+   建议重点复习 Redis 缓存一致性，这是本周最复杂的内容。"
+</code></pre><hr>
+<h2 id="技术架构">技术架构 </h2>
+<h3 id="整体架构图">整体架构图 </h3>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>┌─────────────────────────────────────────────────────────┐
+│                      用户界面层                          │
+│  ┌────────────────┐  ┌────────────────┐                 │
+│  │  命令行界面     │  │  Web 界面       │                │
+│  │  (Week 1-3)    │  │  (Week 4)      │                 │
+│  └───────┬────────┘  └───────┬────────┘                 │
+│          └──────────┬────────┘                          │
+│                     ▼                                    │
+├─────────────────────────────────────────────────────────┤
+│                    Agent 核心层                          │
+│  ┌──────────────────────────────────────────────────┐   │
+│  │              System Prompt                        │   │
+│  │         （定义 Agent 角色、能力、行为规则）        │   │
+│  ├──────────────────────────────────────────────────┤   │
+│  │              LLM 推理引擎                         │   │
+│  │         （OpenAI GPT / 本地 Ollama）              │   │
+│  ├──────────────────────────────────────────────────┤   │
+│  │           Tool Router（工具路由）                  │   │
+│  │         根据用户意图选择合适的工具                 │   │
+│  ├──────────────────────────────────────────────────┤   │
+│  │           Agent Loop（ReAct 循环）                │   │
+│  │         思考 → 行动 → 观察 → 循环                 │   │
+│  └──────────────────────────────────────────────────┘   │
+└───────────────────────┬─────────────────────────────────┘
+                        │
+           ┌────────────┼────────────┐
+           ▼            ▼            ▼
+┌──────────────┐ ┌───────────┐ ┌──────────────┐
+│  文档解析模块 │ │ 向量检索  │ │  记忆管理    │
+│              │ │    模块   │ │     模块     │
+└──────┬───────┘ └─────┬─────┘ └──────┬───────┘
+       │               │              │
+       ▼               ▼              ▼
+┌──────────────┐ ┌───────────┐ ┌──────────────┐
+│  本地文件系统 │ │ ChromaDB  │ │ JSON / SQLite│
+│  (.md/.txt)  │ │ (向量库)  │ │  (记忆存储)  │
+└──────────────┘ └───────────┘ └──────────────┘
+</code></pre><h3 id="数据流">数据流 </h3>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>用户输入
+  │
+  ▼
+LLM 解析意图
+  │
+  ├── 意图：添加知识 ──→ 调用 add_knowledge
+  │                        ├── 文档解析
+  │                        ├── 文本分块
+  │                        ├── 向量化
+  │                        └── 存入 ChromaDB
+  │
+  ├── 意图：搜索知识 ──→ 调用 search_knowledge
+  │                        ├── 向量检索 (top-k)
+  │                        ├── LLM 总结
+  │                        └── 返回回答
+  │
+  ├── 意图：知识管理 ──→ 调用 manage_knowledge
+  │                        ├── 列出/删除/更新笔记
+  │                        └── 返回结果
+  │
+  └── 意图：闲聊/其他 ──→ 直接用 LLM 回答
+</code></pre><hr>
+<h2 id="技术栈选型">技术栈选型 </h2>
+<table>
+<thead>
+<tr>
+<th>组件</th>
+<th>选择</th>
+<th>版本</th>
+<th>选择理由</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>编程语言</td>
+<td>Python</td>
+<td>3.10+</td>
+<td>AI 生态最丰富，社区支持最好</td>
+</tr>
+<tr>
+<td>LLM API</td>
+<td>OpenAI GPT-4o-mini</td>
+<td>-</td>
+<td>性价比最高，Function Calling 支持好</td>
+</tr>
+<tr>
+<td>本地 LLM（备选）</td>
+<td>Ollama + Qwen2</td>
+<td>-</td>
+<td>免费，无 API 限制，适合调试</td>
+</tr>
+<tr>
+<td>向量数据库</td>
+<td>ChromaDB</td>
+<td>0.4+</td>
+<td>嵌入式，无需部署，Python 原生</td>
+</tr>
+<tr>
+<td>文本分块</td>
+<td>LangChain</td>
+<td>0.2+</td>
+<td>成熟的 Document Loader 和 Text Splitter</td>
+</tr>
+<tr>
+<td>Embedding 模型</td>
+<td>text-embedding-3-small</td>
+<td>-</td>
+<td>OpenAI 官方，效果好成本低</td>
+</tr>
+<tr>
+<td>定时任务</td>
+<td>APScheduler</td>
+<td>3.10+</td>
+<td>轻量级，支持 cron 表达式</td>
+</tr>
+<tr>
+<td>Web 界面（第4周）</td>
+<td>Streamlit</td>
+<td>1.30+</td>
+<td>极简 Web 框架，Python 纯写</td>
+</tr>
+<tr>
+<td>数据存储</td>
+<td>JSON / SQLite</td>
+<td>-</td>
+<td>简单可靠，无需额外服务</td>
+</tr>
+</tbody>
+</table>
+<h3 id="安装依赖">安装依赖 </h3>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code>pip <span class="token function">install</span> openai chromadb langchain langchain-community apscheduler streamlit
+</code></pre><h3 id="环境变量配置">环境变量配置 </h3>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token comment"># .env 文件</span>
+<span class="token assign-left variable">OPENAI_API_KEY</span><span class="token operator">=</span>sk-xxxxxxxxxxxxxxxx
+<span class="token assign-left variable">OPENAI_BASE_URL</span><span class="token operator">=</span>https://api.openai.com/v1   <span class="token comment"># 可选，使用代理时修改</span>
+<span class="token assign-left variable">MODEL_NAME</span><span class="token operator">=</span>gpt-4o-mini
+<span class="token assign-left variable">EMBEDDING_MODEL</span><span class="token operator">=</span>text-embedding-3-small
+</code></pre><hr>
+<h2 id="开发计划">开发计划 </h2>
+<h3 id="总览">总览 </h3>
+<table>
+<thead>
+<tr>
+<th>阶段</th>
+<th>时间</th>
+<th>核心目标</th>
+<th>里程碑</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Week 1</td>
+<td>Day 1-7</td>
+<td>基础搭建</td>
+<td>能问"我的笔记里有什么关于XX的内容"并得到回答</td>
+</tr>
+<tr>
+<td>Week 2</td>
+<td>Day 8-14</td>
+<td>Agent 核心</td>
+<td>Agent 能自主决定"先搜索再回答"还是"直接回答"</td>
+</tr>
+<tr>
+<td>Week 3</td>
+<td>Day 15-21</td>
+<td>主动推送</td>
+<td>Agent 能主动推送"你该复习这个了"</td>
+</tr>
+<tr>
+<td>Week 4</td>
+<td>Day 22-30</td>
+<td>打磨演示</td>
+<td>完整可演示的产品</td>
+</tr>
+</tbody>
+</table>
+<h3 id="week-1基础搭建">Week 1：基础搭建 </h3>
+<table>
+<thead>
+<tr>
+<th>天数</th>
+<th>任务</th>
+<th>具体内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Day 1</td>
+<td>项目初始化</td>
+<td>创建项目结构、配置环境变量、调通 OpenAI API 调用</td>
+</tr>
+<tr>
+<td>Day 2</td>
+<td>文档解析</td>
+<td>实现 TXT/Markdown 文件读取、文本分块逻辑</td>
+</tr>
+<tr>
+<td>Day 3</td>
+<td>向量化存储</td>
+<td>集成 ChromaDB，实现文档向量化和持久化存储</td>
+</tr>
+<tr>
+<td>Day 4</td>
+<td>语义检索</td>
+<td>实现 query → embedding → 检索 → 返回 top-k 的完整链路</td>
+</tr>
+<tr>
+<td>Day 5</td>
+<td>RAG 回答</td>
+<td>将检索结果注入 LLM prompt，生成总结性回答</td>
+</tr>
+<tr>
+<td>Day 6</td>
+<td>命令行交互</td>
+<td>实现基础的命令行 REPL 循环</td>
+</tr>
+<tr>
+<td>Day 7</td>
+<td>集成测试</td>
+<td>测试"添加笔记 → 搜索 → 回答"的完整流程</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Week 1 验收标准：</strong></p>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code>$ python main.py
+🧠 第二大脑 Agent 已启动！输入 <span class="token string">'quit'</span> 退出。
+
+<span class="token operator">&gt;</span> 添加笔记：我把今天学的 Redis LRU 策略记下来了
+✅ 已保存到知识库（ID: note_001）
+
+<span class="token operator">&gt;</span> 我之前学过什么关于 Redis 的内容？
+🔍 找到2条相关笔记：
+  <span class="token number">1</span>. Redis LRU 淘汰策略（note_001）
+  <span class="token number">2</span>. Redis 基础命令（note_005）
+  
+  你之前学过 Redis 的基本操作和 LRU 淘汰策略。
+  LRU（Least Recently Used）是最常用的缓存淘汰算法<span class="token punctuation">..</span>.
+</code></pre><h3 id="week-2agent-核心">Week 2：Agent 核心 </h3>
+<table>
+<thead>
+<tr>
+<th>天数</th>
+<th>任务</th>
+<th>具体内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Day 8</td>
+<td>Tool 定义</td>
+<td>定义所有工具的 JSON Schema（add, search, list, delete）</td>
+</tr>
+<tr>
+<td>Day 9</td>
+<td>Function Calling</td>
+<td>集成 OpenAI Function Calling，实现工具自动调用</td>
+</tr>
+<tr>
+<td>Day 10</td>
+<td>Agent Loop</td>
+<td>实现 ReAct 模式：思考 → 调用工具 → 观察结果 → 继续思考</td>
+</tr>
+<tr>
+<td>Day 11</td>
+<td>短期记忆</td>
+<td>实现对话历史管理，控制 context window 大小</td>
+</tr>
+<tr>
+<td>Day 12</td>
+<td>长期记忆</td>
+<td>实现用户偏好存储（常用标签、关注领域、学习节奏）</td>
+</tr>
+<tr>
+<td>Day 13</td>
+<td>元数据管理</td>
+<td>为每条笔记添加时间、标签、访问次数等元数据</td>
+</tr>
+<tr>
+<td>Day 14</td>
+<td>联调测试</td>
+<td>测试 Agent 自主决策的完整流程</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Week 2 验收标准：</strong></p>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>&gt; 帮我整理一下关于系统设计的笔记
+Agent 内部决策链：
+  1. [思考] 用户想看系统设计相关的笔记，我需要先搜索
+  2. [行动] 调用 search_knowledge(query="系统设计", top_k=10)
+  3. [观察] 找到5条相关笔记
+  4. [思考] 内容较多，我需要分类整理后呈现
+  5. [回答] "找到5条系统设计笔记，分为3类：..."
+</code></pre><h3 id="week-3主动推送">Week 3：主动推送 </h3>
+<table>
+<thead>
+<tr>
+<th>天数</th>
+<th>任务</th>
+<th>具体内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Day 15</td>
+<td>遗忘曲线算法</td>
+<td>实现基于间隔重复的遗忘曲线计算</td>
+</tr>
+<tr>
+<td>Day 16</td>
+<td>定时扫描</td>
+<td>用 APScheduler 实现每日定时扫描知识库</td>
+</tr>
+<tr>
+<td>Day 17</td>
+<td>推送决策</td>
+<td>根据遗忘曲线 + 重要性 + 访问频率决定推送内容</td>
+</tr>
+<tr>
+<td>Day 18</td>
+<td>知识关联发现</td>
+<td>实现跨笔记的语义关联检测</td>
+</tr>
+<tr>
+<td>Day 19</td>
+<td>推送输出</td>
+<td>实现命令行推送通知（后期可扩展为微信/邮件）</td>
+</tr>
+<tr>
+<td>Day 20</td>
+<td>推送管理</td>
+<td>实现"已读/稍后提醒/忽略"的反馈机制</td>
+</tr>
+<tr>
+<td>Day 21</td>
+<td>集成测试</td>
+<td>测试"入库 → 遗忘 → 推送 → 用户反馈"完整流程</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Week 3 验收标准：</strong></p>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>📢 [每日提醒] 你有2个知识点需要复习：
+  1. 🔴 Redis LRU 策略（已学3天，未复习）
+  2. 🟡 Python GIL（已学5天，复习1次）
+
+📢 [知识关联] 你刚存的「秒杀架构」和之前的「Redis 缓存」
+   有很强的关联，要查看分析吗？
+</code></pre><h3 id="week-4打磨和演示">Week 4：打磨和演示 </h3>
+<table>
+<thead>
+<tr>
+<th>天数</th>
+<th>任务</th>
+<th>具体内容</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Day 22</td>
+<td>Streamlit 界面</td>
+<td>实现基础 Web 聊天界面</td>
+</tr>
+<tr>
+<td>Day 23</td>
+<td>界面增强</td>
+<td>添加知识库浏览、笔记详情展示</td>
+</tr>
+<tr>
+<td>Day 24</td>
+<td>边界处理</td>
+<td>API 超时重试、空结果处理、异常恢复</td>
+</tr>
+<tr>
+<td>Day 25</td>
+<td>性能优化</td>
+<td>大文件处理、批量向量化、检索速度优化</td>
+</tr>
+<tr>
+<td>Day 26</td>
+<td>数据导出</td>
+<td>支持导出知识库为 Markdown 文件</td>
+</tr>
+<tr>
+<td>Day 27</td>
+<td>录制演示</td>
+<td>录制产品演示视频（3-5分钟）</td>
+</tr>
+<tr>
+<td>Day 28</td>
+<td>文档编写</td>
+<td>写 README、架构说明文档</td>
+</tr>
+<tr>
+<td>Day 29</td>
+<td>最终测试</td>
+<td>全流程回归测试</td>
+</tr>
+<tr>
+<td>Day 30</td>
+<td>交付</td>
+<td>整理代码、清理注释、最终提交</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="项目结构">项目结构 </h2>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>second-brain-agent/
+├── README.md                    # 项目说明
+├── .env.example                 # 环境变量模板
+├── requirements.txt             # Python 依赖
+├── main.py                      # 程序入口
+├── config.py                    # 配置管理
+│
+├── agent/                       # Agent 核心模块
+│   ├── __init__.py
+│   ├── core.py                  # Agent Loop 实现
+│   ├── prompt.py                # System Prompt 定义
+│   └── llm.py                   # LLM 调用封装
+│
+├── tools/                       # 工具模块
+│   ├── __init__.py
+│   ├── add_knowledge.py         # 知识入库工具
+│   ├── search_knowledge.py      # 知识检索工具
+│   ├── manage_knowledge.py      # 知识管理工具（列表/删除/更新）
+│   └── reminder.py              # 提醒推送工具
+│
+├── memory/                      # 记忆模块
+│   ├── __init__.py
+│   ├── short_term.py            # 短期记忆（对话历史）
+│   └── long_term.py             # 长期记忆（用户偏好、知识图谱）
+│
+├── storage/                     # 存储模块
+│   ├── __init__.py
+│   ├── vector_store.py          # ChromaDB 向量存储
+│   ├── document_parser.py       # 文档解析（TXT/MD）
+│   └── metadata_store.py        # 元数据存储（JSON/SQLite）
+│
+├── scheduler/                   # 调度模块
+│   ├── __init__.py
+│   ├── scanner.py               # 知识库定时扫描
+│   └── forgetting_curve.py      # 遗忘曲线算法
+│
+├── ui/                          # 界面模块
+│   ├── __init__.py
+│   ├── cli.py                   # 命令行界面
+│   └── web.py                   # Streamlit Web 界面
+│
+├── data/                        # 数据目录
+│   ├── notes/                   # 用户笔记存放目录
+│   ├── chroma_db/               # ChromaDB 持久化目录
+│   └── memory/                  # 记忆数据目录
+│       ├── short_term.json      # 对话历史
+│       └── long_term.json       # 用户偏好
+│
+└── tests/                       # 测试
+    ├── test_tools.py
+    ├── test_memory.py
+    └── test_agent.py
+</code></pre><hr>
+<h2 id="核心模块设计">核心模块设计 </h2>
+<h3 id="模块一agent-核心agentcorepy">模块一：Agent 核心（agent/core.py） </h3>
+<pre data-role="codeBlock" data-info="python" class="language-python python"><code><span class="token triple-quoted-string string">"""
+Agent 核心循环实现（ReAct 模式）
+"""</span>
+
+<span class="token keyword keyword-class">class</span> <span class="token class-name">SecondBrainAgent</span><span class="token punctuation">:</span>
+    <span class="token keyword keyword-def">def</span> <span class="token function">__init__</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> llm<span class="token punctuation">,</span> tools<span class="token punctuation">,</span> memory<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        self<span class="token punctuation">.</span>llm <span class="token operator">=</span> llm                    <span class="token comment"># LLM 引擎</span>
+        self<span class="token punctuation">.</span>tools <span class="token operator">=</span> tools                <span class="token comment"># 可用工具列表</span>
+        self<span class="token punctuation">.</span>memory <span class="token operator">=</span> memory              <span class="token comment"># 记忆系统</span>
+        self<span class="token punctuation">.</span>max_iterations <span class="token operator">=</span> <span class="token number">5</span>           <span class="token comment"># 最大循环次数（防止死循环）</span>
+
+    <span class="token keyword keyword-def">def</span> <span class="token function">run</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> user_input<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> <span class="token builtin">str</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""Agent 主循环"""</span>
+        <span class="token comment"># 1. 将用户输入加入对话历史</span>
+        self<span class="token punctuation">.</span>memory<span class="token punctuation">.</span>add_message<span class="token punctuation">(</span><span class="token string">"user"</span><span class="token punctuation">,</span> user_input<span class="token punctuation">)</span>
+
+        <span class="token comment"># 2. 构建包含历史的 prompt</span>
+        messages <span class="token operator">=</span> self<span class="token punctuation">.</span>memory<span class="token punctuation">.</span>get_messages<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+        <span class="token comment"># 3. ReAct 循环</span>
+        <span class="token keyword keyword-for">for</span> i <span class="token keyword keyword-in">in</span> <span class="token builtin">range</span><span class="token punctuation">(</span>self<span class="token punctuation">.</span>max_iterations<span class="token punctuation">)</span><span class="token punctuation">:</span>
+            <span class="token comment"># LLM 决策：直接回答 or 调用工具</span>
+            response <span class="token operator">=</span> self<span class="token punctuation">.</span>llm<span class="token punctuation">.</span>chat<span class="token punctuation">(</span>
+                messages<span class="token operator">=</span>messages<span class="token punctuation">,</span>
+                tools<span class="token operator">=</span>self<span class="token punctuation">.</span>tools<span class="token punctuation">.</span>get_schemas<span class="token punctuation">(</span><span class="token punctuation">)</span>
+            <span class="token punctuation">)</span>
+
+            <span class="token comment"># 如果 LLM 选择直接回答</span>
+            <span class="token keyword keyword-if">if</span> response<span class="token punctuation">.</span>content<span class="token punctuation">:</span>
+                self<span class="token punctuation">.</span>memory<span class="token punctuation">.</span>add_message<span class="token punctuation">(</span><span class="token string">"assistant"</span><span class="token punctuation">,</span> response<span class="token punctuation">.</span>content<span class="token punctuation">)</span>
+                <span class="token keyword keyword-return">return</span> response<span class="token punctuation">.</span>content
+
+            <span class="token comment"># 如果 LLM 选择调用工具</span>
+            <span class="token keyword keyword-if">if</span> response<span class="token punctuation">.</span>tool_calls<span class="token punctuation">:</span>
+                <span class="token keyword keyword-for">for</span> tool_call <span class="token keyword keyword-in">in</span> response<span class="token punctuation">.</span>tool_calls<span class="token punctuation">:</span>
+                    <span class="token comment"># 执行工具</span>
+                    result <span class="token operator">=</span> self<span class="token punctuation">.</span>tools<span class="token punctuation">.</span>execute<span class="token punctuation">(</span>
+                        tool_call<span class="token punctuation">.</span>name<span class="token punctuation">,</span>
+                        tool_call<span class="token punctuation">.</span>arguments
+                    <span class="token punctuation">)</span>
+                    <span class="token comment"># 将工具结果加入对话</span>
+                    messages<span class="token punctuation">.</span>append<span class="token punctuation">(</span><span class="token punctuation">{</span>
+                        <span class="token string">"role"</span><span class="token punctuation">:</span> <span class="token string">"tool"</span><span class="token punctuation">,</span>
+                        <span class="token string">"tool_call_id"</span><span class="token punctuation">:</span> tool_call<span class="token punctuation">.</span><span class="token builtin">id</span><span class="token punctuation">,</span>
+                        <span class="token string">"content"</span><span class="token punctuation">:</span> result
+                    <span class="token punctuation">}</span><span class="token punctuation">)</span>
+
+        <span class="token keyword keyword-return">return</span> <span class="token string">"抱歉，处理过程中出现了问题，请重试。"</span>
+</code></pre><h3 id="模块二文档解析storagedocument_parserpy">模块二：文档解析（storage/document_parser.py） </h3>
+<pre data-role="codeBlock" data-info="python" class="language-python python"><code><span class="token triple-quoted-string string">"""
+文档解析与分块
+"""</span>
+
+<span class="token keyword keyword-from">from</span> langchain<span class="token punctuation">.</span>text_splitter <span class="token keyword keyword-import">import</span> RecursiveCharacterTextSplitter
+
+<span class="token keyword keyword-class">class</span> <span class="token class-name">DocumentParser</span><span class="token punctuation">:</span>
+    <span class="token keyword keyword-def">def</span> <span class="token function">__init__</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        self<span class="token punctuation">.</span>splitter <span class="token operator">=</span> RecursiveCharacterTextSplitter<span class="token punctuation">(</span>
+            chunk_size<span class="token operator">=</span><span class="token number">500</span><span class="token punctuation">,</span>           <span class="token comment"># 每块最大500字符</span>
+            chunk_overlap<span class="token operator">=</span><span class="token number">50</span><span class="token punctuation">,</span>         <span class="token comment"># 块之间重叠50字符（保持语义连续）</span>
+            separators<span class="token operator">=</span><span class="token punctuation">[</span><span class="token string">"\n\n"</span><span class="token punctuation">,</span> <span class="token string">"\n"</span><span class="token punctuation">,</span> <span class="token string">"。"</span><span class="token punctuation">,</span> <span class="token string">"！"</span><span class="token punctuation">,</span> <span class="token string">"？"</span><span class="token punctuation">]</span>
+        <span class="token punctuation">)</span>
+
+    <span class="token keyword keyword-def">def</span> <span class="token function">parse_file</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> file_path<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> <span class="token builtin">list</span><span class="token punctuation">[</span><span class="token builtin">dict</span><span class="token punctuation">]</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""解析文件并分块"""</span>
+        <span class="token comment"># 读取文件</span>
+        <span class="token keyword keyword-with">with</span> <span class="token builtin">open</span><span class="token punctuation">(</span>file_path<span class="token punctuation">,</span> <span class="token string">'r'</span><span class="token punctuation">,</span> encoding<span class="token operator">=</span><span class="token string">'utf-8'</span><span class="token punctuation">)</span> <span class="token keyword keyword-as">as</span> f<span class="token punctuation">:</span>
+            content <span class="token operator">=</span> f<span class="token punctuation">.</span>read<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+        <span class="token comment"># 分块</span>
+        chunks <span class="token operator">=</span> self<span class="token punctuation">.</span>splitter<span class="token punctuation">.</span>split_text<span class="token punctuation">(</span>content<span class="token punctuation">)</span>
+
+        <span class="token comment"># 附带元数据</span>
+        documents <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
+        <span class="token keyword keyword-for">for</span> i<span class="token punctuation">,</span> chunk <span class="token keyword keyword-in">in</span> <span class="token builtin">enumerate</span><span class="token punctuation">(</span>chunks<span class="token punctuation">)</span><span class="token punctuation">:</span>
+            documents<span class="token punctuation">.</span>append<span class="token punctuation">(</span><span class="token punctuation">{</span>
+                <span class="token string">"content"</span><span class="token punctuation">:</span> chunk<span class="token punctuation">,</span>
+                <span class="token string">"metadata"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
+                    <span class="token string">"source"</span><span class="token punctuation">:</span> file_path<span class="token punctuation">,</span>
+                    <span class="token string">"chunk_index"</span><span class="token punctuation">:</span> i<span class="token punctuation">,</span>
+                    <span class="token string">"total_chunks"</span><span class="token punctuation">:</span> <span class="token builtin">len</span><span class="token punctuation">(</span>chunks<span class="token punctuation">)</span>
+                <span class="token punctuation">}</span>
+            <span class="token punctuation">}</span><span class="token punctuation">)</span>
+
+        <span class="token keyword keyword-return">return</span> documents
+
+    <span class="token keyword keyword-def">def</span> <span class="token function">parse_text</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> text<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">,</span> source<span class="token punctuation">:</span> <span class="token builtin">str</span> <span class="token operator">=</span> <span class="token string">"user_input"</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> <span class="token builtin">list</span><span class="token punctuation">[</span><span class="token builtin">dict</span><span class="token punctuation">]</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""解析纯文本输入"""</span>
+        chunks <span class="token operator">=</span> self<span class="token punctuation">.</span>splitter<span class="token punctuation">.</span>split_text<span class="token punctuation">(</span>text<span class="token punctuation">)</span>
+        <span class="token keyword keyword-return">return</span> <span class="token punctuation">[</span>
+            <span class="token punctuation">{</span>
+                <span class="token string">"content"</span><span class="token punctuation">:</span> chunk<span class="token punctuation">,</span>
+                <span class="token string">"metadata"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
+                    <span class="token string">"source"</span><span class="token punctuation">:</span> source<span class="token punctuation">,</span>
+                    <span class="token string">"chunk_index"</span><span class="token punctuation">:</span> i<span class="token punctuation">,</span>
+                    <span class="token string">"total_chunks"</span><span class="token punctuation">:</span> <span class="token builtin">len</span><span class="token punctuation">(</span>chunks<span class="token punctuation">)</span>
+                <span class="token punctuation">}</span>
+            <span class="token punctuation">}</span>
+            <span class="token keyword keyword-for">for</span> i<span class="token punctuation">,</span> chunk <span class="token keyword keyword-in">in</span> <span class="token builtin">enumerate</span><span class="token punctuation">(</span>chunks<span class="token punctuation">)</span>
+        <span class="token punctuation">]</span>
+</code></pre><h3 id="模块三向量存储storagevector_storepy">模块三：向量存储（storage/vector_store.py） </h3>
+<pre data-role="codeBlock" data-info="python" class="language-python python"><code><span class="token triple-quoted-string string">"""
+ChromaDB 向量存储管理
+"""</span>
+
+<span class="token keyword keyword-import">import</span> chromadb
+<span class="token keyword keyword-from">from</span> chromadb<span class="token punctuation">.</span>config <span class="token keyword keyword-import">import</span> Settings
+
+<span class="token keyword keyword-class">class</span> <span class="token class-name">VectorStore</span><span class="token punctuation">:</span>
+    <span class="token keyword keyword-def">def</span> <span class="token function">__init__</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> persist_dir<span class="token punctuation">:</span> <span class="token builtin">str</span> <span class="token operator">=</span> <span class="token string">"./data/chroma_db"</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token comment"># 初始化 ChromaDB（持久化模式）</span>
+        self<span class="token punctuation">.</span>client <span class="token operator">=</span> chromadb<span class="token punctuation">.</span>Client<span class="token punctuation">(</span>Settings<span class="token punctuation">(</span>
+            chroma_db_impl<span class="token operator">=</span><span class="token string">"duckdb+parquet"</span><span class="token punctuation">,</span>
+            persist_directory<span class="token operator">=</span>persist_dir<span class="token punctuation">,</span>
+            anonymized_telemetry<span class="token operator">=</span><span class="token boolean">False</span>
+        <span class="token punctuation">)</span><span class="token punctuation">)</span>
+
+        <span class="token comment"># 获取或创建集合</span>
+        self<span class="token punctuation">.</span>collection <span class="token operator">=</span> self<span class="token punctuation">.</span>client<span class="token punctuation">.</span>get_or_create_collection<span class="token punctuation">(</span>
+            name<span class="token operator">=</span><span class="token string">"knowledge_base"</span><span class="token punctuation">,</span>
+            metadata<span class="token operator">=</span><span class="token punctuation">{</span><span class="token string">"hnsw:space"</span><span class="token punctuation">:</span> <span class="token string">"cosine"</span><span class="token punctuation">}</span>  <span class="token comment"># 使用余弦相似度</span>
+        <span class="token punctuation">)</span>
+
+    <span class="token keyword keyword-def">def</span> <span class="token function">add</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> documents<span class="token punctuation">:</span> <span class="token builtin">list</span><span class="token punctuation">[</span><span class="token builtin">dict</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""批量添加文档到向量库"""</span>
+        self<span class="token punctuation">.</span>collection<span class="token punctuation">.</span>add<span class="token punctuation">(</span>
+            documents<span class="token operator">=</span><span class="token punctuation">[</span>doc<span class="token punctuation">[</span><span class="token string">"content"</span><span class="token punctuation">]</span> <span class="token keyword keyword-for">for</span> doc <span class="token keyword keyword-in">in</span> documents<span class="token punctuation">]</span><span class="token punctuation">,</span>
+            ids<span class="token operator">=</span><span class="token punctuation">[</span><span class="token string-interpolation"><span class="token string">f"doc_</span><span class="token interpolation"><span class="token punctuation">{</span><span class="token builtin">hash</span><span class="token punctuation">(</span>doc<span class="token punctuation">[</span><span class="token string">'content'</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">}</span></span><span class="token string">"</span></span> <span class="token keyword keyword-for">for</span> doc <span class="token keyword keyword-in">in</span> documents<span class="token punctuation">]</span><span class="token punctuation">,</span>
+            metadatas<span class="token operator">=</span><span class="token punctuation">[</span>doc<span class="token punctuation">[</span><span class="token string">"metadata"</span><span class="token punctuation">]</span> <span class="token keyword keyword-for">for</span> doc <span class="token keyword keyword-in">in</span> documents<span class="token punctuation">]</span>
+        <span class="token punctuation">)</span>
+
+    <span class="token keyword keyword-def">def</span> <span class="token function">search</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> query<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">,</span> top_k<span class="token punctuation">:</span> <span class="token builtin">int</span> <span class="token operator">=</span> <span class="token number">5</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> <span class="token builtin">list</span><span class="token punctuation">[</span><span class="token builtin">dict</span><span class="token punctuation">]</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""语义检索"""</span>
+        results <span class="token operator">=</span> self<span class="token punctuation">.</span>collection<span class="token punctuation">.</span>query<span class="token punctuation">(</span>
+            query_texts<span class="token operator">=</span><span class="token punctuation">[</span>query<span class="token punctuation">]</span><span class="token punctuation">,</span>
+            n_results<span class="token operator">=</span>top_k
+        <span class="token punctuation">)</span>
+
+        <span class="token comment"># 格式化结果</span>
+        <span class="token keyword keyword-return">return</span> <span class="token punctuation">[</span>
+            <span class="token punctuation">{</span>
+                <span class="token string">"content"</span><span class="token punctuation">:</span> doc<span class="token punctuation">,</span>
+                <span class="token string">"metadata"</span><span class="token punctuation">:</span> meta<span class="token punctuation">,</span>
+                <span class="token string">"distance"</span><span class="token punctuation">:</span> dist
+            <span class="token punctuation">}</span>
+            <span class="token keyword keyword-for">for</span> doc<span class="token punctuation">,</span> meta<span class="token punctuation">,</span> dist <span class="token keyword keyword-in">in</span> <span class="token builtin">zip</span><span class="token punctuation">(</span>
+                results<span class="token punctuation">[</span><span class="token string">"documents"</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+                results<span class="token punctuation">[</span><span class="token string">"metadatas"</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+                results<span class="token punctuation">[</span><span class="token string">"distances"</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token number">0</span><span class="token punctuation">]</span>
+            <span class="token punctuation">)</span>
+        <span class="token punctuation">]</span>
+
+    <span class="token keyword keyword-def">def</span> <span class="token function">count</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> <span class="token builtin">int</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""返回知识库中的文档总数"""</span>
+        <span class="token keyword keyword-return">return</span> self<span class="token punctuation">.</span>collection<span class="token punctuation">.</span>count<span class="token punctuation">(</span><span class="token punctuation">)</span>
+</code></pre><h3 id="模块四遗忘曲线schedulerforgetting_curvepy">模块四：遗忘曲线（scheduler/forgetting_curve.py） </h3>
+<pre data-role="codeBlock" data-info="python" class="language-python python"><code><span class="token triple-quoted-string string">"""
+基于间隔重复的遗忘曲线算法
+"""</span>
+
+<span class="token keyword keyword-import">import</span> math
+<span class="token keyword keyword-import">import</span> json
+<span class="token keyword keyword-from">from</span> datetime <span class="token keyword keyword-import">import</span> datetime<span class="token punctuation">,</span> timedelta
+
+<span class="token keyword keyword-class">class</span> <span class="token class-name">ForgettingCurve</span><span class="token punctuation">:</span>
+    <span class="token keyword keyword-def">def</span> <span class="token function">__init__</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> memory_file<span class="token punctuation">:</span> <span class="token builtin">str</span> <span class="token operator">=</span> <span class="token string">"./data/memory/forgetting.json"</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        self<span class="token punctuation">.</span>memory_file <span class="token operator">=</span> memory_file
+        self<span class="token punctuation">.</span>records <span class="token operator">=</span> self<span class="token punctuation">.</span>_load<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+    <span class="token keyword keyword-def">def</span> <span class="token function">_load</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> <span class="token builtin">dict</span><span class="token punctuation">:</span>
+        <span class="token keyword keyword-try">try</span><span class="token punctuation">:</span>
+            <span class="token keyword keyword-with">with</span> <span class="token builtin">open</span><span class="token punctuation">(</span>self<span class="token punctuation">.</span>memory_file<span class="token punctuation">,</span> <span class="token string">'r'</span><span class="token punctuation">,</span> encoding<span class="token operator">=</span><span class="token string">'utf-8'</span><span class="token punctuation">)</span> <span class="token keyword keyword-as">as</span> f<span class="token punctuation">:</span>
+                <span class="token keyword keyword-return">return</span> json<span class="token punctuation">.</span>load<span class="token punctuation">(</span>f<span class="token punctuation">)</span>
+        <span class="token keyword keyword-except">except</span> FileNotFoundError<span class="token punctuation">:</span>
+            <span class="token keyword keyword-return">return</span> <span class="token punctuation">{</span><span class="token punctuation">}</span>
+
+    <span class="token keyword keyword-def">def</span> <span class="token function">_save</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword keyword-with">with</span> <span class="token builtin">open</span><span class="token punctuation">(</span>self<span class="token punctuation">.</span>memory_file<span class="token punctuation">,</span> <span class="token string">'w'</span><span class="token punctuation">,</span> encoding<span class="token operator">=</span><span class="token string">'utf-8'</span><span class="token punctuation">)</span> <span class="token keyword keyword-as">as</span> f<span class="token punctuation">:</span>
+            json<span class="token punctuation">.</span>dump<span class="token punctuation">(</span>self<span class="token punctuation">.</span>records<span class="token punctuation">,</span> f<span class="token punctuation">,</span> ensure_ascii<span class="token operator">=</span><span class="token boolean">False</span><span class="token punctuation">,</span> indent<span class="token operator">=</span><span class="token number">2</span><span class="token punctuation">)</span>
+
+    <span class="token keyword keyword-def">def</span> <span class="token function">record_access</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> note_id<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""记录一次访问/复习"""</span>
+        now <span class="token operator">=</span> datetime<span class="token punctuation">.</span>now<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>isoformat<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+        <span class="token keyword keyword-if">if</span> note_id <span class="token keyword keyword-not">not</span> <span class="token keyword keyword-in">in</span> self<span class="token punctuation">.</span>records<span class="token punctuation">:</span>
+            self<span class="token punctuation">.</span>records<span class="token punctuation">[</span>note_id<span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token punctuation">{</span>
+                <span class="token string">"first_seen"</span><span class="token punctuation">:</span> now<span class="token punctuation">,</span>
+                <span class="token string">"access_count"</span><span class="token punctuation">:</span> <span class="token number">0</span><span class="token punctuation">,</span>
+                <span class="token string">"review_dates"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+                <span class="token string">"difficulty"</span><span class="token punctuation">:</span> <span class="token number">1.0</span>
+            <span class="token punctuation">}</span>
+
+        record <span class="token operator">=</span> self<span class="token punctuation">.</span>records<span class="token punctuation">[</span>note_id<span class="token punctuation">]</span>
+        record<span class="token punctuation">[</span><span class="token string">"access_count"</span><span class="token punctuation">]</span> <span class="token operator">+=</span> <span class="token number">1</span>
+        record<span class="token punctuation">[</span><span class="token string">"review_dates"</span><span class="token punctuation">]</span><span class="token punctuation">.</span>append<span class="token punctuation">(</span>now<span class="token punctuation">)</span>
+
+        <span class="token comment"># 每次复习后，根据间隔调整难度因子（SM-2 算法简化版）</span>
+        <span class="token keyword keyword-if">if</span> <span class="token builtin">len</span><span class="token punctuation">(</span>record<span class="token punctuation">[</span><span class="token string">"review_dates"</span><span class="token punctuation">]</span><span class="token punctuation">)</span> <span class="token operator">&gt;=</span> <span class="token number">2</span><span class="token punctuation">:</span>
+            prev <span class="token operator">=</span> datetime<span class="token punctuation">.</span>fromisoformat<span class="token punctuation">(</span>record<span class="token punctuation">[</span><span class="token string">"review_dates"</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token operator">-</span><span class="token number">2</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+            curr <span class="token operator">=</span> datetime<span class="token punctuation">.</span>fromisoformat<span class="token punctuation">(</span>record<span class="token punctuation">[</span><span class="token string">"review_dates"</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+            interval <span class="token operator">=</span> <span class="token punctuation">(</span>curr <span class="token operator">-</span> prev<span class="token punctuation">)</span><span class="token punctuation">.</span>days
+
+            <span class="token keyword keyword-if">if</span> interval <span class="token operator">&lt;</span> <span class="token number">2</span><span class="token punctuation">:</span>
+                record<span class="token punctuation">[</span><span class="token string">"difficulty"</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token builtin">max</span><span class="token punctuation">(</span><span class="token number">1.0</span><span class="token punctuation">,</span> record<span class="token punctuation">[</span><span class="token string">"difficulty"</span><span class="token punctuation">]</span> <span class="token operator">+</span> <span class="token number">0.1</span><span class="token punctuation">)</span>
+            <span class="token keyword keyword-elif">elif</span> interval <span class="token operator">&gt;</span> <span class="token number">7</span><span class="token punctuation">:</span>
+                record<span class="token punctuation">[</span><span class="token string">"difficulty"</span><span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token builtin">max</span><span class="token punctuation">(</span><span class="token number">1.0</span><span class="token punctuation">,</span> record<span class="token punctuation">[</span><span class="token string">"difficulty"</span><span class="token punctuation">]</span> <span class="token operator">-</span> <span class="token number">0.1</span><span class="token punctuation">)</span>
+
+        self<span class="token punctuation">.</span>_save<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+    <span class="token keyword keyword-def">def</span> <span class="token function">calculate_retention</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> note_id<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> <span class="token builtin">float</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""计算当前记忆保留率（0-1）"""</span>
+        <span class="token keyword keyword-if">if</span> note_id <span class="token keyword keyword-not">not</span> <span class="token keyword keyword-in">in</span> self<span class="token punctuation">.</span>records<span class="token punctuation">:</span>
+            <span class="token keyword keyword-return">return</span> <span class="token number">0.0</span>
+
+        record <span class="token operator">=</span> self<span class="token punctuation">.</span>records<span class="token punctuation">[</span>note_id<span class="token punctuation">]</span>
+        last_review <span class="token operator">=</span> datetime<span class="token punctuation">.</span>fromisoformat<span class="token punctuation">(</span>record<span class="token punctuation">[</span><span class="token string">"review_dates"</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+        days_since <span class="token operator">=</span> <span class="token punctuation">(</span>datetime<span class="token punctuation">.</span>now<span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">-</span> last_review<span class="token punctuation">)</span><span class="token punctuation">.</span>days
+
+        <span class="token comment"># 遗忘曲线公式: R = e^(-t/S)</span>
+        <span class="token comment"># R: 保留率, t: 时间, S: 稳定性因子</span>
+        stability <span class="token operator">=</span> record<span class="token punctuation">[</span><span class="token string">"difficulty"</span><span class="token punctuation">]</span> <span class="token operator">*</span> <span class="token punctuation">(</span>record<span class="token punctuation">[</span><span class="token string">"access_count"</span><span class="token punctuation">]</span> <span class="token operator">+</span> <span class="token number">1</span><span class="token punctuation">)</span>
+        retention <span class="token operator">=</span> math<span class="token punctuation">.</span>exp<span class="token punctuation">(</span><span class="token operator">-</span>days_since <span class="token operator">/</span> <span class="token punctuation">(</span>stability <span class="token operator">*</span> <span class="token number">7</span><span class="token punctuation">)</span><span class="token punctuation">)</span>
+
+        <span class="token keyword keyword-return">return</span> <span class="token builtin">round</span><span class="token punctuation">(</span><span class="token builtin">min</span><span class="token punctuation">(</span><span class="token number">1.0</span><span class="token punctuation">,</span> <span class="token builtin">max</span><span class="token punctuation">(</span><span class="token number">0.0</span><span class="token punctuation">,</span> retention<span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">,</span> <span class="token number">2</span><span class="token punctuation">)</span>
+
+    <span class="token keyword keyword-def">def</span> <span class="token function">get_notes_for_review</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> threshold<span class="token punctuation">:</span> <span class="token builtin">float</span> <span class="token operator">=</span> <span class="token number">0.5</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> <span class="token builtin">list</span><span class="token punctuation">[</span><span class="token builtin">dict</span><span class="token punctuation">]</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""获取需要复习的笔记列表"""</span>
+        reminders <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
+
+        <span class="token keyword keyword-for">for</span> note_id<span class="token punctuation">,</span> record <span class="token keyword keyword-in">in</span> self<span class="token punctuation">.</span>records<span class="token punctuation">.</span>items<span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+            retention <span class="token operator">=</span> self<span class="token punctuation">.</span>calculate_retention<span class="token punctuation">(</span>note_id<span class="token punctuation">)</span>
+            days_since <span class="token operator">=</span> <span class="token punctuation">(</span>datetime<span class="token punctuation">.</span>now<span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">-</span> datetime<span class="token punctuation">.</span>fromisoformat<span class="token punctuation">(</span>
+                record<span class="token punctuation">[</span><span class="token string">"review_dates"</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token operator">-</span><span class="token number">1</span><span class="token punctuation">]</span>
+            <span class="token punctuation">)</span><span class="token punctuation">)</span><span class="token punctuation">.</span>days
+
+            <span class="token keyword keyword-if">if</span> retention <span class="token operator">&lt;</span> threshold<span class="token punctuation">:</span>
+                <span class="token comment"># 计算优先级</span>
+                priority <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token number">1</span> <span class="token operator">-</span> retention<span class="token punctuation">)</span> <span class="token operator">*</span> record<span class="token punctuation">[</span><span class="token string">"access_count"</span><span class="token punctuation">]</span>
+
+                reminders<span class="token punctuation">.</span>append<span class="token punctuation">(</span><span class="token punctuation">{</span>
+                    <span class="token string">"note_id"</span><span class="token punctuation">:</span> note_id<span class="token punctuation">,</span>
+                    <span class="token string">"retention"</span><span class="token punctuation">:</span> retention<span class="token punctuation">,</span>
+                    <span class="token string">"days_since_review"</span><span class="token punctuation">:</span> days_since<span class="token punctuation">,</span>
+                    <span class="token string">"review_count"</span><span class="token punctuation">:</span> record<span class="token punctuation">[</span><span class="token string">"access_count"</span><span class="token punctuation">]</span><span class="token punctuation">,</span>
+                    <span class="token string">"priority"</span><span class="token punctuation">:</span> priority<span class="token punctuation">,</span>
+                    <span class="token string">"urgency"</span><span class="token punctuation">:</span> self<span class="token punctuation">.</span>_get_urgency<span class="token punctuation">(</span>retention<span class="token punctuation">,</span> days_since<span class="token punctuation">)</span>
+                <span class="token punctuation">}</span><span class="token punctuation">)</span>
+
+        <span class="token comment"># 按优先级排序</span>
+        reminders<span class="token punctuation">.</span>sort<span class="token punctuation">(</span>key<span class="token operator">=</span><span class="token keyword keyword-lambda">lambda</span> x<span class="token punctuation">:</span> x<span class="token punctuation">[</span><span class="token string">"priority"</span><span class="token punctuation">]</span><span class="token punctuation">,</span> reverse<span class="token operator">=</span><span class="token boolean">True</span><span class="token punctuation">)</span>
+        <span class="token keyword keyword-return">return</span> reminders
+
+    <span class="token keyword keyword-def">def</span> <span class="token function">_get_urgency</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> retention<span class="token punctuation">:</span> <span class="token builtin">float</span><span class="token punctuation">,</span> days<span class="token punctuation">:</span> <span class="token builtin">int</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> <span class="token builtin">str</span><span class="token punctuation">:</span>
+        <span class="token keyword keyword-if">if</span> retention <span class="token operator">&lt;</span> <span class="token number">0.2</span> <span class="token keyword keyword-or">or</span> days <span class="token operator">&gt;</span> <span class="token number">14</span><span class="token punctuation">:</span>
+            <span class="token keyword keyword-return">return</span> <span class="token string">"🔴 紧急"</span>
+        <span class="token keyword keyword-elif">elif</span> retention <span class="token operator">&lt;</span> <span class="token number">0.4</span> <span class="token keyword keyword-or">or</span> days <span class="token operator">&gt;</span> <span class="token number">7</span><span class="token punctuation">:</span>
+            <span class="token keyword keyword-return">return</span> <span class="token string">"🟡 重要"</span>
+        <span class="token keyword keyword-else">else</span><span class="token punctuation">:</span>
+            <span class="token keyword keyword-return">return</span> <span class="token string">"🟢 一般"</span>
+</code></pre><hr>
+<h2 id="agent-工作流程">Agent 工作流程 </h2>
+<h3 id="流程一用户添加知识">流程一：用户添加知识 </h3>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>用户输入："今天学了 Python 的 GIL 全局解释器锁，它会导致
+          多线程在 CPU 密集型任务中无法真正并行"
+
+Agent 思考：用户想要保存一条学习笔记
+
+Agent 行动：调用 add_knowledge
+  ├── 参数：{
+  │     "content": "Python 的 GIL 全局解释器锁...",
+  │     "tags": ["Python", "GIL", "多线程", "并发"],
+  │     "importance": "high"
+  │   }
+  ├── 执行：文档解析 → 分块 → 向量化 → 存入 ChromaDB
+  └── 记录：更新遗忘曲线，记录首次学习时间
+
+Agent 回复："✅ 已保存！我给这条笔记打了标签：
+            Python / GIL / 多线程 / 并发
+            这是个重要概念，3天后我会提醒你复习。"
+</code></pre><h3 id="流程二用户搜索知识">流程二：用户搜索知识 </h3>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>用户输入："我之前学过什么关于缓存的内容？"
+
+Agent 思考：用户想搜索知识库，我需要调用搜索工具
+
+Agent 行动：调用 search_knowledge
+  ├── 参数：{"query": "缓存", "top_k": 5}
+  ├── 执行：query 向量化 → ChromaDB 检索 → 返回 top-5
+  └── 结果：找到3条相关笔记
+
+Agent 思考：找到了结果，我需要用 LLM 总结后呈现
+
+Agent 回复："你有3条关于缓存的笔记：
+  1. 📄 Redis LRU 淘汰策略（4月12日）
+     核心内容：LRU 会淘汰最近最少使用的键...
+  2. 📄 MySQL 查询缓存的失效机制（4月15日）
+     核心内容：当表数据更新时，该表的所有缓存失效...
+  3. 📄 CDN 缓存与浏览器缓存（4月20日）
+     核心内容：强缓存 vs 协商缓存...
+
+  需要我详细展开某一条，或者帮你对比分析吗？"
+</code></pre><h3 id="流程三agent-主动推送">流程三：Agent 主动推送 </h3>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>[每日定时任务触发] 扫描知识库
+
+Agent 思考：检查所有笔记的遗忘曲线状态
+
+Agent 执行：
+  ├── 计算每条笔记的保留率
+  ├── 筛选出保留率 &lt; 0.5 的笔记
+  └── 按优先级排序
+
+Agent 决策：推送以下内容
+
+📢 知识提醒（每日）：
+
+🔴 紧急复习（1条）：
+  「Python GIL 全局解释器锁」
+   已学3天，未复习，保留率仅35%
+   核心要点：GIL 导致多线程无法利用多核 CPU...
+   [立即复习] [明天再看]
+
+🟡 建议复习（2条）：
+  「Redis LRU 淘汰策略」
+   已学7天，复习1次，保留率58%
+   [查看详情]
+
+💡 知识关联（1条）：
+  你刚存的「Python GIL」和之前的「多线程编程」笔记
+  有关联——GIL 正是 Python 多线程的性能瓶颈所在。
+  要我把这个关联整理出来吗？
+</code></pre><hr>
+<h2 id="记忆系统设计">记忆系统设计 </h2>
+<h3 id="短期记忆memoryshort_termpy">短期记忆（memory/short_term.py） </h3>
+<pre data-role="codeBlock" data-info="python" class="language-python python"><code><span class="token triple-quoted-string string">"""
+对话历史管理 —— 短期记忆
+"""</span>
+
+<span class="token keyword keyword-class">class</span> <span class="token class-name">ShortTermMemory</span><span class="token punctuation">:</span>
+    <span class="token keyword keyword-def">def</span> <span class="token function">__init__</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> max_messages<span class="token punctuation">:</span> <span class="token builtin">int</span> <span class="token operator">=</span> <span class="token number">50</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        self<span class="token punctuation">.</span>messages <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
+        self<span class="token punctuation">.</span>max_messages <span class="token operator">=</span> max_messages
+
+    <span class="token keyword keyword-def">def</span> <span class="token function">add_message</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> role<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">,</span> content<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        self<span class="token punctuation">.</span>messages<span class="token punctuation">.</span>append<span class="token punctuation">(</span><span class="token punctuation">{</span><span class="token string">"role"</span><span class="token punctuation">:</span> role<span class="token punctuation">,</span> <span class="token string">"content"</span><span class="token punctuation">:</span> content<span class="token punctuation">}</span><span class="token punctuation">)</span>
+
+        <span class="token comment"># 超出窗口时，保留 System Prompt + 最近的消息</span>
+        <span class="token keyword keyword-if">if</span> <span class="token builtin">len</span><span class="token punctuation">(</span>self<span class="token punctuation">.</span>messages<span class="token punctuation">)</span> <span class="token operator">&gt;</span> self<span class="token punctuation">.</span>max_messages<span class="token punctuation">:</span>
+            <span class="token comment"># 保留前10条（可能是重要上下文）+ 最近30条</span>
+            self<span class="token punctuation">.</span>messages <span class="token operator">=</span> self<span class="token punctuation">.</span>messages<span class="token punctuation">[</span><span class="token punctuation">:</span><span class="token number">10</span><span class="token punctuation">]</span> <span class="token operator">+</span> self<span class="token punctuation">.</span>messages<span class="token punctuation">[</span><span class="token operator">-</span><span class="token number">30</span><span class="token punctuation">:</span><span class="token punctuation">]</span>
+
+    <span class="token keyword keyword-def">def</span> <span class="token function">get_messages</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> <span class="token builtin">list</span><span class="token punctuation">[</span><span class="token builtin">dict</span><span class="token punctuation">]</span><span class="token punctuation">:</span>
+        <span class="token keyword keyword-return">return</span> self<span class="token punctuation">.</span>messages
+
+    <span class="token keyword keyword-def">def</span> <span class="token function">clear</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        self<span class="token punctuation">.</span>messages <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
+</code></pre><h3 id="长期记忆memorylong_termpy">长期记忆（memory/long_term.py） </h3>
+<pre data-role="codeBlock" data-info="python" class="language-python python"><code><span class="token triple-quoted-string string">"""
+用户偏好与知识图谱 —— 长期记忆
+"""</span>
+
+<span class="token keyword keyword-import">import</span> json
+
+<span class="token keyword keyword-class">class</span> <span class="token class-name">LongTermMemory</span><span class="token punctuation">:</span>
+    <span class="token keyword keyword-def">def</span> <span class="token function">__init__</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> memory_file<span class="token punctuation">:</span> <span class="token builtin">str</span> <span class="token operator">=</span> <span class="token string">"./data/memory/long_term.json"</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        self<span class="token punctuation">.</span>memory_file <span class="token operator">=</span> memory_file
+        self<span class="token punctuation">.</span>data <span class="token operator">=</span> self<span class="token punctuation">.</span>_load<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+    <span class="token keyword keyword-def">def</span> <span class="token function">_load</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> <span class="token builtin">dict</span><span class="token punctuation">:</span>
+        <span class="token keyword keyword-try">try</span><span class="token punctuation">:</span>
+            <span class="token keyword keyword-with">with</span> <span class="token builtin">open</span><span class="token punctuation">(</span>self<span class="token punctuation">.</span>memory_file<span class="token punctuation">,</span> <span class="token string">'r'</span><span class="token punctuation">,</span> encoding<span class="token operator">=</span><span class="token string">'utf-8'</span><span class="token punctuation">)</span> <span class="token keyword keyword-as">as</span> f<span class="token punctuation">:</span>
+                <span class="token keyword keyword-return">return</span> json<span class="token punctuation">.</span>load<span class="token punctuation">(</span>f<span class="token punctuation">)</span>
+        <span class="token keyword keyword-except">except</span> FileNotFoundError<span class="token punctuation">:</span>
+            <span class="token keyword keyword-return">return</span> <span class="token punctuation">{</span>
+                <span class="token string">"user_preferences"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
+                    <span class="token string">"favorite_topics"</span><span class="token punctuation">:</span> <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">,</span>       <span class="token comment"># 常关注的主题</span>
+                    <span class="token string">"learning_pace"</span><span class="token punctuation">:</span> <span class="token string">"normal"</span><span class="token punctuation">,</span>   <span class="token comment"># 学习节奏</span>
+                    <span class="token string">"notification_time"</span><span class="token punctuation">:</span> <span class="token string">"09:00"</span> <span class="token comment"># 推送时间偏好</span>
+                <span class="token punctuation">}</span><span class="token punctuation">,</span>
+                <span class="token string">"knowledge_graph"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span>
+                    <span class="token string">"topics"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token punctuation">}</span><span class="token punctuation">,</span>                <span class="token comment"># 主题及其关联</span>
+                    <span class="token string">"notes"</span><span class="token punctuation">:</span> <span class="token punctuation">{</span><span class="token punctuation">}</span>                  <span class="token comment"># 笔记元数据</span>
+                <span class="token punctuation">}</span>
+            <span class="token punctuation">}</span>
+
+    <span class="token keyword keyword-def">def</span> <span class="token function">_save</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword keyword-with">with</span> <span class="token builtin">open</span><span class="token punctuation">(</span>self<span class="token punctuation">.</span>memory_file<span class="token punctuation">,</span> <span class="token string">'w'</span><span class="token punctuation">,</span> encoding<span class="token operator">=</span><span class="token string">'utf-8'</span><span class="token punctuation">)</span> <span class="token keyword keyword-as">as</span> f<span class="token punctuation">:</span>
+            json<span class="token punctuation">.</span>dump<span class="token punctuation">(</span>self<span class="token punctuation">.</span>data<span class="token punctuation">,</span> f<span class="token punctuation">,</span> ensure_ascii<span class="token operator">=</span><span class="token boolean">False</span><span class="token punctuation">,</span> indent<span class="token operator">=</span><span class="token number">2</span><span class="token punctuation">)</span>
+
+    <span class="token keyword keyword-def">def</span> <span class="token function">update_preference</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> key<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">,</span> value<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        self<span class="token punctuation">.</span>data<span class="token punctuation">[</span><span class="token string">"user_preferences"</span><span class="token punctuation">]</span><span class="token punctuation">[</span>key<span class="token punctuation">]</span> <span class="token operator">=</span> value
+        self<span class="token punctuation">.</span>_save<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+    <span class="token keyword keyword-def">def</span> <span class="token function">add_note_metadata</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> note_id<span class="token punctuation">:</span> <span class="token builtin">str</span><span class="token punctuation">,</span> metadata<span class="token punctuation">:</span> <span class="token builtin">dict</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        self<span class="token punctuation">.</span>data<span class="token punctuation">[</span><span class="token string">"knowledge_graph"</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token string">"notes"</span><span class="token punctuation">]</span><span class="token punctuation">[</span>note_id<span class="token punctuation">]</span> <span class="token operator">=</span> metadata
+        self<span class="token punctuation">.</span>_save<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+    <span class="token keyword keyword-def">def</span> <span class="token function">get_context_for_prompt</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> <span class="token builtin">str</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""生成用于 LLM prompt 的上下文摘要"""</span>
+        prefs <span class="token operator">=</span> self<span class="token punctuation">.</span>data<span class="token punctuation">[</span><span class="token string">"user_preferences"</span><span class="token punctuation">]</span>
+        notes_count <span class="token operator">=</span> <span class="token builtin">len</span><span class="token punctuation">(</span>self<span class="token punctuation">.</span>data<span class="token punctuation">[</span><span class="token string">"knowledge_graph"</span><span class="token punctuation">]</span><span class="token punctuation">[</span><span class="token string">"notes"</span><span class="token punctuation">]</span><span class="token punctuation">)</span>
+
+        <span class="token keyword keyword-return">return</span> <span class="token string-interpolation"><span class="token string">f"""
+用户偏好：
+- 常关注主题：</span><span class="token interpolation"><span class="token punctuation">{</span><span class="token string">', '</span><span class="token punctuation">.</span>join<span class="token punctuation">(</span>prefs<span class="token punctuation">[</span><span class="token string">'favorite_topics'</span><span class="token punctuation">]</span><span class="token punctuation">)</span> <span class="token keyword keyword-or">or</span> <span class="token string">'暂无'</span><span class="token punctuation">}</span></span><span class="token string">
+- 学习节奏：</span><span class="token interpolation"><span class="token punctuation">{</span>prefs<span class="token punctuation">[</span><span class="token string">'learning_pace'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">
+- 知识库中共有 </span><span class="token interpolation"><span class="token punctuation">{</span>notes_count<span class="token punctuation">}</span></span><span class="token string"> 条笔记
+"""</span></span>
+</code></pre><hr>
+<h2 id="主动推送机制">主动推送机制 </h2>
+<h3 id="定时扫描器schedulerscannerpy">定时扫描器（scheduler/scanner.py） </h3>
+<pre data-role="codeBlock" data-info="python" class="language-python python"><code><span class="token triple-quoted-string string">"""
+每日定时扫描 —— 触发主动推送
+"""</span>
+
+<span class="token keyword keyword-from">from</span> apscheduler<span class="token punctuation">.</span>schedulers<span class="token punctuation">.</span>background <span class="token keyword keyword-import">import</span> BackgroundScheduler
+<span class="token keyword keyword-from">from</span> scheduler<span class="token punctuation">.</span>forgetting_curve <span class="token keyword keyword-import">import</span> ForgettingCurve
+
+<span class="token keyword keyword-class">class</span> <span class="token class-name">KnowledgeScanner</span><span class="token punctuation">:</span>
+    <span class="token keyword keyword-def">def</span> <span class="token function">__init__</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> agent<span class="token punctuation">,</span> forgetting_curve<span class="token punctuation">:</span> ForgettingCurve<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        self<span class="token punctuation">.</span>agent <span class="token operator">=</span> agent
+        self<span class="token punctuation">.</span>forgetting_curve <span class="token operator">=</span> forgetting_curve
+        self<span class="token punctuation">.</span>scheduler <span class="token operator">=</span> BackgroundScheduler<span class="token punctuation">(</span><span class="token punctuation">)</span>
+
+    <span class="token keyword keyword-def">def</span> <span class="token function">start</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> hour<span class="token punctuation">:</span> <span class="token builtin">int</span> <span class="token operator">=</span> <span class="token number">9</span><span class="token punctuation">,</span> minute<span class="token punctuation">:</span> <span class="token builtin">int</span> <span class="token operator">=</span> <span class="token number">0</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""启动定时任务（每天指定时间执行）"""</span>
+        self<span class="token punctuation">.</span>scheduler<span class="token punctuation">.</span>add_job<span class="token punctuation">(</span>
+            self<span class="token punctuation">.</span>daily_scan<span class="token punctuation">,</span>
+            <span class="token string">'cron'</span><span class="token punctuation">,</span>
+            hour<span class="token operator">=</span>hour<span class="token punctuation">,</span>
+            minute<span class="token operator">=</span>minute
+        <span class="token punctuation">)</span>
+        self<span class="token punctuation">.</span>scheduler<span class="token punctuation">.</span>start<span class="token punctuation">(</span><span class="token punctuation">)</span>
+        <span class="token keyword keyword-print">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"⏰ 每日扫描已启动，将在每天 </span><span class="token interpolation"><span class="token punctuation">{</span>hour<span class="token punctuation">:</span><span class="token format-spec">02d</span><span class="token punctuation">}</span></span><span class="token string">:</span><span class="token interpolation"><span class="token punctuation">{</span>minute<span class="token punctuation">:</span><span class="token format-spec">02d</span><span class="token punctuation">}</span></span><span class="token string"> 执行"</span></span><span class="token punctuation">)</span>
+
+    <span class="token keyword keyword-def">def</span> <span class="token function">daily_scan</span><span class="token punctuation">(</span>self<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""每日扫描逻辑"""</span>
+        <span class="token comment"># 1. 获取需要复习的笔记</span>
+        reminders <span class="token operator">=</span> self<span class="token punctuation">.</span>forgetting_curve<span class="token punctuation">.</span>get_notes_for_review<span class="token punctuation">(</span>threshold<span class="token operator">=</span><span class="token number">0.5</span><span class="token punctuation">)</span>
+
+        <span class="token comment"># 2. 获取知识关联</span>
+        recent_notes <span class="token operator">=</span> self<span class="token punctuation">.</span>_get_recent_notes<span class="token punctuation">(</span>days<span class="token operator">=</span><span class="token number">1</span><span class="token punctuation">)</span>
+        associations <span class="token operator">=</span> self<span class="token punctuation">.</span>_find_associations<span class="token punctuation">(</span>recent_notes<span class="token punctuation">)</span>
+
+        <span class="token comment"># 3. 生成推送内容</span>
+        <span class="token keyword keyword-if">if</span> reminders <span class="token keyword keyword-or">or</span> associations<span class="token punctuation">:</span>
+            message <span class="token operator">=</span> self<span class="token punctuation">.</span>_build_notification<span class="token punctuation">(</span>reminders<span class="token punctuation">,</span> associations<span class="token punctuation">)</span>
+            <span class="token comment"># 4. 输出推送（CLI 模式直接打印）</span>
+            <span class="token keyword keyword-print">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"\n</span><span class="token interpolation"><span class="token punctuation">{</span><span class="token string">'='</span><span class="token operator">*</span><span class="token number">50</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+            <span class="token keyword keyword-print">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"📢 每日知识提醒"</span></span><span class="token punctuation">)</span>
+            <span class="token keyword keyword-print">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"</span><span class="token interpolation"><span class="token punctuation">{</span><span class="token string">'='</span><span class="token operator">*</span><span class="token number">50</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+            <span class="token keyword keyword-print">print</span><span class="token punctuation">(</span>message<span class="token punctuation">)</span>
+
+    <span class="token keyword keyword-def">def</span> <span class="token function">_find_associations</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> recent_notes<span class="token punctuation">:</span> <span class="token builtin">list</span><span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> <span class="token builtin">list</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""发现新旧笔记之间的关联"""</span>
+        associations <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
+        <span class="token comment"># 用向量检索找到语义相近但不同的笔记</span>
+        <span class="token comment"># （实现略，核心是余弦相似度 &gt; 阈值但 &lt; 极高值）</span>
+        <span class="token keyword keyword-return">return</span> associations
+
+    <span class="token keyword keyword-def">def</span> <span class="token function">_build_notification</span><span class="token punctuation">(</span>self<span class="token punctuation">,</span> reminders<span class="token punctuation">,</span> associations<span class="token punctuation">)</span> <span class="token operator">-</span><span class="token operator">&gt;</span> <span class="token builtin">str</span><span class="token punctuation">:</span>
+        <span class="token triple-quoted-string string">"""构建推送消息"""</span>
+        lines <span class="token operator">=</span> <span class="token punctuation">[</span><span class="token punctuation">]</span>
+        <span class="token keyword keyword-for">for</span> r <span class="token keyword keyword-in">in</span> reminders<span class="token punctuation">[</span><span class="token punctuation">:</span><span class="token number">5</span><span class="token punctuation">]</span><span class="token punctuation">:</span>  <span class="token comment"># 最多推5条</span>
+            lines<span class="token punctuation">.</span>append<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"  </span><span class="token interpolation"><span class="token punctuation">{</span>r<span class="token punctuation">[</span><span class="token string">'urgency'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string"> </span><span class="token interpolation"><span class="token punctuation">{</span>r<span class="token punctuation">[</span><span class="token string">'note_id'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+            lines<span class="token punctuation">.</span>append<span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"     已学</span><span class="token interpolation"><span class="token punctuation">{</span>r<span class="token punctuation">[</span><span class="token string">'days_since_review'</span><span class="token punctuation">]</span><span class="token punctuation">}</span></span><span class="token string">天，"</span></span>
+                        <span class="token string-interpolation"><span class="token string">f"保留率</span><span class="token interpolation"><span class="token punctuation">{</span>r<span class="token punctuation">[</span><span class="token string">'retention'</span><span class="token punctuation">]</span><span class="token operator">*</span><span class="token number">100</span><span class="token punctuation">:</span><span class="token format-spec">.0f</span><span class="token punctuation">}</span></span><span class="token string">%"</span></span><span class="token punctuation">)</span>
+        <span class="token keyword keyword-return">return</span> <span class="token string">"\n"</span><span class="token punctuation">.</span>join<span class="token punctuation">(</span>lines<span class="token punctuation">)</span>
+</code></pre><hr>
+<h2 id="prompt-设计">Prompt 设计 </h2>
+<h3 id="system-promptagentpromptpy">System Prompt（agent/prompt.py） </h3>
+<pre data-role="codeBlock" data-info="python" class="language-python python"><code>SYSTEM_PROMPT <span class="token operator">=</span> <span class="token triple-quoted-string string">"""
+你是一个个人知识管理 Agent，名叫"第二大脑"。你的核心能力：
+
+## 你的工具
+1. add_knowledge: 当用户想要保存笔记、记录学习内容时使用
+2. search_knowledge: 当用户询问"我学过XX吗"、"找一下关于XX的内容"时使用
+3. list_notes: 当用户想查看知识库概览时使用
+4. delete_notes: 当用户想删除某条笔记时使用
+5. send_reminder: 当需要推送复习提醒时使用
+
+## 你的行为规则
+- 用户说想要保存内容时，主动调用 add_knowledge
+- 用户提问时，先判断是否需要搜索知识库
+  - 如果是知识相关问题 → 先调用 search_knowledge，再基于结果回答
+  - 如果是闲聊/通用问题 → 直接回答，不调用工具
+- 回答时始终标注信息来源（哪条笔记、什么时间记录的）
+- 语气友好、简洁，不要过度解释
+
+## 你的记忆
+- 你记得用户的所有对话历史
+- 你记得用户的知识库内容
+- 你记得用户的学习偏好
+
+## 输出格式
+- 列表类信息用编号
+- 重要信息用 **加粗** 标注
+- 需要用户决策时提供选项
+"""</span>
+</code></pre><hr>
+<h2 id="避坑指南">避坑指南 </h2>
+<h3 id="坑一一上来就做-web-界面">坑一：一上来就做 Web 界面 </h3>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>❌ 错误做法：花一周时间搭 Streamlit 界面，再开始写核心逻辑
+✅ 正确做法：前3周纯命令行，确保核心功能正确后再加界面
+</code></pre><p><strong>理由：</strong> 界面开发会消耗大量时间，且如果核心逻辑有 bug，界面再好看也没用。命令行能让你专注在 Agent 逻辑上。</p>
+<h3 id="坑二试图支持所有文件格式">坑二：试图支持所有文件格式 </h3>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>❌ 错误做法：一开始就支持 PDF、DOCX、HTML、图片...
+✅ 正确做法：MVP 只支持 .txt 和 .md，后期按需扩展
+</code></pre><p><strong>理由：</strong> PDF 解析（尤其是中文 PDF）是一个独立的大坑，需要处理字体嵌入、表格、图片等。DOCX 也类似。先把核心流程跑通。</p>
+<h3 id="坑三用太复杂的框架">坑三：用太复杂的框架 </h3>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>❌ 错误做法：用 LangChain 的 Agent/Chain/Memory 全家桶
+✅ 正确做法：核心逻辑自己写，只用 LangChain 的工具类（DocumentLoader, TextSplitter）
+</code></pre><p><strong>理由：</strong> LangChain 的抽象层太多，出了问题很难调试。作为新手，理解底层原理比用框架更重要。Agent Loop 自己写，只需要50行代码。</p>
+<h3 id="坑四忽略错误处理">坑四：忽略错误处理 </h3>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>❌ 错误做法：API 调用裸写，不处理异常
+✅ 正确做法：从 Day 1 就写 try-except + 重试逻辑
+</code></pre><p><strong>理由：</strong> OpenAI API 会超时、会限流、会返回格式错误。如果不处理，调试时会浪费大量时间在"到底是 API 问题还是我的代码问题"上。</p>
+<pre data-role="codeBlock" data-info="python" class="language-python python"><code><span class="token comment"># 从 Day 1 就养成这个习惯</span>
+<span class="token keyword keyword-import">import</span> time
+
+<span class="token keyword keyword-def">def</span> <span class="token function">call_llm_with_retry</span><span class="token punctuation">(</span>messages<span class="token punctuation">,</span> max_retries<span class="token operator">=</span><span class="token number">3</span><span class="token punctuation">)</span><span class="token punctuation">:</span>
+    <span class="token keyword keyword-for">for</span> attempt <span class="token keyword keyword-in">in</span> <span class="token builtin">range</span><span class="token punctuation">(</span>max_retries<span class="token punctuation">)</span><span class="token punctuation">:</span>
+        <span class="token keyword keyword-try">try</span><span class="token punctuation">:</span>
+            <span class="token keyword keyword-return">return</span> openai<span class="token punctuation">.</span>chat<span class="token punctuation">.</span>completions<span class="token punctuation">.</span>create<span class="token punctuation">(</span>
+                model<span class="token operator">=</span><span class="token string">"gpt-4o-mini"</span><span class="token punctuation">,</span>
+                messages<span class="token operator">=</span>messages
+            <span class="token punctuation">)</span>
+        <span class="token keyword keyword-except">except</span> openai<span class="token punctuation">.</span>RateLimitError<span class="token punctuation">:</span>
+            wait <span class="token operator">=</span> <span class="token number">2</span> <span class="token operator">**</span> attempt
+            <span class="token keyword keyword-print">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"API 限流，等待 </span><span class="token interpolation"><span class="token punctuation">{</span>wait<span class="token punctuation">}</span></span><span class="token string"> 秒后重试..."</span></span><span class="token punctuation">)</span>
+            time<span class="token punctuation">.</span>sleep<span class="token punctuation">(</span>wait<span class="token punctuation">)</span>
+        <span class="token keyword keyword-except">except</span> openai<span class="token punctuation">.</span>APIError <span class="token keyword keyword-as">as</span> e<span class="token punctuation">:</span>
+            <span class="token keyword keyword-print">print</span><span class="token punctuation">(</span><span class="token string-interpolation"><span class="token string">f"API 错误: </span><span class="token interpolation"><span class="token punctuation">{</span>e<span class="token punctuation">}</span></span><span class="token string">"</span></span><span class="token punctuation">)</span>
+            <span class="token keyword keyword-if">if</span> attempt <span class="token operator">==</span> max_retries <span class="token operator">-</span> <span class="token number">1</span><span class="token punctuation">:</span>
+                <span class="token keyword keyword-raise">raise</span>
+</code></pre><h3 id="坑五追求-100-检索准确率">坑五：追求 100% 检索准确率 </h3>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>❌ 错误做法：反复调参，追求向量检索的完美准确率
+✅ 正确做法：先做到"大致对"，通过用户反馈迭代优化
+</code></pre><p><strong>理由：</strong> 语义检索本身就有模糊性（"缓存"能检索到"Redis"也能检索到"CDN"），这是正常的。过度调参会陷入局部最优。</p>
+<h3 id="坑六一次写完所有模块">坑六：一次写完所有模块 </h3>
+<pre data-role="codeBlock" data-info="" class="language-text"><code>❌ 错误做法：设计完所有模块再开始编码
+✅ 正确做法：每周只聚焦一个模块，写完测试通过再进下一个
+</code></pre><p><strong>理由：</strong> 新手最大的风险是"设计了很完美的架构，但什么都跑不起来"。每周有可验证的产出，才能保持动力和发现错误。</p>
+<hr>
+<h2 id="学习收获">学习收获 </h2>
+<p>做完这个项目后，你将掌握的 Agent 开发核心知识：</p>
+<table>
+<thead>
+<tr>
+<th>概念</th>
+<th>在本项目中的实践</th>
+<th>掌握程度</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Tool Calling</td>
+<td>定义工具 Schema，让 LLM 自动选择和调用</td>
+<td>独立实现</td>
+</tr>
+<tr>
+<td>Prompt Engineering</td>
+<td>System Prompt 设计、角色定义、输出格式控制</td>
+<td>深入理解</td>
+</tr>
+<tr>
+<td>Agent Loop (ReAct)</td>
+<td>思考 → 行动 → 观察的完整循环</td>
+<td>独立实现</td>
+</tr>
+<tr>
+<td>RAG</td>
+<td>检索增强生成的完整链路</td>
+<td>深入理解</td>
+</tr>
+<tr>
+<td>向量数据库</td>
+<td>ChromaDB 的使用和原理</td>
+<td>基本掌握</td>
+</tr>
+<tr>
+<td>短期记忆</td>
+<td>对话历史管理、Context Window 控制</td>
+<td>独立实现</td>
+</tr>
+<tr>
+<td>长期记忆</td>
+<td>用户偏好存储、知识图谱</td>
+<td>基本掌握</td>
+</tr>
+<tr>
+<td>定时任务</td>
+<td>APScheduler 的使用</td>
+<td>掌握</td>
+</tr>
+<tr>
+<td>错误处理</td>
+<td>API 重试、异常恢复、边界 case</td>
+<td>养成习惯</td>
+</tr>
+<tr>
+<td>项目架构</td>
+<td>模块化设计、关注点分离</td>
+<td>刻意练习</td>
+</tr>
+</tbody>
+</table>
+<h3 id="这个项目可以写在简历上吗">这个项目可以写在简历上吗？ </h3>
+<p><strong>可以。</strong> 它展示了：</p>
+<ol>
+<li>你理解 Agent 的核心概念（不只是会调 API）</li>
+<li>你有完整的产品思维（从需求到实现到演示）</li>
+<li>你有独立开发能力（一个人 + AI 辅助完成）</li>
+<li>你有创新思维（主动推送 + 知识关联）</li>
+</ol>
+<hr>
+<h2 id="快速开始">快速开始 </h2>
+<pre data-role="codeBlock" data-info="bash" class="language-bash bash"><code><span class="token comment"># 1. 克隆项目</span>
+<span class="token function">git</span> clone https://github.com/your-username/second-brain-agent.git
+<span class="token builtin class-name">cd</span> second-brain-agent
+
+<span class="token comment"># 2. 创建虚拟环境</span>
+python <span class="token parameter variable">-m</span> venv venv
+<span class="token builtin class-name">source</span> venv/bin/activate  <span class="token comment"># Windows: venv\Scripts\activate</span>
+
+<span class="token comment"># 3. 安装依赖</span>
+pip <span class="token function">install</span> <span class="token parameter variable">-r</span> requirements.txt
+
+<span class="token comment"># 4. 配置环境变量</span>
+<span class="token function">cp</span> .env.example .env
+<span class="token comment"># 编辑 .env，填入你的 OpenAI API Key</span>
+
+<span class="token comment"># 5. 启动</span>
+python main.py
+</code></pre><hr>
+<blockquote>
+<p><strong>项目理念：</strong> 知识的价值不在于存储，而在于在正确的时间被想起。让 AI 成为你的第二大脑，帮你在遗忘之前抓住那些重要的想法。</p>
+</blockquote>
+
+      </div>
+      
+      
+    
+    
+    
+    
+    
+    
+  
+    </body></html>

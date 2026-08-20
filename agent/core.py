@@ -13,7 +13,8 @@ import config
 
 
 class SecondBrainAgent:
-    def __init__(self):
+    def __init__(self, user_id: str = None):
+        self.user_id = user_id
         self.memory = ShortTermMemory()
         self.tools = {
             "add_knowledge": add_knowledge,
@@ -35,7 +36,7 @@ class SecondBrainAgent:
     def run(self, user_input: str) -> str:
         self.memory.add_message("user", user_input)
 
-        long_term_context = long_term.get_context_summary()
+        long_term_context = long_term.get_context_summary(user_id=self.user_id)
         system_msg = SYSTEM_PROMPT + "\n\n" + long_term_context
 
         messages = [{"role": "system", "content": system_msg}]
@@ -61,7 +62,7 @@ class SecondBrainAgent:
                     tool_name = tc["name"]
                     tool_args = tc["arguments"]
                     if tool_name in self.tools:
-                        result = self.tools[tool_name].execute(tool_args)
+                        result = self.tools[tool_name].execute(tool_args, user_id=self.user_id)
                     else:
                         result = json.dumps({"error": f"未知工具: {tool_name}"}, ensure_ascii=False)
 

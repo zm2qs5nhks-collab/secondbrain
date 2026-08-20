@@ -74,7 +74,7 @@ def fetch_url(url: str, timeout: int = 15) -> dict:
     return {"title": title, "content": text, "url": url, "length": len(text)}
 
 
-def execute(arguments: dict) -> str:
+def execute(arguments: dict, user_id: str = None) -> str:
     url = arguments.get("url", "")
     tags = arguments.get("tags", [])
 
@@ -94,13 +94,24 @@ def execute(arguments: dict) -> str:
         "content": f"[来源: {result['title'] or result['url']}]\n\n{result['content']}",
         "tags": tags if tags else ["网页收藏"],
         "importance": "normal",
-    }))
+    }, user_id=user_id))
+
+    if not add_result.get("note_id"):
+        return json.dumps({
+            "error": f"保存失败: {add_result.get('error', '未知错误')}",
+            "debug": {
+                "title": result["title"],
+                "content_length": result["length"],
+                "add_result": add_result,
+            },
+        }, ensure_ascii=False)
 
     return json.dumps({
         "status": "success",
         "title": result["title"],
         "url": result["url"],
         "content_length": result["length"],
+        "chunks_stored": add_result.get("chunks_stored", 0),
         "note_id": add_result.get("note_id"),
-        "message": f"网页内容已保存（{result['length']}字符）",
+        "message": f"网页内容已保存（{result['length']}字符，{add_result.get('chunks_stored', 0)}个分块）",
     }, ensure_ascii=False)

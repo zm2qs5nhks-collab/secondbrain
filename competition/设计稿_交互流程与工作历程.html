@@ -1,0 +1,482 @@
+<!DOCTYPE html><html><head>
+      <title>设计稿_交互流程与工作历程</title>
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      
+      <link rel="stylesheet" href="file:///c:\Users\ASUS\.vscode\extensions\shd101wyy.markdown-preview-enhanced-0.8.30\crossnote\dependencies\katex\katex.min.css">
+      
+      
+      
+      <script type="text/javascript" src="file:///c:\Users\ASUS\.vscode\extensions\shd101wyy.markdown-preview-enhanced-0.8.30\crossnote\dependencies\mermaid\mermaid.min.js" charset="UTF-8"></script>
+      
+      
+      
+      <style>
+      code[class*=language-],pre[class*=language-]{color:#333;background:0 0;font-family:Consolas,"Liberation Mono",Menlo,Courier,monospace;text-align:left;white-space:pre;word-spacing:normal;word-break:normal;word-wrap:normal;line-height:1.4;-moz-tab-size:8;-o-tab-size:8;tab-size:8;-webkit-hyphens:none;-moz-hyphens:none;-ms-hyphens:none;hyphens:none}pre[class*=language-]{padding:.8em;overflow:auto;border-radius:3px;background:#f5f5f5}:not(pre)>code[class*=language-]{padding:.1em;border-radius:.3em;white-space:normal;background:#f5f5f5}.token.blockquote,.token.comment{color:#969896}.token.cdata{color:#183691}.token.doctype,.token.macro.property,.token.punctuation,.token.variable{color:#333}.token.builtin,.token.important,.token.keyword,.token.operator,.token.rule{color:#a71d5d}.token.attr-value,.token.regex,.token.string,.token.url{color:#183691}.token.atrule,.token.boolean,.token.code,.token.command,.token.constant,.token.entity,.token.number,.token.property,.token.symbol{color:#0086b3}.token.prolog,.token.selector,.token.tag{color:#63a35c}.token.attr-name,.token.class,.token.class-name,.token.function,.token.id,.token.namespace,.token.pseudo-class,.token.pseudo-element,.token.url-reference .token.variable{color:#795da3}.token.entity{cursor:help}.token.title,.token.title .token.punctuation{font-weight:700;color:#1d3e81}.token.list{color:#ed6a43}.token.inserted{background-color:#eaffea;color:#55a532}.token.deleted{background-color:#ffecec;color:#bd2c00}.token.bold{font-weight:700}.token.italic{font-style:italic}.language-json .token.property{color:#183691}.language-markup .token.tag .token.punctuation{color:#333}.language-css .token.function,code.language-css{color:#0086b3}.language-yaml .token.atrule{color:#63a35c}code.language-yaml{color:#183691}.language-ruby .token.function{color:#333}.language-markdown .token.url{color:#795da3}.language-makefile .token.symbol{color:#795da3}.language-makefile .token.variable{color:#183691}.language-makefile .token.builtin{color:#0086b3}.language-bash .token.keyword{color:#0086b3}pre[data-line]{position:relative;padding:1em 0 1em 3em}pre[data-line] .line-highlight-wrapper{position:absolute;top:0;left:0;background-color:transparent;display:block;width:100%}pre[data-line] .line-highlight{position:absolute;left:0;right:0;padding:inherit 0;margin-top:1em;background:hsla(24,20%,50%,.08);background:linear-gradient(to right,hsla(24,20%,50%,.1) 70%,hsla(24,20%,50%,0));pointer-events:none;line-height:inherit;white-space:pre}pre[data-line] .line-highlight:before,pre[data-line] .line-highlight[data-end]:after{content:attr(data-start);position:absolute;top:.4em;left:.6em;min-width:1em;padding:0 .5em;background-color:hsla(24,20%,50%,.4);color:#f4f1ef;font:bold 65%/1.5 sans-serif;text-align:center;vertical-align:.3em;border-radius:999px;text-shadow:none;box-shadow:0 1px #fff}pre[data-line] .line-highlight[data-end]:after{content:attr(data-end);top:auto;bottom:.4em}html body{font-family:'Helvetica Neue',Helvetica,'Segoe UI',Arial,freesans,sans-serif;font-size:16px;line-height:1.6;color:#333;background-color:#fff;overflow:initial;box-sizing:border-box;word-wrap:break-word}html body>:first-child{margin-top:0}html body h1,html body h2,html body h3,html body h4,html body h5,html body h6{line-height:1.2;margin-top:1em;margin-bottom:16px;color:#000}html body h1{font-size:2.25em;font-weight:300;padding-bottom:.3em}html body h2{font-size:1.75em;font-weight:400;padding-bottom:.3em}html body h3{font-size:1.5em;font-weight:500}html body h4{font-size:1.25em;font-weight:600}html body h5{font-size:1.1em;font-weight:600}html body h6{font-size:1em;font-weight:600}html body h1,html body h2,html body h3,html body h4,html body h5{font-weight:600}html body h5{font-size:1em}html body h6{color:#5c5c5c}html body strong{color:#000}html body del{color:#5c5c5c}html body a:not([href]){color:inherit;text-decoration:none}html body a{color:#08c;text-decoration:none}html body a:hover{color:#00a3f5;text-decoration:none}html body img{max-width:100%}html body>p{margin-top:0;margin-bottom:16px;word-wrap:break-word}html body>ol,html body>ul{margin-bottom:16px}html body ol,html body ul{padding-left:2em}html body ol.no-list,html body ul.no-list{padding:0;list-style-type:none}html body ol ol,html body ol ul,html body ul ol,html body ul ul{margin-top:0;margin-bottom:0}html body li{margin-bottom:0}html body li.task-list-item{list-style:none}html body li>p{margin-top:0;margin-bottom:0}html body .task-list-item-checkbox{margin:0 .2em .25em -1.8em;vertical-align:middle}html body .task-list-item-checkbox:hover{cursor:pointer}html body blockquote{margin:16px 0;font-size:inherit;padding:0 15px;color:#5c5c5c;background-color:#f0f0f0;border-left:4px solid #d6d6d6}html body blockquote>:first-child{margin-top:0}html body blockquote>:last-child{margin-bottom:0}html body hr{height:4px;margin:32px 0;background-color:#d6d6d6;border:0 none}html body table{margin:10px 0 15px 0;border-collapse:collapse;border-spacing:0;display:block;width:100%;overflow:auto;word-break:normal;word-break:keep-all}html body table th{font-weight:700;color:#000}html body table td,html body table th{border:1px solid #d6d6d6;padding:6px 13px}html body dl{padding:0}html body dl dt{padding:0;margin-top:16px;font-size:1em;font-style:italic;font-weight:700}html body dl dd{padding:0 16px;margin-bottom:16px}html body code{font-family:Menlo,Monaco,Consolas,'Courier New',monospace;font-size:.85em;color:#000;background-color:#f0f0f0;border-radius:3px;padding:.2em 0}html body code::after,html body code::before{letter-spacing:-.2em;content:'\00a0'}html body pre>code{padding:0;margin:0;word-break:normal;white-space:pre;background:0 0;border:0}html body .highlight{margin-bottom:16px}html body .highlight pre,html body pre{padding:1em;overflow:auto;line-height:1.45;border:#d6d6d6;border-radius:3px}html body .highlight pre{margin-bottom:0;word-break:normal}html body pre code,html body pre tt{display:inline;max-width:initial;padding:0;margin:0;overflow:initial;line-height:inherit;word-wrap:normal;background-color:transparent;border:0}html body pre code:after,html body pre code:before,html body pre tt:after,html body pre tt:before{content:normal}html body blockquote,html body dl,html body ol,html body p,html body pre,html body ul{margin-top:0;margin-bottom:16px}html body kbd{color:#000;border:1px solid #d6d6d6;border-bottom:2px solid #c7c7c7;padding:2px 4px;background-color:#f0f0f0;border-radius:3px}@media print{html body{background-color:#fff}html body h1,html body h2,html body h3,html body h4,html body h5,html body h6{color:#000;page-break-after:avoid}html body blockquote{color:#5c5c5c}html body pre{page-break-inside:avoid}html body table{display:table}html body img{display:block;max-width:100%;max-height:100%}html body code,html body pre{word-wrap:break-word;white-space:pre}}.markdown-preview{width:100%;height:100%;box-sizing:border-box}.markdown-preview ul{list-style:disc}.markdown-preview ul ul{list-style:circle}.markdown-preview ul ul ul{list-style:square}.markdown-preview ol{list-style:decimal}.markdown-preview ol ol,.markdown-preview ul ol{list-style-type:lower-roman}.markdown-preview ol ol ol,.markdown-preview ol ul ol,.markdown-preview ul ol ol,.markdown-preview ul ul ol{list-style-type:lower-alpha}.markdown-preview .newpage,.markdown-preview .pagebreak{page-break-before:always}.markdown-preview pre.line-numbers{position:relative;padding-left:3.8em;counter-reset:linenumber}.markdown-preview pre.line-numbers>code{position:relative}.markdown-preview pre.line-numbers .line-numbers-rows{position:absolute;pointer-events:none;top:1em;font-size:100%;left:0;width:3em;letter-spacing:-1px;border-right:1px solid #999;-webkit-user-select:none;-moz-user-select:none;-ms-user-select:none;user-select:none}.markdown-preview pre.line-numbers .line-numbers-rows>span{pointer-events:none;display:block;counter-increment:linenumber}.markdown-preview pre.line-numbers .line-numbers-rows>span:before{content:counter(linenumber);color:#999;display:block;padding-right:.8em;text-align:right}.markdown-preview .mathjax-exps .MathJax_Display{text-align:center!important}.markdown-preview:not([data-for=preview]) .code-chunk .code-chunk-btn-group{display:none}.markdown-preview:not([data-for=preview]) .code-chunk .status{display:none}.markdown-preview:not([data-for=preview]) .code-chunk .output-div{margin-bottom:16px}.markdown-preview .md-toc{padding:0}.markdown-preview .md-toc .md-toc-details{margin:0;padding:0;border:none}.markdown-preview .md-toc summary.md-toc-link-wrapper{cursor:pointer;list-style-position:outside}.markdown-preview .md-toc summary.md-toc-link-wrapper::marker{font-size:.85em}.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link{display:inline;padding:.25rem 0}.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link div,.markdown-preview .md-toc .md-toc-link-wrapper .md-toc-link p{display:inline}.markdown-preview .md-toc .md-toc-link-wrapper.highlighted .md-toc-link{font-weight:800}.markdown-preview .md-toc .md-toc-link-wrapper[data-level='0']{margin-left:12px}.markdown-preview .md-toc .md-toc-link-wrapper[data-level='1']{margin-left:28px}.markdown-preview .md-toc .md-toc-link-wrapper[data-level='2']{margin-left:44px}.markdown-preview .md-toc .md-toc-link-wrapper[data-level='3']{margin-left:60px}.markdown-preview .md-toc .md-toc-link-wrapper[data-level='4']{margin-left:76px}.markdown-preview .md-toc .md-toc-link-wrapper[data-level='5']{margin-left:80px}.markdown-preview a.tag,.markdown-preview a.tag:active,.markdown-preview a.tag:link,.markdown-preview a.tag:visited,.markdown-preview span.tag:not(.token){display:inline-block;background-color:var(--vscode-badge-background,rgba(127,127,127,.18));color:var(--vscode-badge-foreground,currentColor);border-radius:2em;font-size:.85em;font-weight:500;padding:.05em .55em;line-height:1.5;white-space:nowrap;text-decoration:none;text-shadow:none;box-shadow:none;transition:background-color .12s ease,opacity .12s ease}.markdown-preview a.tag{cursor:pointer}.markdown-preview a.tag:focus,.markdown-preview a.tag:hover{background-color:var(--vscode-badge-background,rgba(127,127,127,.32));color:var(--vscode-badge-foreground,currentColor);opacity:.85;text-decoration:none;outline:0}.markdown-preview .wikilink-embed-content{border-left:3px solid var(--vscode-textBlockQuote-border,rgba(128,128,128,.3));background:var(--vscode-textBlockQuote-background,rgba(128,128,128,.05));margin:.5em 0;padding:.5em .75em;border-radius:0 3px 3px 0}.markdown-preview .wikilink-embed-content.wikilink-embed-error{border-left-color:var(--vscode-errorForeground,#cf222e);color:var(--vscode-errorForeground,#cf222e);font-style:italic;opacity:.8}.markdown-preview .wikilink-embed-content h1:first-child,.markdown-preview .wikilink-embed-content h2:first-child,.markdown-preview .wikilink-embed-content h3:first-child,.markdown-preview .wikilink-embed-content h4:first-child,.markdown-preview .wikilink-embed-content h5:first-child,.markdown-preview .wikilink-embed-content h6:first-child{margin-top:.25em}.markdown-preview .wikilink-embed-content .wikilink-embed-content{margin:.25em 0;padding:.25em .5em}.markdown-preview .block-id{display:none}.scrollbar-style::-webkit-scrollbar{width:8px}.scrollbar-style::-webkit-scrollbar-track{border-radius:10px;background-color:transparent}.scrollbar-style::-webkit-scrollbar-thumb{border-radius:5px;background-color:var(--vscode-scrollbarSlider-background,rgba(150,150,150,.66));border:4px solid var(--vscode-scrollbarSlider-background,rgba(150,150,150,.66));background-clip:content-box}.scrollbar-style::-webkit-scrollbar-thumb:hover{background-color:var(--vscode-scrollbarSlider-hoverBackground,rgba(120,120,120,.66))}html body[for=html-export]:not([data-presentation-mode]){position:relative;width:100%;height:100%;top:0;left:0;margin:0;padding:0;overflow:auto}html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{position:relative;top:0;min-height:100vh}@media screen and (min-width:914px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{padding:2em calc(50% - 457px + 2em)}}@media screen and (max-width:914px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{padding:2em}}@media screen and (max-width:450px){html body[for=html-export]:not([data-presentation-mode]) .markdown-preview{font-size:14px!important;padding:1em}}@media print{html body[for=html-export]:not([data-presentation-mode]) #sidebar-toc-btn{display:none}}html body[for=html-export]:not([data-presentation-mode]) #sidebar-toc-btn{position:fixed;bottom:8px;left:8px;font-size:28px;cursor:pointer;color:inherit;z-index:99;width:32px;text-align:center;opacity:.4}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] #sidebar-toc-btn{opacity:1}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc{position:fixed;top:0;left:0;width:300px;height:100%;padding:32px 0 48px 0;font-size:14px;box-shadow:0 0 4px rgba(150,150,150,.33);box-sizing:border-box;overflow:auto;background-color:inherit}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar{width:8px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar-track{border-radius:10px;background-color:transparent}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar-thumb{border-radius:5px;background-color:var(--vscode-scrollbarSlider-background,rgba(150,150,150,.66));border:4px solid var(--vscode-scrollbarSlider-background,rgba(150,150,150,.66));background-clip:content-box}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc::-webkit-scrollbar-thumb:hover{background-color:var(--vscode-scrollbarSlider-hoverBackground,rgba(120,120,120,.66))}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc a{text-decoration:none}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc{padding:0 16px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-details{margin:0;padding:0;border:none}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link{display:inline;padding:.25rem 0}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link div,html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper .md-toc-link p{display:inline}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper.highlighted .md-toc-link{font-weight:800}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper[data-level='0']{padding-left:0}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper[data-level='1']{padding-left:16px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper[data-level='2']{padding-left:32px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper[data-level='3']{padding-left:48px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper[data-level='4']{padding-left:64px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .md-sidebar-toc .md-toc .md-toc-link-wrapper[data-level='5']{padding-left:80px}html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{left:300px;width:calc(100% - 300px);padding:2em calc(50% - 457px - 300px / 2);margin:0;box-sizing:border-box}@media screen and (max-width:1274px){html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{padding:2em}}@media screen and (max-width:450px){html body[for=html-export]:not([data-presentation-mode])[html-show-sidebar-toc] .markdown-preview{width:100%}}html body[for=html-export]:not([data-presentation-mode]):not([html-show-sidebar-toc]) .markdown-preview{left:50%;transform:translateX(-50%)}html body[for=html-export]:not([data-presentation-mode]):not([html-show-sidebar-toc]) .md-sidebar-toc{display:none}
+/* Please visit the URL below for more information: */
+/*   https://shd101wyy.github.io/markdown-preview-enhanced/#/customize-css */
+
+      </style>
+      <!-- The content below will be included at the end of the <head> element. -->
+<script type="text/javascript">
+  document.addEventListener("DOMContentLoaded", function () {
+    // your code here
+  });
+</script>
+    </head>
+    <body for="html-export">
+      <div class="crossnote markdown-preview  ">
+      
+<h1 id="设计稿第二大脑--基于react-agent的智能知识管理助手">设计稿：第二大脑 — 基于ReAct Agent的智能知识管理助手 </h1>
+<p><strong>赛道：Agent 创新</strong></p>
+<hr>
+<h2 id="一-设计流程概述">一、设计流程概述 </h2>
+<div class="mermaid">graph LR
+    A[需求调研] --&gt; B[概念设计]
+    B --&gt; C[架构设计]
+    C --&gt; D[原型开发]
+    D --&gt; E[功能迭代]
+    E --&gt; F[打包部署]
+    
+    A --- A1[用户痛点分析]
+    B --- B1[功能定义确认]
+    C --- C1[技术选型确定]
+    D --- D1[核心模块实现]
+    E --- E1[新增功能完善]
+    F --- F1[exe交付零配置]
+</div><h3 id="11-需求调研阶段">1.1 需求调研阶段 </h3>
+<p><strong>核心问题</strong>：大学生每天打开5个以上APP获取信息，知识散落各处，记了很多忘了很多。</p>
+<p><strong>用户痛点分析</strong>：</p>
+<ul>
+<li>知识碎片化：微信收藏、浏览器书签、笔记软件各自独立</li>
+<li>主动性缺失：现有工具只是被动存储，不主动提醒复习</li>
+<li>关联性缺失：无法发现不同知识之间的隐藏联系</li>
+</ul>
+<p><strong>解决方案</strong>：构建一个能自主决策的AI Agent，不仅存储知识，还能主动管理、提醒、关联发现。</p>
+<hr>
+<h2 id="二-系统架构设计">二、系统架构设计 </h2>
+<h3 id="21-整体架构">2.1 整体架构 </h3>
+<div class="mermaid">graph TB
+    subgraph 用户交互层
+        A1[Streamlit GUI]
+        A2[exe桌面应用]
+        A3[API接口]
+    end
+    
+    subgraph Agent核心
+        B1[ReAct循环]
+        B2[LLM推理引擎]
+        B3[工具路由]
+    end
+    
+    subgraph 功能模块
+        C1[工具链 - 6个工具]
+        C2[记忆管理 - 短期+长期]
+        C3[知识图谱 - NetworkX]
+    end
+    
+    subgraph 数据存储层
+        D1[Supabase - PostgreSQL]
+        D2[向量数据库 - pgvector]
+        D3[知识图谱 - Graph]
+    end
+    
+    A1 &amp; A2 &amp; A3 --&gt; B1
+    B1 --&gt; B2
+    B2 --&gt; B3
+    B3 --&gt; C1 &amp; C2 &amp; C3
+    C1 &amp; C2 &amp; C3 --&gt; D1 &amp; D2 &amp; D3
+</div><h3 id="22-agent工作流程">2.2 Agent工作流程 </h3>
+<div class="mermaid">graph TB
+    START[用户输入] --&gt; PERCEIVE[感知 - 解析意图]
+    PERCEIVE --&gt; THINK[推理 - LLM决策选择工具]
+    THINK --&gt; ACT[行动 - 调用工具执行操作]
+    ACT --&gt; OBSERVE[观察 - 获取结果反馈用户]
+    OBSERVE --&gt; |未完成| THINK
+    OBSERVE --&gt; |已完成| END[返回最终回答]
+    
+    style START fill:#e1f5fe
+    style END fill:#e8f5e9
+</div><hr>
+<h2 id="三-交互流程设计">三、交互流程设计 </h2>
+<h3 id="31-核心用户流程">3.1 核心用户流程 </h3>
+<div class="mermaid">graph TB
+    START[启动应用&lt;br/&gt;双击exe] --&gt; DASHBOARD[仪表盘&lt;br/&gt;时间问候+复习提醒]
+    
+    DASHBOARD --&gt; QA[知识问答&lt;br/&gt;对话+语音朗读]
+    DASHBOARD --&gt; IMPORT[导入笔记&lt;br/&gt;文件/URL/手动输入]
+    
+    QA --&gt; AGENT[Agent处理&lt;br/&gt;ReAct循环]
+    AGENT --&gt; TOOLS[工具调用&lt;br/&gt;6个工具]
+    TOOLS --&gt; DB[数据存储&lt;br/&gt;Supabase]
+    
+    IMPORT --&gt; DB
+    DB --&gt; REVIEW[复习提醒&lt;br/&gt;遗忘曲线]
+    DB --&gt; GRAPH[知识图谱&lt;br/&gt;多跳推理]
+    DB --&gt; PATH[学习路径&lt;br/&gt;个性化推荐]
+    
+    REVIEW --&gt; DASHBOARD
+    GRAPH --&gt; DASHBOARD
+    PATH --&gt; DASHBOARD
+</div><h3 id="32-agent工具调用流程">3.2 Agent工具调用流程 </h3>
+<div class="mermaid">sequenceDiagram
+    participant U as 用户
+    participant A as Agent
+    participant T as 工具链
+    participant D as 数据库
+    
+    U-&gt;&gt;A: "帮我记一下TCP三次握手"
+    A-&gt;&gt;A: 解析意图 → 保存知识
+    A-&gt;&gt;T: 调用 add_knowledge
+    T-&gt;&gt;T: LLM提取标签 (TCP,网络)
+    T-&gt;&gt;D: 向量化存储 + 更新遗忘曲线
+    T-&gt;&gt;T: 实体抽取 (知识图谱)
+    D--&gt;&gt;T: 存储成功
+    T--&gt;&gt;A: 返回结果
+    A--&gt;&gt;U: "已保存! 标签: TCP,网络"
+</div><h3 id="33-语音交互流程">3.3 语音交互流程 </h3>
+<div class="mermaid">sequenceDiagram
+    participant U as 用户
+    participant A as Agent
+    participant S as Streamlit
+    participant B as 浏览器
+    
+    U-&gt;&gt;A: 输入文字问题
+    A-&gt;&gt;A: 处理+工具调用
+    A--&gt;&gt;S: 返回文字回答
+    S-&gt;&gt;S: 显示回答+朗读按钮
+    Note over S: [🔊 朗读] 按钮
+    U-&gt;&gt;S: 点击朗读按钮
+    S-&gt;&gt;B: JavaScript调用
+    B-&gt;&gt;B: Web Speech API
+    B--&gt;&gt;U: 语音播放
+</div><hr>
+<h2 id="四-界面设计最新版">四、界面设计（最新版） </h2>
+<h3 id="41-仪表盘带时间问候">4.1 仪表盘（带时间问候） </h3>
+<div class="mermaid">graph TB
+    subgraph 仪表盘
+        G[☀️ 上午好，保持专注哦]
+        N[💡 你有 3 条知识需要复习啦]
+        
+        subgraph 统计卡片
+            C1[总笔记数: 12]
+            C2[标签种类: 8]
+            C3[高重要度: 4]
+            C4[待复习: 3]
+        end
+        
+        subgraph 最近笔记
+            N1[🔴 Python GIL全局解释器锁]
+            N2[🔵 Redis LRU淘汰策略]
+            N3[🔵 TCP三次握手]
+        end
+        
+        subgraph 标签分布
+            T1[Python ×4 ██████████]
+            T2[网络 ×3 ██████]
+            T3[Redis ×2 ████]
+        end
+    end
+</div><h3 id="42-知识问答带语音朗读">4.2 知识问答（带语音朗读） </h3>
+<div class="mermaid">graph TB
+    subgraph 知识问答页面
+        subgraph 对话区域
+            Q1[🧑 帮我记一下TCP三次握手]
+            A1[🧠 已保存到知识库! 标签: TCP,网络]
+            B1[🔊 朗读]
+            
+            Q2[🧑 今天天气怎么样？]
+            A2[🧠 今天天气不错呢，适合学习! 😊]
+            B2[🔊 朗读]
+        end
+        
+        subgraph 输入区域
+            I[📝 输入你的问题...]
+            S[发送]
+        end
+    end
+</div><h3 id="43-知识图谱多跳推理">4.3 知识图谱（多跳推理） </h3>
+<div class="mermaid">graph LR
+    subgraph 知识图谱
+        R[Redis] --&gt; C[缓存]
+        C --&gt; E[电商]
+        R --&gt; L[LRU]
+        C --&gt; Y[一致性]
+        E --&gt; S[秒杀]
+    end
+    
+    subgraph 统计
+        ST1[实体节点: 6]
+        ST2[关系边: 8]
+        ST3[核心节点: Redis]
+    end
+</div><h3 id="44-复习提醒遗忘曲线">4.4 复习提醒（遗忘曲线） </h3>
+<div class="mermaid">graph TB
+    subgraph 复习提醒页面
+        W[⚠️ 有 3 条知识需要复习]
+        
+        subgraph 紧急
+            R1[🔴 Python GIL全局解释器锁]
+            D1[记忆保留率: 32%]
+            P1[████████░░░░░░░░░░░░]
+            B1[标记已复习]
+        end
+        
+        subgraph 重要
+            R2[🟡 TCP三次握手]
+            D2[记忆保留率: 45%]
+            P2[████████████░░░░░░░░░░]
+            B2[标记已复习]
+        end
+        
+        subgraph 遗忘曲线图表
+            CH[保留率 100%→0% 随时间衰减]
+        end
+    end
+</div><h3 id="45-学习路径个性化推荐">4.5 学习路径（个性化推荐） </h3>
+<div class="mermaid">graph TB
+    subgraph 个性化学习路径
+        subgraph 统计
+            S1[总笔记数: 12]
+            S2[标签维度: 8]
+            S3[整体保留率: 65%]
+        end
+        
+        subgraph Python紧急复习
+            P1[🔴 Python GIL - 保留率32%]
+            P2[🔴 装饰器原理 - 保留率45%]
+            P3[🟡 元类编程 - 保留率58%]
+            P4[🟡 异步编程 - 保留率62%]
+        end
+        
+        subgraph Redis拓展深入
+            R1[🟢 LRU淘汰策略 - 保留率78%]
+            R2[🟢 缓存一致性 - 保留率82%]
+            R3[🟢 分布式锁 - 保留率75%]
+        end
+    end
+</div><hr>
+<h2 id="五-技术实现要点">五、技术实现要点 </h2>
+<h3 id="51-核心技术栈">5.1 核心技术栈 </h3>
+<table>
+<thead>
+<tr>
+<th>模块</th>
+<th>技术选型</th>
+<th>说明</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>AI Agent</td>
+<td>DeepSeek v4 + ReAct循环</td>
+<td>自主决策，多步推理</td>
+</tr>
+<tr>
+<td>知识图谱</td>
+<td>NetworkX + LLM实体抽取</td>
+<td>多跳推理，关联发现</td>
+</tr>
+<tr>
+<td>向量检索</td>
+<td>Supabase pgvector</td>
+<td>语义搜索，相似度匹配</td>
+</tr>
+<tr>
+<td>遗忘曲线</td>
+<td>SM-2算法</td>
+<td>记忆保留率计算</td>
+</tr>
+<tr>
+<td>前端界面</td>
+<td>Streamlit</td>
+<td>中文UI，可视化</td>
+</tr>
+<tr>
+<td>桌面打包</td>
+<td>PyInstaller</td>
+<td>exe双击即用</td>
+</tr>
+</tbody>
+</table>
+<h3 id="52-数据流设计">5.2 数据流设计 </h3>
+<div class="mermaid">graph LR
+    A[用户输入] --&gt; B[Agent&lt;br/&gt;ReAct循环]
+    B --&gt; C[工具调用&lt;br/&gt;向量化+标签]
+    C --&gt; D[数据存储&lt;br/&gt;Supabase]
+    D --&gt; E[可视化输出&lt;br/&gt;图表+提醒]
+    
+    style A fill:#e1f5fe
+    style B fill:#fff3e0
+    style C fill:#f3e5f5
+    style D fill:#e8f5e9
+    style E fill:#fce4ec
+</div><h3 id="53-工具链设计">5.3 工具链设计 </h3>
+<table>
+<thead>
+<tr>
+<th>工具名</th>
+<th>功能</th>
+<th>触发场景</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>add_knowledge</td>
+<td>保存笔记到知识库</td>
+<td>用户说"记一下"、"保存"</td>
+</tr>
+<tr>
+<td>search_knowledge</td>
+<td>语义搜索相关笔记</td>
+<td>用户问"我学过XX吗"</td>
+</tr>
+<tr>
+<td>manage_knowledge</td>
+<td>列出/删除/统计笔记</td>
+<td>用户说"列出"、"删除"</td>
+</tr>
+<tr>
+<td>send_reminder</td>
+<td>推送复习提醒</td>
+<td>用户说"需要复习什么"</td>
+</tr>
+<tr>
+<td>fetch_web_content</td>
+<td>抓取网页内容保存</td>
+<td>用户给出URL链接</td>
+</tr>
+<tr>
+<td>knowledge_graph</td>
+<td>知识图谱查询/发现</td>
+<td>用户说"图谱"、"关联"</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="六-创新点对比">六、创新点对比 </h2>
+<table>
+<thead>
+<tr>
+<th>传统笔记工具</th>
+<th>第二大脑 (本项目)</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>被动存储</td>
+<td><strong>主动推送</strong>复习提醒</td>
+</tr>
+<tr>
+<td>手动搜索</td>
+<td><strong>语义搜索</strong> + 自动推荐</td>
+</tr>
+<tr>
+<td>无关联</td>
+<td><strong>知识图谱</strong>多跳推理</td>
+</tr>
+<tr>
+<td>无遗忘追踪</td>
+<td><strong>遗忘曲线</strong>可视化</td>
+</tr>
+<tr>
+<td>本地文件</td>
+<td><strong>云端存储</strong>，多端访问</td>
+</tr>
+<tr>
+<td>手动整理</td>
+<td><strong>Agent自动</strong>提取标签</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2 id="七-框架搭建历程试验">七、框架搭建历程（试验） </h2>
+<div class="mermaid">graph LR
+    D1[第1-2天] --&gt; D2[第3-4天]
+    D2 --&gt; D3[第5-6天]
+    D3 --&gt; D4[第7-8天]
+    D4 --&gt; D5[第9-10天]
+    D5 --&gt; D6[第11-12天]
+    D6 --&gt; D7[第13-14天]
+    D7 --&gt; D8[第15-16天]
+    D8 --&gt; D9[第17-18天]
+    
+    D1 --- D1T[需求调研&lt;br/&gt;痛点分析]
+    D2 --- D2T[Agent核心&lt;br/&gt;ReAct循环]
+    D3 --- D3T[工具链&lt;br/&gt;6个工具]
+    D4 --- D4T[Streamlit&lt;br/&gt;界面开发]
+    D5 --- D5T[知识图谱&lt;br/&gt;实体抽取]
+    D6 --- D6T[遗忘曲线&lt;br/&gt;可视化]
+    D7 --- D7T[语音朗读&lt;br/&gt;陪伴感优化]
+    D8 --- D8T[PyInstaller&lt;br/&gt;exe打包]
+    D9 --- D9T[竞赛文档&lt;br/&gt;设计稿整理]
+</div><hr>
+<h2 id="八-用户体验设计原则">八、用户体验设计原则 </h2>
+<h3 id="81-零配置启动">8.1 零配置启动 </h3>
+<ul>
+<li>exe双击即用，无需安装Python</li>
+<li>.env已内置API Key，无需配置</li>
+<li>3秒自动打开浏览器</li>
+</ul>
+<h3 id="82-陪伴感设计">8.2 陪伴感设计 </h3>
+<ul>
+<li>时间问候（早/中/晚不同问候）</li>
+<li>温暖语气（"啦"、"哦"、"呀"）</li>
+<li>主动关心学习状态</li>
+</ul>
+<h3 id="83-多模态交互">8.3 多模态交互 </h3>
+<ul>
+<li>文字对话（主交互）</li>
+<li>语音朗读（Web Speech API）</li>
+<li>可视化图表（知识图谱、遗忘曲线）</li>
+</ul>
+<hr>
+<p><strong>设计完成日期：2026年7月22日</strong></p>
+
+      </div>
+      
+      
+    
+    
+    <script type="module">
+// TODO: If ZenUML gets integrated into mermaid in the future,
+//      we can remove the following lines.
+
+
+var MERMAID_CONFIG = ({"startOnLoad":false});
+if (typeof MERMAID_CONFIG !== 'undefined') {
+  MERMAID_CONFIG.startOnLoad = false
+  MERMAID_CONFIG.cloneCssStyles = false
+  MERMAID_CONFIG.theme = "default"
+}
+
+mermaid.initialize(MERMAID_CONFIG || {})
+if (typeof(window['Reveal']) !== 'undefined') {
+  function mermaidRevealHelper(event) {
+    var currentSlide = event.currentSlide
+    var diagrams = currentSlide.querySelectorAll('div.mermaid')
+    for (var i = 0; i < diagrams.length; i++) {
+      var diagram = diagrams[i]
+      if (!diagram.hasAttribute('data-processed')) {
+        mermaid.init(null, diagram, ()=> {
+          Reveal.slide(event.indexh, event.indexv)
+        })
+      }
+    }
+  }
+  Reveal.addEventListener('slidetransitionend', mermaidRevealHelper)
+  Reveal.addEventListener('ready', mermaidRevealHelper)
+  await mermaid.run({
+    nodes: document.querySelectorAll('div.mermaid')
+  })
+} else {
+  await mermaid.run({
+    nodes: document.querySelectorAll('div.mermaid')
+  })
+}
+</script>
+    
+    
+    
+  
+    </body></html>

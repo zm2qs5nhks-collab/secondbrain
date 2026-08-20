@@ -21,40 +21,66 @@ sys.path.insert(0, str(Path(__file__).parent))
 
 XIAOYI_AK = os.getenv("XIAOYI_AK", "")
 XIAOYI_SK = os.getenv("XIAOYI_SK", "")
+API_SECRET_KEY = os.getenv("API_SECRET_KEY", "")
 
-app = FastAPI(title="第二大脑 API", version="1.0")
+app = FastAPI(title="第二大脑 API", version="3.0")
+
+
+def _get_user_id_from_token(request: Request) -> str:
+    """从 Authorization header 中提取 user_id"""
+    auth_header = request.headers.get("Authorization", "")
+    if not auth_header.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="缺少 Authorization 头")
+    token = auth_header.replace("Bearer ", "")
+    if not token:
+        raise HTTPException(status_code=401, detail="Token 为空")
+
+    from storage.db import query_one
+    user = query_one("SELECT id FROM users WHERE id = %s", (token,))
+    if user:
+        return str(user["id"])
+    raise HTTPException(status_code=401, detail="Token 无效或已过期")
 
 
 def verify_ak_sk(request: Request):
-    if not XIAOYI_AK or not XIAOYI_SK:
+    if not API_SECRET_KEY and not XIAOYI_AK:
         return
-    auth_ak = request.headers.get("X-AK", "")
-    auth_sign = request.headers.get("X-Sign", "")
-    auth_ts = request.headers.get("X-Timestamp", "")
+    if API_SECRET_KEY:
+        auth_key = request.headers.get("X-API-KEY", "") or request.headers.get("Authorization", "").replace("Bearer ", "")
+        if not auth_key:
+            raise HTTPException(status_code=403, detail="缺少鉴权头")
+        if auth_key != API_SECRET_KEY:
+            raise HTTPException(status_code=403, detail="密钥无效")
+        return
+    if XIAOYI_AK and XIAOYI_SK:
+        auth_ak = request.headers.get("X-AK", "")
+        auth_sign = request.headers.get("X-Sign", "")
+        auth_ts = request.headers.get("X-Timestamp", "")
 
-    if not auth_ak or not auth_sign:
-        raise HTTPException(status_code=403, detail="缺少鉴权头")
-    if auth_ak != XIAOYI_AK:
-        raise HTTPException(status_code=403, detail="AK 无效")
+        if not auth_ak or not auth_sign:
+            raise HTTPException(status_code=403, detail="缺少鉴权头")
+        if auth_ak != XIAOYI_AK:
+            raise HTTPException(status_code=403, detail="AK 无效")
 
-    sign_str = f"{auth_ak}{auth_ts}{XIAOYI_SK}"
-    expected = hashlib.sha256(sign_str.encode()).hexdigest()
-    if not hmac.compare_digest(auth_sign, expected):
-        raise HTTPException(status_code=403, detail="签名校验失败")
-    if abs(time.time() - int(auth_ts)) > 300:
-        raise HTTPException(status_code=403, detail="请求已过期")
+        sign_str = f"{auth_ak}{auth_ts}{XIAOYI_SK}"
+        expected = hashlib.sha256(sign_str.encode()).hexdigest()
+        if not hmac.compare_digest(auth_sign, expected):
+            raise HTTPException(status_code=403, detail="签名校验失败")
+        if abs(time.time() - int(auth_ts)) > 300:
+            raise HTTPException(status_code=403, detail="请求已过期")
 
 
 class AddNoteRequest(BaseModel):
     content: str
-    user_id: str = "default"
+    tags: list[str] = []
+    importance: str = "normal"
 
 class SearchRequest(BaseModel):
     question: str
-    user_id: str = "default"
+    top_k: int = 5
 
 class ReminderRequest(BaseModel):
-    user_id: str = "default"
+    threshold: float = 0.5
 
 class ManageRequest(BaseModel):
     action: str = "list"
@@ -72,7 +98,7 @@ class GraphRequest(BaseModel):
 
 @app.post("/api/add_note")
 async def add_note(req: AddNoteRequest, request: Request):
-    verify_ak_sk(request)
+    user_id = _get_user_id_from_token(request)
     if not req.content.strip():
         return JSONResponse({"error": "内容不能为空"}, status_code=400)
 
@@ -81,11 +107,12 @@ async def add_note(req: AddNoteRequest, request: Request):
     from scheduler import forgetting_curve as fc
 
     documents = document_parser.parse_text(req.content, source="api")
-    count = vector_store.add_documents(documents)
     note_id = metadata_store.add_note(
-        content_preview=req.content, tags=[], source="api", importance="normal",
+        content_preview=req.content, tags=req.tags, source="api",
+        importance=req.importance, user_id=user_id,
     )
-    fc.record_access(note_id)
+    count = vector_store.add_documents(documents, user_id=user_id, note_id=note_id)
+    fc.record_access(note_id, user_id=user_id)
 
     graph_info = {}
     try:
@@ -98,23 +125,24 @@ async def add_note(req: AddNoteRequest, request: Request):
 
 @app.post("/api/search")
 async def search(req: SearchRequest, request: Request):
-    verify_ak_sk(request)
+    user_id = _get_user_id_from_token(request)
     if not req.question.strip():
         return JSONResponse({"error": "问题不能为空"}, status_code=400)
 
     from storage import vector_store, metadata_store
     from agent.llm import chat_completion
 
-    results = vector_store.search(req.question, top_k=5)
+    results = vector_store.search(req.question, top_k=req.top_k, user_id=user_id)
     if not results:
         return {"answer": "知识库中暂无相关内容，请先添加笔记。", "sources": []}
 
     context_parts, sources = [], []
     for r in results:
-        note = metadata_store.get_note(r["note_id"])
-        preview = note["preview"] if note else r["text"][:100]
-        context_parts.append(f"[{r['note_id']}] {preview}")
-        sources.append({"note_id": r["note_id"], "score": round(r["score"], 3)})
+        meta = r.get("metadata", {})
+        note = metadata_store.get_note(meta.get("note_id", ""), user_id=user_id)
+        preview = note["preview"] if note else r["content"][:100]
+        context_parts.append(f"[{meta.get('note_id', '?')}] {preview}")
+        sources.append({"note_id": meta.get("note_id", ""), "score": round(1 - r["distance"], 3)})
 
     messages = [
         {"role": "system", "content": "你是第二大脑知识助手。根据用户的知识库内容回答问题，引用来源。"},
@@ -126,40 +154,38 @@ async def search(req: SearchRequest, request: Request):
 
 @app.post("/api/reminders")
 async def reminders(req: ReminderRequest, request: Request):
-    verify_ak_sk(request)
+    user_id = _get_user_id_from_token(request)
     from scheduler import forgetting_curve as fc
     from storage import metadata_store
 
-    notes = metadata_store.list_notes()
+    reminders_list = fc.get_notes_for_review(threshold=req.threshold, user_id=user_id)
     result = []
-    for note in notes:
-        retention = fc.calculate_retention(note["id"])
-        if retention < 0.6:
-            result.append({
-                "note_id": note["id"],
-                "preview": note["preview"][:80],
-                "retention": retention,
-                "tags": note.get("tags", []),
-            })
-    result.sort(key=lambda x: x["retention"])
+    for r in reminders_list:
+        note = metadata_store.get_note(r["note_id"], user_id=user_id)
+        result.append({
+            "note_id": r["note_id"],
+            "preview": note["preview"][:80] if note else "未知",
+            "retention": r["retention"],
+            "urgency": r["urgency"],
+        })
     return {"reminders": result, "total": len(result)}
 
 
 @app.post("/api/manage")
 async def manage(req: ManageRequest, request: Request):
-    verify_ak_sk(request)
+    user_id = _get_user_id_from_token(request)
     from storage import metadata_store
 
     if req.action == "list":
-        notes = metadata_store.list_notes()
+        notes = metadata_store.list_notes(user_id=user_id)
         return {"notes": [{"id": n["id"], "preview": n["preview"][:60], "tags": n.get("tags", []), "importance": n.get("importance", "normal")} for n in notes], "total": len(notes)}
 
     elif req.action == "delete" and req.note_id:
-        metadata_store.delete_note(req.note_id)
+        metadata_store.delete_note(req.note_id, user_id=user_id)
         return {"status": "success", "message": f"已删除 {req.note_id}"}
 
     elif req.action == "detail" and req.note_id:
-        note = metadata_store.get_note(req.note_id)
+        note = metadata_store.get_note(req.note_id, user_id=user_id)
         if note:
             return {"note": note}
         return JSONResponse({"error": "笔记不存在"}, status_code=404)
@@ -169,7 +195,7 @@ async def manage(req: ManageRequest, request: Request):
 
 @app.post("/api/fetch_web")
 async def fetch_web(req: WebFetchRequest, request: Request):
-    verify_ak_sk(request)
+    user_id = _get_user_id_from_token(request)
     if not req.url.strip():
         return JSONResponse({"error": "URL不能为空"}, status_code=400)
 
@@ -185,9 +211,9 @@ async def fetch_web(req: WebFetchRequest, request: Request):
 
     full_content = f"[来源: {result.get('title', req.url)}]\n\n{result['content']}"
     documents = document_parser.parse_text(full_content, source="web")
-    count = vector_store.add_documents(documents)
-    note_id = metadata_store.add_note(content_preview=full_content, tags=["网页收藏"], source="web", importance="normal")
-    fc.record_access(note_id)
+    note_id = metadata_store.add_note(content_preview=full_content, tags=["网页收藏"], source="web", importance="normal", user_id=user_id)
+    count = vector_store.add_documents(documents, user_id=user_id, note_id=note_id)
+    fc.record_access(note_id, user_id=user_id)
 
     graph_info = {}
     try:
@@ -200,7 +226,7 @@ async def fetch_web(req: WebFetchRequest, request: Request):
 
 @app.post("/api/knowledge_graph")
 async def knowledge_graph_api(req: GraphRequest, request: Request):
-    verify_ak_sk(request)
+    _get_user_id_from_token(request)
     from storage.graph import KnowledgeGraph
     from storage.extractor import extract_from_text
     from storage.reasoning import discover_cross_domain_links, find_related_concepts
@@ -241,5 +267,4 @@ async def knowledge_graph_api(req: GraphRequest, request: Request):
 
 @app.get("/api/health")
 async def health():
-    from storage import metadata_store
-    return {"status": "ok", "notes_count": metadata_store.count()}
+    return {"status": "ok"}

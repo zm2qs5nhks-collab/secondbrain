@@ -139,6 +139,266 @@
     {
       "name": "阿根廷",
       "type": "国家"
+    },
+    {
+      "name": "DeepSeek Harness",
+      "type": "技术"
+    },
+    {
+      "name": "Cordis",
+      "type": "框架"
+    },
+    {
+      "name": "Cordis 内核",
+      "type": "框架"
+    },
+    {
+      "name": "插件",
+      "type": "概念"
+    },
+    {
+      "name": "Agent",
+      "type": "概念"
+    },
+    {
+      "name": "Harness",
+      "type": "概念"
+    },
+    {
+      "name": "模型",
+      "type": "概念"
+    },
+    {
+      "name": "工具",
+      "type": "概念"
+    },
+    {
+      "name": "技能",
+      "type": "概念"
+    },
+    {
+      "name": "会话",
+      "type": "概念"
+    },
+    {
+      "name": "沙箱",
+      "type": "概念"
+    },
+    {
+      "name": "存储",
+      "type": "概念"
+    },
+    {
+      "name": "循环",
+      "type": "概念"
+    },
+    {
+      "name": "调度",
+      "type": "概念"
+    },
+    {
+      "name": "UI",
+      "type": "概念"
+    },
+    {
+      "name": "配置层",
+      "type": "概念"
+    },
+    {
+      "name": "会话日志",
+      "type": "概念"
+    },
+    {
+      "name": "Trajectory 视图",
+      "type": "工具"
+    },
+    {
+      "name": "事件流",
+      "type": "概念"
+    },
+    {
+      "name": "标准模式",
+      "type": "模式"
+    },
+    {
+      "name": "PTC 模式",
+      "type": "模式"
+    },
+    {
+      "name": "极简模式",
+      "type": "模式"
+    },
+    {
+      "name": "创造模式",
+      "type": "模式"
+    },
+    {
+      "name": "Code Mode SDK",
+      "type": "工具"
+    },
+    {
+      "name": "TypeScript",
+      "type": "技术"
+    },
+    {
+      "name": "bash",
+      "type": "工具"
+    },
+    {
+      "name": "str_replace_editor",
+      "type": "工具"
+    },
+    {
+      "name": "文件编辑",
+      "type": "工具"
+    },
+    {
+      "name": "Shell",
+      "type": "工具"
+    },
+    {
+      "name": "网页检索",
+      "type": "工具"
+    },
+    {
+      "name": "计划",
+      "type": "概念"
+    },
+    {
+      "name": "目标",
+      "type": "概念"
+    },
+    {
+      "name": "子代理",
+      "type": "概念"
+    },
+    {
+      "name": "工作流",
+      "type": "概念"
+    },
+    {
+      "name": "preset",
+      "type": "概念"
+    },
+    {
+      "name": "shell 工具",
+      "type": "工具"
+    },
+    {
+      "name": "Node.js",
+      "type": "技术"
+    },
+    {
+      "name": "npx",
+      "type": "工具"
+    },
+    {
+      "name": "Web UI",
+      "type": "工具"
+    },
+    {
+      "name": "Cordis 服务与事件",
+      "type": "组件"
+    },
+    {
+      "name": "文件检索",
+      "type": "概念"
+    },
+    {
+      "name": "系统提示词",
+      "type": "概念"
+    },
+    {
+      "name": "思维链",
+      "type": "概念"
+    },
+    {
+      "name": "工具调用与结果",
+      "type": "概念"
+    },
+    {
+      "name": "子代理调度",
+      "type": "概念"
+    },
+    {
+      "name": "上下文注入",
+      "type": "概念"
+    },
+    {
+      "name": "运行时检查",
+      "type": "概念"
+    },
+    {
+      "name": "插件实验",
+      "type": "概念"
+    },
+    {
+      "name": "Agent preset",
+      "type": "概念"
+    },
+    {
+      "name": "模型基准测试",
+      "type": "场景"
+    },
+    {
+      "name": "preset 创作指导",
+      "type": "概念"
+    },
+    {
+      "name": "恢复",
+      "type": "方法"
+    },
+    {
+      "name": "分叉",
+      "type": "方法"
+    },
+    {
+      "name": "检索",
+      "type": "方法"
+    },
+    {
+      "name": "回放",
+      "type": "方法"
+    },
+    {
+      "name": "开发者文档",
+      "type": "资源"
+    },
+    {
+      "name": "社区插件",
+      "type": "资源"
+    },
+    {
+      "name": "Cordis 论文",
+      "type": "资源"
+    },
+    {
+      "name": "华为",
+      "type": "概念"
+    },
+    {
+      "name": "企业业务",
+      "type": "概念"
+    },
+    {
+      "name": "运营商业务",
+      "type": "概念"
+    },
+    {
+      "name": "消费者业务",
+      "type": "概念"
+    },
+    {
+      "name": "华为云业务",
+      "type": "概念"
+    },
+    {
+      "name": "数字能源业务",
+      "type": "概念"
+    },
+    {
+      "name": "智能汽车解决方案业务",
+      "type": "概念"
     }
   ],
   "relations": [
@@ -266,6 +526,416 @@
       "source": "1982",
       "target": "意大利",
       "relation": "冠军"
+    },
+    {
+      "source": "DeepSeek Harness",
+      "target": "Cordis",
+      "relation": "依赖"
+    },
+    {
+      "source": "DeepSeek Harness",
+      "target": "插件",
+      "relation": "使用"
+    },
+    {
+      "source": "DeepSeek Harness",
+      "target": "标准模式",
+      "relation": "包含"
+    },
+    {
+      "source": "DeepSeek Harness",
+      "target": "PTC 模式",
+      "relation": "包含"
+    },
+    {
+      "source": "DeepSeek Harness",
+      "target": "极简模式",
+      "relation": "包含"
+    },
+    {
+      "source": "DeepSeek Harness",
+      "target": "创造模式",
+      "relation": "包含"
+    },
+    {
+      "source": "DeepSeek Harness",
+      "target": "Node.js",
+      "relation": "依赖"
+    },
+    {
+      "source": "DeepSeek Harness",
+      "target": "配置层",
+      "relation": "包含"
+    },
+    {
+      "source": "DeepSeek Harness",
+      "target": "会话日志",
+      "relation": "包含"
+    },
+    {
+      "source": "DeepSeek Harness",
+      "target": "Trajectory 视图",
+      "relation": "包含"
+    },
+    {
+      "source": "DeepSeek Harness",
+      "target": "Web UI",
+      "relation": "包含"
+    },
+    {
+      "source": "Cordis",
+      "target": "Cordis 内核",
+      "relation": "包含"
+    },
+    {
+      "source": "Cordis",
+      "target": "Cordis 服务与事件",
+      "relation": "包含"
+    },
+    {
+      "source": "Cordis 内核",
+      "target": "插件",
+      "relation": "管理"
+    },
+    {
+      "source": "插件",
+      "target": "Cordis",
+      "relation": "属于"
+    },
+    {
+      "source": "插件",
+      "target": "工具",
+      "relation": "提供"
+    },
+    {
+      "source": "插件",
+      "target": "技能",
+      "relation": "提供"
+    },
+    {
+      "source": "插件",
+      "target": "会话",
+      "relation": "提供"
+    },
+    {
+      "source": "插件",
+      "target": "沙箱",
+      "relation": "提供"
+    },
+    {
+      "source": "插件",
+      "target": "存储",
+      "relation": "提供"
+    },
+    {
+      "source": "插件",
+      "target": "循环",
+      "relation": "提供"
+    },
+    {
+      "source": "插件",
+      "target": "调度",
+      "relation": "提供"
+    },
+    {
+      "source": "插件",
+      "target": "UI",
+      "relation": "提供"
+    },
+    {
+      "source": "插件",
+      "target": "Cordis 服务与事件",
+      "relation": "使用"
+    },
+    {
+      "source": "插件",
+      "target": "模型",
+      "relation": "提供"
+    },
+    {
+      "source": "Agent",
+      "target": "模型",
+      "relation": "包含"
+    },
+    {
+      "source": "Agent",
+      "target": "Harness",
+      "relation": "包含"
+    },
+    {
+      "source": "Agent",
+      "target": "插件",
+      "relation": "使用"
+    },
+    {
+      "source": "Harness",
+      "target": "Agent",
+      "relation": "提供能力"
+    },
+    {
+      "source": "模型",
+      "target": "TypeScript",
+      "relation": "使用"
+    },
+    {
+      "source": "配置层",
+      "target": "插件",
+      "relation": "使用"
+    },
+    {
+      "source": "会话日志",
+      "target": "模型",
+      "relation": "记录"
+    },
+    {
+      "source": "会话日志",
+      "target": "系统提示词",
+      "relation": "包含"
+    },
+    {
+      "source": "会话日志",
+      "target": "思维链",
+      "relation": "包含"
+    },
+    {
+      "source": "会话日志",
+      "target": "工具调用与结果",
+      "relation": "包含"
+    },
+    {
+      "source": "会话日志",
+      "target": "子代理调度",
+      "relation": "包含"
+    },
+    {
+      "source": "会话日志",
+      "target": "上下文注入",
+      "relation": "包含"
+    },
+    {
+      "source": "Trajectory 视图",
+      "target": "会话日志",
+      "relation": "使用"
+    },
+    {
+      "source": "事件流",
+      "target": "会话日志",
+      "relation": "属于"
+    },
+    {
+      "source": "标准模式",
+      "target": "工具",
+      "relation": "提供"
+    },
+    {
+      "source": "标准模式",
+      "target": "文件编辑",
+      "relation": "包含"
+    },
+    {
+      "source": "标准模式",
+      "target": "Shell",
+      "relation": "包含"
+    },
+    {
+      "source": "标准模式",
+      "target": "网页检索",
+      "relation": "包含"
+    },
+    {
+      "source": "标准模式",
+      "target": "技能",
+      "relation": "包含"
+    },
+    {
+      "source": "标准模式",
+      "target": "计划",
+      "relation": "包含"
+    },
+    {
+      "source": "标准模式",
+      "target": "目标",
+      "relation": "包含"
+    },
+    {
+      "source": "标准模式",
+      "target": "子代理",
+      "relation": "包含"
+    },
+    {
+      "source": "标准模式",
+      "target": "工作流",
+      "relation": "包含"
+    },
+    {
+      "source": "标准模式",
+      "target": "文件检索",
+      "relation": "包含"
+    },
+    {
+      "source": "PTC 模式",
+      "target": "标准模式",
+      "relation": "依赖"
+    },
+    {
+      "source": "PTC 模式",
+      "target": "Code Mode SDK",
+      "relation": "使用"
+    },
+    {
+      "source": "PTC 模式",
+      "target": "TypeScript",
+      "relation": "使用"
+    },
+    {
+      "source": "极简模式",
+      "target": "bash",
+      "relation": "提供"
+    },
+    {
+      "source": "极简模式",
+      "target": "str_replace_editor",
+      "relation": "包含"
+    },
+    {
+      "source": "极简模式",
+      "target": "标准模式",
+      "relation": "对比"
+    },
+    {
+      "source": "极简模式",
+      "target": "shell 工具",
+      "relation": "包含"
+    },
+    {
+      "source": "极简模式",
+      "target": "模型基准测试",
+      "relation": "应用于"
+    },
+    {
+      "source": "创造模式",
+      "target": "preset",
+      "relation": "提供"
+    },
+    {
+      "source": "创造模式",
+      "target": "标准模式",
+      "relation": "依赖"
+    },
+    {
+      "source": "创造模式",
+      "target": "插件",
+      "relation": "使用"
+    },
+    {
+      "source": "创造模式",
+      "target": "运行时检查",
+      "relation": "包含"
+    },
+    {
+      "source": "创造模式",
+      "target": "插件实验",
+      "relation": "包含"
+    },
+    {
+      "source": "创造模式",
+      "target": "preset 创作指导",
+      "relation": "包含"
+    },
+    {
+      "source": "创造模式",
+      "target": "Agent preset",
+      "relation": "应用于"
+    },
+    {
+      "source": "Code Mode SDK",
+      "target": "TypeScript",
+      "relation": "使用"
+    },
+    {
+      "source": "Code Mode SDK",
+      "target": "工具",
+      "relation": "提供"
+    },
+    {
+      "source": "str_replace_editor",
+      "target": "文件编辑",
+      "relation": "属于"
+    },
+    {
+      "source": "shell 工具",
+      "target": "Shell",
+      "relation": "属于"
+    },
+    {
+      "source": "npx",
+      "target": "Node.js",
+      "relation": "依赖"
+    },
+    {
+      "source": "恢复",
+      "target": "事件流",
+      "relation": "使用"
+    },
+    {
+      "source": "分叉",
+      "target": "事件流",
+      "relation": "使用"
+    },
+    {
+      "source": "检索",
+      "target": "事件流",
+      "relation": "使用"
+    },
+    {
+      "source": "回放",
+      "target": "事件流",
+      "relation": "使用"
+    },
+    {
+      "source": "开发者文档",
+      "target": "DeepSeek Harness",
+      "relation": "应用于"
+    },
+    {
+      "source": "社区插件",
+      "target": "插件",
+      "relation": "属于"
+    },
+    {
+      "source": "Cordis 论文",
+      "target": "Cordis",
+      "relation": "应用于"
+    },
+    {
+      "source": "企业业务",
+      "target": "华为",
+      "relation": "属于"
+    },
+    {
+      "source": "运营商业务",
+      "target": "华为",
+      "relation": "属于"
+    },
+    {
+      "source": "消费者业务",
+      "target": "华为",
+      "relation": "属于"
+    },
+    {
+      "source": "华为云业务",
+      "target": "华为",
+      "relation": "属于"
+    },
+    {
+      "source": "数字能源业务",
+      "target": "华为",
+      "relation": "属于"
+    },
+    {
+      "source": "智能汽车解决方案业务",
+      "target": "华为",
+      "relation": "属于"
     }
   ]
 }

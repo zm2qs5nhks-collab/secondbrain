@@ -1,47 +1,81 @@
 """
-长期记忆 —— 云端版 (Supabase)
+长期记忆 —— PostgreSQL 版
 """
 
-from storage.db import table
+import json
+from storage.db import query_one, query_all, execute
 
 
-def update_preference(key: str, value):
-    existing = table("user_prefs").select("*").eq("key", key).execute()
-    if existing.data:
-        table("user_prefs").update({"value": value}).eq("key", key).execute()
+def update_preference(key: str, value, user_id: str = None):
+    if user_id:
+        existing = query_one("SELECT key FROM user_prefs WHERE key = %s AND user_id = %s", (key, user_id))
     else:
-        table("user_prefs").insert({"key": key, "value": value}).execute()
+        existing = query_one("SELECT key FROM user_prefs WHERE key = %s", (key,))
+
+    if existing:
+        if user_id:
+            execute("UPDATE user_prefs SET value = %s WHERE key = %s AND user_id = %s",
+                    (json.dumps(value, ensure_ascii=False), key, user_id))
+        else:
+            execute("UPDATE user_prefs SET value = %s WHERE key = %s",
+                    (json.dumps(value, ensure_ascii=False), key))
+    else:
+        row_data = {"key": key, "value": json.dumps(value, ensure_ascii=False)}
+        if user_id:
+            row_data["user_id"] = user_id
+        cols = ", ".join(row_data.keys())
+        vals = ", ".join(["%s"] * len(row_data))
+        execute(f"INSERT INTO user_prefs ({cols}) VALUES ({vals})", list(row_data.values()))
 
 
-def get_preference(key: str, default=None):
-    res = table("user_prefs").select("value").eq("key", key).execute()
-    if res.data:
-        return res.data[0]["value"]
+def get_preference(key: str, default=None, user_id: str = None):
+    if user_id:
+        row = query_one("SELECT value FROM user_prefs WHERE key = %s AND user_id = %s", (key, user_id))
+    else:
+        row = query_one("SELECT value FROM user_prefs WHERE key = %s", (key,))
+    if row:
+        return row["value"]
     return default
 
 
-def add_topic(topic: str, related_notes: list[str] = None):
-    existing = table("topics").select("*").eq("topic", topic).execute()
-    if existing.data:
-        old_notes = existing.data[0].get("related_notes") or []
-        new_notes = list(set(old_notes + (related_notes or [])))
-        table("topics").update({
-            "related_notes": new_notes,
-            "count": existing.data[0].get("count", 0) + 1,
-        }).eq("topic", topic).execute()
+def add_topic(topic: str, related_notes: list[str] = None, user_id: str = None):
+    if user_id:
+        existing = query_one("SELECT * FROM topics WHERE topic = %s AND user_id = %s", (topic, user_id))
     else:
-        table("topics").insert({
+        existing = query_one("SELECT * FROM topics WHERE topic = %s", (topic,))
+
+    if existing:
+        old_notes = existing.get("related_notes") or []
+        new_notes = list(set(old_notes + (related_notes or [])))
+        if user_id:
+            execute("UPDATE topics SET related_notes = %s, count = count + 1 WHERE topic = %s AND user_id = %s",
+                    (json.dumps(new_notes, ensure_ascii=False), topic, user_id))
+        else:
+            execute("UPDATE topics SET related_notes = %s, count = count + 1 WHERE topic = %s",
+                    (json.dumps(new_notes, ensure_ascii=False), topic))
+    else:
+        row_data = {
             "topic": topic,
-            "related_notes": related_notes or [],
+            "related_notes": json.dumps(related_notes or [], ensure_ascii=False),
             "count": 1,
-        }).execute()
+        }
+        if user_id:
+            row_data["user_id"] = user_id
+        cols = ", ".join(row_data.keys())
+        vals = ", ".join(["%s"] * len(row_data))
+        execute(f"INSERT INTO topics ({cols}) VALUES ({vals})", list(row_data.values()))
 
 
-def get_context_summary() -> str:
-    topics_res = table("topics").select("topic, count").execute()
-    notes_count_res = table("notes").select("id", count="exact").execute()
-    notes_count = len(notes_count_res.data)
-    topics = [t["topic"] for t in (topics_res.data or [])]
+def get_context_summary(user_id: str = None) -> str:
+    if user_id:
+        topics_res = query_all("SELECT topic, count FROM topics WHERE user_id = %s", (user_id,))
+        notes_count_row = query_one("SELECT COUNT(*) AS cnt FROM notes WHERE user_id = %s", (user_id,))
+    else:
+        topics_res = query_all("SELECT topic, count FROM topics")
+        notes_count_row = query_one("SELECT COUNT(*) AS cnt FROM notes")
+
+    notes_count = notes_count_row["cnt"] if notes_count_row else 0
+    topics = [t["topic"] for t in topics_res]
 
     lines = ["[长期记忆]"]
     lines.append(f"  知识库共 {notes_count} 条笔记")
@@ -50,6 +84,9 @@ def get_context_summary() -> str:
     return "\n".join(lines)
 
 
-def get_all_topics() -> list[str]:
-    res = table("topics").select("topic").execute()
-    return [t["topic"] for t in (res.data or [])]
+def get_all_topics(user_id: str = None) -> list[str]:
+    if user_id:
+        rows = query_all("SELECT topic FROM topics WHERE user_id = %s", (user_id,))
+    else:
+        rows = query_all("SELECT topic FROM topics")
+    return [t["topic"] for t in rows]

@@ -2,14 +2,16 @@
 个性化学习路径推荐 —— 基于遗忘曲线+标签掌握度
 """
 
-from storage.db import table
+from storage.db import query_all
 from scheduler import forgetting_curve as fc
 
 
-def get_learning_path() -> dict:
+def get_learning_path(user_id: str = None) -> dict:
     """生成个性化学习路径"""
-    notes_res = table("notes").select("id, preview, tags, importance, access_count").execute()
-    notes = notes_res.data or []
+    if user_id:
+        notes = query_all("SELECT id, preview, tags, importance, access_count FROM notes WHERE user_id = %s", (user_id,))
+    else:
+        notes = query_all("SELECT id, preview, tags, importance, access_count FROM notes")
 
     tag_stats = {}
     for note in notes:
@@ -29,7 +31,7 @@ def get_learning_path() -> dict:
             if note.get("importance") == "high":
                 stats["high_importance"] += 1
             stats["total_access"] += note.get("access_count", 0)
-            retention = fc.calculate_retention(note["id"])
+            retention = fc.calculate_retention(note["id"], user_id=user_id)
             stats["retentions"].append(retention)
             stats["notes"].append({
                 "id": note["id"],
@@ -83,25 +85,26 @@ def get_learning_path() -> dict:
         "tag_stats": tag_stats,
         "total_notes": len(notes),
         "total_tags": len(tag_stats),
-        "overall_retention": _calc_overall_retention(notes),
+        "overall_retention": _calc_overall_retention(notes, user_id),
     }
 
 
-def _calc_overall_retention(notes: list) -> float:
+def _calc_overall_retention(notes: list, user_id: str = None) -> float:
     if not notes:
         return 0
-    total = sum(fc.calculate_retention(n["id"]) for n in notes)
+    total = sum(fc.calculate_retention(n["id"], user_id=user_id) for n in notes)
     return total / len(notes)
 
 
-def get_weak_notes(limit: int = 10) -> list[dict]:
-    """获取最需要复习的笔记"""
-    notes_res = table("notes").select("id, preview, tags, importance").execute()
-    notes = notes_res.data or []
+def get_weak_notes(limit: int = 10, user_id: str = None) -> list[dict]:
+    if user_id:
+        notes = query_all("SELECT id, preview, tags, importance FROM notes WHERE user_id = %s", (user_id,))
+    else:
+        notes = query_all("SELECT id, preview, tags, importance FROM notes")
 
     scored = []
     for note in notes:
-        retention = fc.calculate_retention(note["id"])
+        retention = fc.calculate_retention(note["id"], user_id=user_id)
         if retention < 0.7:
             urgency_score = (1 - retention) * 10
             if note.get("importance") == "high":
