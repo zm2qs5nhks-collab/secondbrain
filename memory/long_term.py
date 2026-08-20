@@ -34,7 +34,13 @@ def get_preference(key: str, default=None, user_id: str = None):
     else:
         row = query_one("SELECT value FROM user_prefs WHERE key = %s", (key,))
     if row:
-        return row["value"]
+        raw = row["value"]
+        if isinstance(raw, str):
+            try:
+                return json.loads(raw)
+            except (json.JSONDecodeError, TypeError):
+                return raw
+        return raw
     return default
 
 
