@@ -3,39 +3,68 @@
 """
 
 import json
+import numpy as np
 from storage.db import query_one, query_all, execute
 
 
 def add_documents(documents: list[dict], user_id: str = None, note_id: str = None) -> int:
+    from agent.llm import get_embedding
     count = 0
     for doc in documents:
         content = doc["content"]
         metadata = doc.get("metadata", {})
         if note_id:
             metadata["note_id"] = note_id
+        try:
+            embedding = get_embedding(content, user_id=user_id)
+            embedding_json = json.dumps(embedding)
+        except Exception as e:
+            print(f"[vector_store] Embedding 计算失败: {e}")
+            embedding_json = None
         execute(
             """INSERT INTO note_embeddings (content, metadata, embedding, user_id)
                VALUES (%s, %s, %s, %s)""",
-            (content, json.dumps(metadata, ensure_ascii=False), None, user_id),
+            (content, json.dumps(metadata, ensure_ascii=False), embedding_json, user_id),
         )
         count += 1
     return count
 
 
 def search(query: str, top_k: int = 5, user_id: str = None) -> list[dict]:
-    if user_id:
-        rows = query_all("SELECT content, metadata FROM note_embeddings WHERE user_id = %s", (user_id,))
-    else:
-        rows = query_all("SELECT content, metadata FROM note_embeddings")
+    from agent.llm import get_embedding
+    try:
+        query_vec = np.array(get_embedding(query, user_id=user_id))
+    except Exception as e:
+        raise RuntimeError(f"Embedding 计算失败，无法进行向量搜索: {e}")
 
-    results = []
+    if user_id:
+        rows = query_all(
+            "SELECT content, metadata, embedding FROM note_embeddings WHERE user_id = %s AND embedding IS NOT NULL",
+            (user_id,),
+        )
+    else:
+        rows = query_all(
+            "SELECT content, metadata, embedding FROM note_embeddings WHERE embedding IS NOT NULL"
+        )
+
+    if not rows:
+        return []
+
+    scored = []
     for row in rows:
-        results.append({
+        try:
+            vec = np.array(row["embedding"])
+            similarity = float(np.dot(query_vec, vec) / (np.linalg.norm(query_vec) * np.linalg.norm(vec) + 1e-8))
+        except Exception:
+            continue
+        scored.append({
             "content": row["content"],
             "metadata": row.get("metadata") or {},
-            "distance": 0.5,
+            "distance": round(1 - similarity, 4),
         })
-    return results[:top_k]
+
+    scored.sort(key=lambda x: x["distance"])
+    return scored[:top_k]
 
 
 def count(user_id: str = None):

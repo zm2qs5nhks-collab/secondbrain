@@ -78,11 +78,20 @@ def chat_completion(messages: list[dict], tools: list[dict] = None,
                 raise
 
 
-def get_embedding(text: str, user_id: str = None) -> list[float]:
+def get_embedding(text: str, user_id: str = None, max_retries: int = 3) -> list[float]:
     client = get_client(user_id)
     s = _get_settings(user_id)
-    response = client.embeddings.create(
-        model=s["embedding_model"],
-        input=text,
-    )
-    return response.data[0].embedding
+    for attempt in range(max_retries):
+        try:
+            response = client.embeddings.create(
+                model=s["embedding_model"],
+                input=text,
+            )
+            return response.data[0].embedding
+        except Exception as e:
+            if attempt < max_retries - 1:
+                wait = 2 ** attempt
+                print(f"[Embedding] 调用失败: {e}, {wait}秒后重试...")
+                time.sleep(wait)
+            else:
+                raise

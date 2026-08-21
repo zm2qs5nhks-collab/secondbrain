@@ -4,9 +4,15 @@
 
 import json
 from storage.db import query_one, query_all, execute
+from storage.crypto import encrypt, decrypt, is_encrypted
+
+_SENSITIVE_KEYS = {"api_key"}
 
 
 def update_preference(key: str, value, user_id: str = None):
+    if key in _SENSITIVE_KEYS and isinstance(value, str) and value and not is_encrypted(value):
+        value = encrypt(value)
+
     if user_id:
         existing = query_one("SELECT key FROM user_prefs WHERE key = %s AND user_id = %s", (key, user_id))
     else:
@@ -37,10 +43,14 @@ def get_preference(key: str, default=None, user_id: str = None):
         raw = row["value"]
         if isinstance(raw, str):
             try:
-                return json.loads(raw)
+                decoded = json.loads(raw)
             except (json.JSONDecodeError, TypeError):
-                return raw
-        return raw
+                decoded = raw
+        else:
+            decoded = raw
+        if key in _SENSITIVE_KEYS and isinstance(decoded, str) and is_encrypted(decoded):
+            return decrypt(decoded)
+        return decoded
     return default
 
 

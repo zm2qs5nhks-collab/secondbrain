@@ -15,3 +15,4 @@ certifi
 pydantic
 pandas
 sentence-transformers
+cryptography

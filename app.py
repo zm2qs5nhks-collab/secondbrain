@@ -748,7 +748,11 @@ elif page == "设置":
     current_embedding = long_term.get_preference("embedding_model", config.EMBEDDING_MODEL, user_id=USER_ID)
 
     new_url = st.text_input("API Base URL", value=current_url, key="api_url")
-    new_key = st.text_input("API Key（留空则保持原配置）", value="", type="password", key="api_key_input",
+    if current_key and current_key != config.OPENAI_API_KEY:
+        st.info("API Key 已配置（留空则保持不变）")
+    else:
+        st.warning("API Key 未配置，请输入")
+    new_key = st.text_input("API Key", value="", type="password", key="api_key_input",
                             placeholder="输入新 Key 以更新，留空不修改")
     new_model = st.text_input("模型名称", value=current_model, key="model_name_input")
     new_embedding = st.text_input("Embedding 模型", value=current_embedding, key="embedding_input")
