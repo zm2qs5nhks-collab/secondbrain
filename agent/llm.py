@@ -2,7 +2,6 @@
 LLM 调用封装
 """
 
-import time
 import json
 from openai import OpenAI
 import config
@@ -42,7 +41,7 @@ def get_client(user_id: str = None) -> OpenAI:
 
 
 def chat_completion(messages: list[dict], tools: list[dict] = None,
-                    max_retries: int = 3, user_id: str = None) -> dict:
+                    user_id: str = None) -> dict:
     client = get_client(user_id)
     s = _get_settings(user_id)
     kwargs = {
@@ -53,45 +52,26 @@ def chat_completion(messages: list[dict], tools: list[dict] = None,
     if tools:
         kwargs["tools"] = tools
         kwargs["tool_choice"] = "auto"
-
-    for attempt in range(max_retries):
-        try:
-            response = client.chat.completions.create(**kwargs)
-            msg = response.choices[0].message
-            result = {"content": msg.content, "tool_calls": None}
-            if msg.tool_calls:
-                result["tool_calls"] = [
-                    {
-                        "id": tc.id,
-                        "name": tc.function.name,
-                        "arguments": json.loads(tc.function.arguments),
-                    }
-                    for tc in msg.tool_calls
-                ]
-            return result
-        except Exception as e:
-            if attempt < max_retries - 1:
-                wait = 2 ** attempt
-                print(f"[LLM] 调用失败: {e}, {wait}秒后重试...")
-                time.sleep(wait)
-            else:
-                raise
+    response = client.chat.completions.create(**kwargs)
+    msg = response.choices[0].message
+    result = {"content": msg.content, "tool_calls": None}
+    if msg.tool_calls:
+        result["tool_calls"] = [
+            {
+                "id": tc.id,
+                "name": tc.function.name,
+                "arguments": json.loads(tc.function.arguments),
+            }
+            for tc in msg.tool_calls
+        ]
+    return result
 
 
-def get_embedding(text: str, user_id: str = None, max_retries: int = 3) -> list[float]:
+def get_embedding(text: str, user_id: str = None) -> list[float]:
     client = get_client(user_id)
     s = _get_settings(user_id)
-    for attempt in range(max_retries):
-        try:
-            response = client.embeddings.create(
-                model=s["embedding_model"],
-                input=text,
-            )
-            return response.data[0].embedding
-        except Exception as e:
-            if attempt < max_retries - 1:
-                wait = 2 ** attempt
-                print(f"[Embedding] 调用失败: {e}, {wait}秒后重试...")
-                time.sleep(wait)
-            else:
-                raise
+    response = client.embeddings.create(
+        model=s["embedding_model"],
+        input=text,
+    )
+    return response.data[0].embedding
