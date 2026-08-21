@@ -1025,6 +1025,14 @@ elif page == "设置":
                           model_name=new_model, embedding_model=new_embedding)
         st.success("配置已保存并生效！")
 
+    if st.button("重置为 .env 默认值"):
+        for k in ["api_key", "api_base_url", "model_name", "embedding_model"]:
+            long_term.delete_preference(k, user_id=USER_ID)
+        _clients = __import__("agent.llm", fromlist=["_clients"])._clients
+        _clients.pop(USER_ID, None)
+        st.success("已重置，页面刷新后将使用 .env 中的配置")
+        st.rerun()
+
     st.markdown("---")
     st.subheader("数据管理")
 

@@ -57,6 +57,13 @@ def get_preference(key: str, default=None, user_id: str = None):
     return default
 
 
+def delete_preference(key: str, user_id: str = None):
+    if user_id:
+        execute("DELETE FROM user_prefs WHERE key = %s AND user_id = %s", (key, user_id))
+    else:
+        execute("DELETE FROM user_prefs WHERE key = %s", (key,))
+
+
 def add_topic(topic: str, related_notes: list[str] = None, user_id: str = None):
     if user_id:
         existing = query_one("SELECT * FROM topics WHERE topic = %s AND user_id = %s", (topic, user_id))
