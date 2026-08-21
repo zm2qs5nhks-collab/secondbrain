@@ -43,7 +43,10 @@ def encrypt(plaintext: str) -> str:
 def decrypt(ciphertext: str) -> str:
     if not ciphertext.startswith("ENC:"):
         return ciphertext
-    return _get_fernet().decrypt(ciphertext[4:].encode()).decode()
+    try:
+        return _get_fernet().decrypt(ciphertext[4:].encode()).decode()
+    except Exception:
+        return ciphertext
 
 
 def is_encrypted(value: str) -> bool:
