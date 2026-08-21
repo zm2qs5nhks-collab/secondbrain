@@ -34,280 +34,302 @@ if st.session_state.user_id is None:
     st.markdown("""
     <style>
     .stApp {
-        background: linear-gradient(135deg, #f5f0ff 0%, #e8e0ff 50%, #f0e8ff 100%);
+        background: linear-gradient(135deg, #1a1025 0%, #2d1b69 40%, #1a1025 100%) !important;
+        min-height: 100vh;
     }
     .block-container {
         max-width: 100% !important;
-        padding: 0 !important;
+        padding-top: 2rem !important;
     }
     [data-testid="stHeader"], [data-testid="stToolbar"] { display: none; }
     [data-testid="stSidebar"] { display: none; }
-    .login-wrapper {
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        min-height: 100vh;
-        padding: 2rem;
-    }
-    .login-card {
-        background: rgba(255, 255, 255, 0.95);
-        backdrop-filter: blur(20px);
+
+    .glass-card {
+        background: rgba(255, 255, 255, 0.08);
+        backdrop-filter: blur(24px);
+        -webkit-backdrop-filter: blur(24px);
         border-radius: 24px;
-        padding: 3rem 2.5rem;
-        width: 100%;
-        max-width: 460px;
-        box-shadow: 0 20px 60px rgba(120, 80, 200, 0.15),
-                    0 4px 16px rgba(120, 80, 200, 0.08);
-        border: 1px solid rgba(255, 255, 255, 0.6);
-        position: relative;
-        overflow: hidden;
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
+                    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+        padding: 2.5rem 2rem;
     }
-    .login-card::before {
-        content: '';
-        position: absolute;
-        top: 0; left: 0; right: 0;
-        height: 4px;
-        background: linear-gradient(90deg, #7c5cbf, #a78bfa, #7c5cbf);
-    }
-    .login-title {
-        font-size: 2rem;
-        font-weight: 700;
-        color: #1a1a2e;
+
+    .auth-title {
+        font-size: 2.2rem;
+        font-weight: 800;
+        color: #ffffff;
         text-align: center;
-        margin-bottom: 0.3rem;
+        margin-bottom: 0.2rem;
+        letter-spacing: -0.02em;
     }
-    .login-subtitle {
+    .auth-subtitle {
         font-size: 0.95rem;
-        color: #8888a0;
+        color: rgba(255, 255, 255, 0.55);
         text-align: center;
-        margin-bottom: 2rem;
+        margin-bottom: 1.8rem;
     }
-    .mode-toggle {
-        display: flex;
-        background: #f4f0ff;
-        border-radius: 14px;
-        padding: 4px;
-        margin-bottom: 2rem;
-    }
-    .mode-toggle button {
-        flex: 1;
-        border: none !important;
-        border-radius: 12px !important;
-        padding: 0.6rem 0 !important;
-        font-weight: 600 !important;
-        font-size: 0.95rem !important;
-        background: transparent !important;
-        color: #7c7c9a !important;
-        transition: all 0.3s ease !important;
-    }
-    .mode-toggle button[kind="primary"],
-    .mode-toggle button[data-testid="stBaseButton-primary"] {
-        background: white !important;
-        color: #7c5cbf !important;
-        box-shadow: 0 2px 8px rgba(120, 80, 200, 0.15) !important;
-    }
+
     .stTextInput > div > div > input {
         border-radius: 12px !important;
-        border: 1.5px solid #e8e4f0 !important;
+        border: 1px solid rgba(255, 255, 255, 0.15) !important;
         padding: 0.75rem 1rem !important;
         font-size: 0.95rem !important;
-        background: #fafafe !important;
-        transition: all 0.2s ease !important;
+        background: rgba(255, 255, 255, 0.07) !important;
+        color: #fff !important;
+        transition: all 0.25s ease !important;
     }
     .stTextInput > div > div > input:focus {
-        border-color: #a78bfa !important;
-        box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.15) !important;
-        background: white !important;
+        border-color: rgba(167, 139, 250, 0.6) !important;
+        box-shadow: 0 0 0 2px rgba(167, 139, 250, 0.15) !important;
+        background: rgba(255, 255, 255, 0.1) !important;
+    }
+    .stTextInput > div > div > input::placeholder {
+        color: rgba(255, 255, 255, 0.35) !important;
     }
     .stTextInput label {
         font-weight: 600 !important;
-        color: #3a3a5c !important;
+        color: rgba(255, 255, 255, 0.75) !important;
         font-size: 0.85rem !important;
-        letter-spacing: 0.02em;
     }
+
+    div[data-testid="stForm"] {
+        background: transparent !important;
+        border: none !important;
+        padding: 0 !important;
+    }
+
     .stButton > button[kind="primary"],
     .stButton > button[data-testid="stBaseButton-primary"] {
-        background: linear-gradient(135deg, #7c5cbf 0%, #9b7de8 100%) !important;
+        background: linear-gradient(135deg, #7c5cbf 0%, #a78bfa 100%) !important;
         color: white !important;
         border: none !important;
         border-radius: 14px !important;
-        padding: 0.7rem 0 !important;
+        padding: 0.65rem 0 !important;
         font-size: 1.05rem !important;
         font-weight: 700 !important;
         width: 100% !important;
-        letter-spacing: 0.04em;
-        box-shadow: 0 4px 16px rgba(120, 92, 191, 0.35) !important;
+        box-shadow: 0 4px 20px rgba(124, 92, 191, 0.4) !important;
         transition: all 0.3s ease !important;
+        letter-spacing: 0.08em;
     }
     .stButton > button[kind="primary"]:hover,
     .stButton > button[data-testid="stBaseButton-primary"]:hover {
-        transform: translateY(-1px) !important;
-        box-shadow: 0 6px 24px rgba(120, 92, 191, 0.45) !important;
+        transform: translateY(-2px) !important;
+        box-shadow: 0 8px 30px rgba(124, 92, 191, 0.55) !important;
     }
-    .auth-divider {
-        text-align: center;
-        color: #b0b0c8;
-        font-size: 0.85rem;
-        margin: 1.2rem 0;
+
+    .stButton > button:not([kind="primary"]):not([data-testid="stBaseButton-primary"]) {
+        background: rgba(255, 255, 255, 0.08) !important;
+        color: rgba(255, 255, 255, 0.6) !important;
+        border: 1px solid rgba(255, 255, 255, 0.12) !important;
+        border-radius: 12px !important;
+        font-weight: 600 !important;
+        transition: all 0.25s ease !important;
     }
+    .stButton > button:not([kind="primary"]):not([data-testid="stBaseButton-primary"]):hover {
+        background: rgba(255, 255, 255, 0.15) !important;
+        color: #fff !important;
+    }
+
     .auth-switch {
         text-align: center;
-        font-size: 0.9rem;
-        color: #7c7c9a;
-        margin-top: 1.5rem;
+        font-size: 0.88rem;
+        color: rgba(255, 255, 255, 0.45);
+        margin-top: 1.2rem;
     }
-    .auth-switch a, .auth-switch span.clickable {
-        color: #7c5cbf;
+    .auth-switch span.hl {
+        color: #a78bfa;
         font-weight: 600;
         cursor: pointer;
-        text-decoration: none;
     }
-    .auth-switch a:hover, .auth-switch span.clickable:hover {
-        color: #9b7de8;
-        text-decoration: underline;
+
+    .feature-card {
+        background: rgba(255, 255, 255, 0.06);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(255, 255, 255, 0.08);
+        border-radius: 16px;
+        padding: 1.5rem;
+        margin-bottom: 1rem;
     }
-    .decor-blob1 {
+    .feature-icon {
+        font-size: 2rem;
+        margin-bottom: 0.5rem;
+    }
+    .feature-title {
+        font-size: 1rem;
+        font-weight: 700;
+        color: rgba(255, 255, 255, 0.9);
+        margin-bottom: 0.3rem;
+    }
+    .feature-desc {
+        font-size: 0.82rem;
+        color: rgba(255, 255, 255, 0.45);
+        line-height: 1.5;
+    }
+
+    .brand-text {
+        color: rgba(255, 255, 255, 0.9);
+        font-weight: 800;
+        font-size: 1.6rem;
+        letter-spacing: -0.02em;
+        line-height: 1.3;
+    }
+    .brand-sub {
+        color: rgba(255, 255, 255, 0.4);
+        font-size: 0.9rem;
+        margin-top: 0.5rem;
+        line-height: 1.6;
+    }
+
+    .decor-orb {
         position: fixed;
-        width: 300px; height: 300px;
-        background: radial-gradient(circle, rgba(167,139,250,0.2) 0%, transparent 70%);
         border-radius: 50%;
-        top: -80px; left: -60px;
-        z-index: 0;
         pointer-events: none;
+        z-index: 0;
     }
-    .decor-blob2 {
-        position: fixed;
+    .decor-orb.o1 {
         width: 400px; height: 400px;
-        background: radial-gradient(circle, rgba(120,92,191,0.12) 0%, transparent 70%);
-        border-radius: 50%;
-        bottom: -120px; right: -100px;
-        z-index: 0;
-        pointer-events: none;
+        background: radial-gradient(circle, rgba(124,92,191,0.25) 0%, transparent 70%);
+        top: -100px; right: -80px;
     }
-    .decor-ring {
-        position: fixed;
-        width: 180px; height: 180px;
-        border: 3px solid rgba(167,139,250,0.15);
-        border-radius: 50%;
-        top: 15%; right: 8%;
-        z-index: 0;
-        pointer-events: none;
+    .decor-orb.o2 {
+        width: 300px; height: 300px;
+        background: radial-gradient(circle, rgba(167,139,250,0.15) 0%, transparent 70%);
+        bottom: -50px; left: -50px;
     }
-    .decor-dot {
-        position: fixed;
-        width: 12px; height: 12px;
-        background: rgba(167,139,250,0.3);
-        border-radius: 50%;
-        z-index: 0;
-        pointer-events: none;
+    .decor-orb.o3 {
+        width: 150px; height: 150px;
+        background: radial-gradient(circle, rgba(124,92,191,0.12) 0%, transparent 70%);
+        top: 40%; left: 8%;
     }
-    .decor-dot.d1 { top: 20%; left: 5%; }
-    .decor-dot.d2 { top: 70%; right: 12%; width: 8px; height: 8px; }
-    .decor-dot.d3 { bottom: 25%; left: 15%; width: 10px; height: 10px; }
-    .stAlert { border-radius: 12px !important; }
+
+    .stAlert {
+        border-radius: 12px !important;
+        background: rgba(255, 255, 255, 0.08) !important;
+        border: 1px solid rgba(255, 255, 255, 0.1) !important;
+    }
+    .stAlert p, .stAlert li { color: rgba(255, 255, 255, 0.85) !important; }
+    [data-testid="stFormSubmitButton"] button { width: 100% !important; }
     </style>
-    <div class="decor-blob1"></div>
-    <div class="decor-blob2"></div>
-    <div class="decor-ring"></div>
-    <div class="decor-dot d1"></div>
-    <div class="decor-dot d2"></div>
-    <div class="decor-dot d3"></div>
+    <div class="decor-orb o1"></div>
+    <div class="decor-orb o2"></div>
+    <div class="decor-orb o3"></div>
     """, unsafe_allow_html=True)
 
-    st.markdown('<div class="login-wrapper">', unsafe_allow_html=True)
-    st.markdown('<div class="login-card">', unsafe_allow_html=True)
-    st.markdown('<div class="login-title">🧠 第二大脑</div>', unsafe_allow_html=True)
-    st.markdown('<div class="login-subtitle">你的 AI 知识管理助手</div>', unsafe_allow_html=True)
+    left_col, center_col, right_col = st.columns([1.2, 1.1, 1.2], gap="large")
 
-    if "auth_mode" not in st.session_state:
-        st.session_state.auth_mode = "login"
-
-    col_l, col_toggle, col_r = st.columns([1, 2, 1])
-    with col_toggle:
-        c1, c2 = st.columns(2)
-        with c1:
-            login_btn = st.button("登录", key="mode_login", use_container_width=True,
-                                  type="primary" if st.session_state.auth_mode == "login" else "secondary")
-        with c2:
-            register_btn = st.button("注册", key="mode_register", use_container_width=True,
-                                     type="primary" if st.session_state.auth_mode == "register" else "secondary")
-
-    if login_btn:
-        st.session_state.auth_mode = "login"
-        st.rerun()
-    if register_btn:
-        st.session_state.auth_mode = "register"
-        st.rerun()
-
-    st.markdown('<div style="height: 1.2rem;"></div>', unsafe_allow_html=True)
-
-    if st.session_state.auth_mode == "login":
-        login_email = st.text_input("邮箱", key="login_email", placeholder="请输入邮箱")
-        login_pwd = st.text_input("密码", type="password", key="login_pwd", placeholder="请输入密码")
-        st.markdown('<div style="height: 0.5rem;"></div>', unsafe_allow_html=True)
-        if st.button("登 录", type="primary", key="btn_login", use_container_width=True):
-            if not login_email or not login_pwd:
-                st.error("请输入邮箱和密码")
-            else:
-                import hashlib
-                pwd_hash = hashlib.sha256(login_pwd.encode()).hexdigest()
-                user = query_one(
-                    "SELECT id, email FROM users WHERE email = %s AND password_hash = %s",
-                    (login_email, pwd_hash),
-                )
-                if user:
-                    st.session_state.user_id = str(user["id"])
-                    st.session_state.user_email = user["email"]
-                    st.rerun()
-                else:
-                    st.error("邮箱或密码错误")
-
+    with left_col:
         st.markdown("""
-        <div class="auth-switch">
-            还没有账号？
-            <span class="clickable" onclick="
-                window.parent.document.querySelectorAll('button')[1].click();
-            ">立即注册</span>
+        <div style="padding-top: 3rem;">
+            <div class="brand-text">第二大脑</div>
+            <div class="brand-sub">
+                用 AI 构建你的专属知识体系，<br>
+                让每一条笔记都不再遗忘。
+            </div>
+        </div>
+        <div style="margin-top: 2.5rem;">
+            <div class="feature-card">
+                <div class="feature-icon">🤖</div>
+                <div class="feature-title">智能问答</div>
+                <div class="feature-desc">基于你的知识库，AI 实时检索并回答问题，每一条回答都有出处。</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">📐</div>
+                <div class="feature-title">语义搜索</div>
+                <div class="feature-desc">不只是关键词匹配，深度理解你的笔记含义，精准找到相关内容。</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔄</div>
+                <div class="feature-title">遗忘曲线</div>
+                <div class="feature-desc">基于艾宾浩斯遗忘曲线，智能安排复习节点，让知识长期保留。</div>
+            </div>
         </div>
         """, unsafe_allow_html=True)
 
-    else:
-        reg_email = st.text_input("邮箱", key="reg_email", placeholder="请输入邮箱")
-        reg_pwd = st.text_input("密码", type="password", key="reg_pwd", placeholder="请设置密码（至少6位）")
-        reg_pwd2 = st.text_input("确认密码", type="password", key="reg_pwd2", placeholder="请再次输入密码")
-        st.markdown('<div style="height: 0.5rem;"></div>', unsafe_allow_html=True)
-        if st.button("注 册", type="primary", key="btn_register", use_container_width=True):
-            if not reg_email or not reg_pwd:
-                st.error("请输入邮箱和密码")
-            elif len(reg_pwd) < 6:
-                st.error("密码至少需要6位")
-            elif reg_pwd != reg_pwd2:
-                st.error("两次密码不一致")
-            else:
-                existing = query_one("SELECT id FROM users WHERE email = %s", (reg_email,))
-                if existing:
-                    st.error("该邮箱已注册")
+    with right_col:
+        st.markdown("""
+        <div style="padding-top: 3rem;"></div>
+        """, unsafe_allow_html=True)
+
+    with center_col:
+        st.markdown("""
+        <div class="glass-card">
+            <div class="auth-title">🧠 欢迎回来</div>
+            <div class="auth-subtitle">登录以管理你的知识库</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+        st.markdown('<div style="height: -0.5rem;"></div>', unsafe_allow_html=True)
+
+        if "auth_mode" not in st.session_state:
+            st.session_state.auth_mode = "login"
+
+        btn_cols = st.columns(2)
+        with btn_cols[0]:
+            login_active = st.session_state.auth_mode == "login"
+            login_btn = st.button("🔑 登录", key="mode_login", use_container_width=True,
+                                  type="primary" if login_active else "secondary")
+        with btn_cols[1]:
+            register_active = st.session_state.auth_mode == "register"
+            register_btn = st.button("📝 注册", key="mode_register", use_container_width=True,
+                                     type="primary" if register_active else "secondary")
+
+        if login_btn:
+            st.session_state.auth_mode = "login"
+            st.rerun()
+        if register_btn:
+            st.session_state.auth_mode = "register"
+            st.rerun()
+
+        st.markdown('<div style="height: 0.3rem;"></div>', unsafe_allow_html=True)
+
+        if st.session_state.auth_mode == "login":
+            login_email = st.text_input("邮箱", key="login_email", placeholder="your@email.com")
+            login_pwd = st.text_input("密码", type="password", key="login_pwd", placeholder="输入密码")
+            if st.button("登  录", type="primary", key="btn_login", use_container_width=True):
+                if not login_email or not login_pwd:
+                    st.error("请输入邮箱和密码")
                 else:
                     import hashlib
-                    pwd_hash = hashlib.sha256(reg_pwd.encode()).hexdigest()
-                    execute(
-                        "INSERT INTO users (email, password_hash) VALUES (%s, %s)",
-                        (reg_email, pwd_hash),
+                    pwd_hash = hashlib.sha256(login_pwd.encode()).hexdigest()
+                    user = query_one(
+                        "SELECT id, email FROM users WHERE email = %s AND password_hash = %s",
+                        (login_email, pwd_hash),
                     )
-                    st.success("注册成功！")
-                    st.session_state.auth_mode = "login"
-                    st.rerun()
+                    if user:
+                        st.session_state.user_id = str(user["id"])
+                        st.session_state.user_email = user["email"]
+                        st.rerun()
+                    else:
+                        st.error("邮箱或密码错误")
 
-        st.markdown("""
-        <div class="auth-switch">
-            已有账号？
-            <span class="clickable" onclick="
-                window.parent.document.querySelectorAll('button')[0].click();
-            ">返回登录</span>
-        </div>
-        """, unsafe_allow_html=True)
+        else:
+            reg_email = st.text_input("邮箱", key="reg_email", placeholder="your@email.com")
+            reg_pwd = st.text_input("密码", type="password", key="reg_pwd", placeholder="至少6位")
+            reg_pwd2 = st.text_input("确认密码", type="password", key="reg_pwd2", placeholder="再次输入密码")
+            if st.button("注  册", type="primary", key="btn_register", use_container_width=True):
+                if not reg_email or not reg_pwd:
+                    st.error("请输入邮箱和密码")
+                elif len(reg_pwd) < 6:
+                    st.error("密码至少需要6位")
+                elif reg_pwd != reg_pwd2:
+                    st.error("两次密码不一致")
+                else:
+                    existing = query_one("SELECT id FROM users WHERE email = %s", (reg_email,))
+                    if existing:
+                        st.error("该邮箱已注册")
+                    else:
+                        import hashlib
+                        pwd_hash = hashlib.sha256(reg_pwd.encode()).hexdigest()
+                        execute(
+                            "INSERT INTO users (email, password_hash) VALUES (%s, %s)",
+                            (reg_email, pwd_hash),
+                        )
+                        st.success("注册成功！")
+                        st.session_state.auth_mode = "login"
+                        st.rerun()
 
-    st.markdown('</div></div>', unsafe_allow_html=True)
     st.stop()
 
 # ─── 登录成功 ───
