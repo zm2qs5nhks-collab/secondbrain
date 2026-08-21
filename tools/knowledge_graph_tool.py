@@ -42,13 +42,13 @@ def get_schema() -> dict:
 
 def execute(arguments: dict, user_id: str = None) -> str:
     action = arguments.get("action", "")
-    kg = get_kg()
+    kg = get_kg(user_id)
 
     if action == "add":
         content = arguments.get("content", "")
         if not content.strip():
             return json.dumps({"error": "内容不能为空"}, ensure_ascii=False)
-        result = add_note_to_graph(content)
+        result = add_note_to_graph(content, user_id=user_id)
         return json.dumps({
             "status": "success",
             "message": f"已加入图谱：{result['entities_count']}个实体，{result['relations_count']}条关系。图谱现有{result['total_nodes']}个节点，{result['total_edges']}条边。",

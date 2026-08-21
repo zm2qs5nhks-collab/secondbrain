@@ -6,18 +6,21 @@ import json
 import networkx as nx
 from pathlib import Path
 
-DATA_FILE = Path(__file__).parent / "graph_data.json"
+DATA_DIR = Path(__file__).parent / "graph_data"
 
 
 class KnowledgeGraph:
-    def __init__(self):
+    def __init__(self, user_id: str = None):
+        self.user_id = user_id or "__global__"
         self.graph = nx.DiGraph()
+        self._file = DATA_DIR / f"{self.user_id}.json"
+        DATA_DIR.mkdir(exist_ok=True)
         self.load()
 
     def load(self):
         """从文件加载图谱"""
-        if DATA_FILE.exists():
-            data = json.loads(DATA_FILE.read_text(encoding="utf-8"))
+        if self._file.exists():
+            data = json.loads(self._file.read_text(encoding="utf-8"))
             for entity in data.get("entities", []):
                 self.graph.add_node(entity["name"], type=entity.get("type", "未知"))
             for rel in data.get("relations", []):
@@ -38,7 +41,7 @@ class KnowledgeGraph:
                 for u, v, d in self.graph.edges(data=True)
             ],
         }
-        DATA_FILE.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+        self._file.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
 
     def add_entities(self, entities: list[dict]):
         """添加实体节点"""
@@ -140,5 +143,5 @@ class KnowledgeGraph:
 
     def clear(self):
         self.graph.clear()
-        if DATA_FILE.exists():
-            DATA_FILE.unlink()
+        if self._file.exists():
+            self._file.unlink()

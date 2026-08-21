@@ -799,7 +799,7 @@ elif page == "知识图谱":
     from storage.reasoning import discover_cross_domain_links, find_related_concepts, get_importance_scores
 
     if "kg" not in st.session_state:
-        st.session_state.kg = KnowledgeGraph()
+        st.session_state.kg = KnowledgeGraph(user_id=USER_ID)
     kg = st.session_state.kg
 
     tab_add, tab_viz, tab_reason, tab_analysis = st.tabs(["添加笔记", "图谱总览", "多跳推理", "节点分析"])

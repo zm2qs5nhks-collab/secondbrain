@@ -5,19 +5,19 @@
 from storage.graph import KnowledgeGraph
 from storage.extractor import extract_from_text
 
-_kg = None
+_kg_cache = {}
 
 
-def get_kg() -> KnowledgeGraph:
-    global _kg
-    if _kg is None:
-        _kg = KnowledgeGraph()
-    return _kg
+def get_kg(user_id: str = None) -> KnowledgeGraph:
+    key = user_id or "__global__"
+    if key not in _kg_cache:
+        _kg_cache[key] = KnowledgeGraph(user_id=user_id)
+    return _kg_cache[key]
 
 
-def add_note_to_graph(content: str) -> dict:
+def add_note_to_graph(content: str, user_id: str = None) -> dict:
     """从笔记内容中抽取实体关系并加入图谱"""
-    kg = get_kg()
+    kg = get_kg(user_id)
     result = extract_from_text(content)
     entities = result.get("entities", [])
     relations = result.get("relations", [])
@@ -32,8 +32,8 @@ def add_note_to_graph(content: str) -> dict:
     }
 
 
-def get_graph_stats() -> dict:
-    kg = get_kg()
+def get_graph_stats(user_id: str = None) -> dict:
+    kg = get_kg(user_id)
     return {
         "nodes": len(kg.graph.nodes),
         "edges": len(kg.graph.edges),

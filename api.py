@@ -116,7 +116,7 @@ async def add_note(req: AddNoteRequest, request: Request):
 
     graph_info = {}
     try:
-        graph_info = add_note_to_graph(req.content)
+        graph_info = add_note_to_graph(req.content, user_id=user_id)
     except Exception:
         pass
 
@@ -217,7 +217,7 @@ async def fetch_web(req: WebFetchRequest, request: Request):
 
     graph_info = {}
     try:
-        graph_info = add_note_to_graph(result["content"])
+        graph_info = add_note_to_graph(result["content"], user_id=user_id)
     except Exception:
         pass
 
@@ -226,12 +226,12 @@ async def fetch_web(req: WebFetchRequest, request: Request):
 
 @app.post("/api/knowledge_graph")
 async def knowledge_graph_api(req: GraphRequest, request: Request):
-    _get_user_id_from_token(request)
+    user_id = _get_user_id_from_token(request)
     from storage.graph import KnowledgeGraph
     from storage.extractor import extract_from_text
     from storage.reasoning import discover_cross_domain_links, find_related_concepts
 
-    kg = KnowledgeGraph()
+    kg = KnowledgeGraph(user_id=user_id)
 
     if req.action == "add":
         if not req.content.strip():
