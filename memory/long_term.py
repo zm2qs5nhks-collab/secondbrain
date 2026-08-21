@@ -49,7 +49,10 @@ def get_preference(key: str, default=None, user_id: str = None):
         else:
             decoded = raw
         if key in _SENSITIVE_KEYS and isinstance(decoded, str) and is_encrypted(decoded):
-            return decrypt(decoded)
+            result = decrypt(decoded)
+            if result.startswith("ENC:"):
+                return default
+            return result
         return decoded
     return default
 
