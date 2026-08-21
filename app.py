@@ -45,29 +45,36 @@ if st.session_state.user_id is None:
     [data-testid="stSidebar"] { display: none; }
 
     .glass-card {
-        background: rgba(255, 255, 255, 0.08);
+        background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.04) 100%);
         backdrop-filter: blur(24px);
         -webkit-backdrop-filter: blur(24px);
         border-radius: 24px;
-        border: 1px solid rgba(255, 255, 255, 0.12);
+        border: 1px solid rgba(255, 255, 255, 0.18);
         box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
-                    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+                    inset 0 1px 0 rgba(255, 255, 255, 0.2),
+                    inset 0 -1px 0 rgba(255, 255, 255, 0.05);
         padding: 2.5rem 2rem;
+        position: relative;
+        overflow: hidden;
     }
-
-    .auth-title {
-        font-size: 2.2rem;
-        font-weight: 800;
-        color: #ffffff;
-        text-align: center;
-        margin-bottom: 0.2rem;
-        letter-spacing: -0.02em;
+    .glass-card::before {
+        content: '';
+        position: absolute;
+        top: 0; left: 0; right: 0;
+        height: 50%;
+        background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, transparent 100%);
+        border-radius: 24px 24px 0 0;
+        pointer-events: none;
     }
-    .auth-subtitle {
-        font-size: 0.95rem;
-        color: rgba(255, 255, 255, 0.55);
-        text-align: center;
-        margin-bottom: 1.8rem;
+    .glass-card::after {
+        content: '';
+        position: absolute;
+        top: -40%; left: -20%;
+        width: 140%;
+        height: 60%;
+        background: radial-gradient(ellipse, rgba(255,255,255,0.06) 0%, transparent 70%);
+        pointer-events: none;
+        transform: rotate(-5deg);
     }
 
     .stTextInput > div > div > input {
@@ -168,20 +175,6 @@ if st.session_state.user_id is None:
         line-height: 1.5;
     }
 
-    .brand-text {
-        color: rgba(255, 255, 255, 0.9);
-        font-weight: 800;
-        font-size: 1.6rem;
-        letter-spacing: -0.02em;
-        line-height: 1.3;
-    }
-    .brand-sub {
-        color: rgba(255, 255, 255, 0.4);
-        font-size: 0.9rem;
-        margin-top: 0.5rem;
-        line-height: 1.6;
-    }
-
     .decor-orb {
         position: fixed;
         border-radius: 50%;
@@ -217,18 +210,11 @@ if st.session_state.user_id is None:
     <div class="decor-orb o3"></div>
     """, unsafe_allow_html=True)
 
-    left_col, center_col, right_col = st.columns([1.2, 1.1, 1.2], gap="large")
+    left_col, center_col, right_col = st.columns([1, 1.3, 1], gap="medium")
 
     with left_col:
         st.markdown("""
-        <div style="padding-top: 3rem;">
-            <div class="brand-text">第二大脑</div>
-            <div class="brand-sub">
-                用 AI 构建你的专属知识体系，<br>
-                让每一条笔记都不再遗忘。
-            </div>
-        </div>
-        <div style="margin-top: 2.5rem;">
+        <div style="padding-top: 1rem;">
             <div class="feature-card">
                 <div class="feature-icon">🤖</div>
                 <div class="feature-title">智能问答</div>
@@ -249,18 +235,37 @@ if st.session_state.user_id is None:
 
     with right_col:
         st.markdown("""
-        <div style="padding-top: 3rem;"></div>
+        <div style="padding-top: 1rem;">
+            <div class="feature-card">
+                <div class="feature-icon">🔒</div>
+                <div class="feature-title">数据私有</div>
+                <div class="feature-desc">所有数据存储在你自己的服务器上，完全掌控隐私，绝不上传第三方。</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">⚡</div>
+                <div class="feature-title">多源导入</div>
+                <div class="feature-desc">支持文本、文件、网页 URL 一键导入，自动切片、向量化、入库。</div>
+            </div>
+            <div class="feature-card">
+                <div class="feature-icon">🔌</div>
+                <div class="feature-title">开放 API</div>
+                <div class="feature-desc">提供标准 RESTful API 接口，轻松接入第三方工具与自动化流程。</div>
+            </div>
+        </div>
         """, unsafe_allow_html=True)
 
     with center_col:
         st.markdown("""
         <div class="glass-card">
-            <div class="auth-title">🧠 欢迎回来</div>
-            <div class="auth-subtitle">登录以管理你的知识库</div>
+            <div style="position:relative; z-index:1; text-align:center;">
+                <div style="font-size:2rem; margin-bottom:0.3rem;">🧠</div>
+                <div class="auth-title">第二大脑</div>
+                <div class="auth-subtitle">你的 AI 知识管理助手</div>
+            </div>
         </div>
         """, unsafe_allow_html=True)
 
-        st.markdown('<div style="height: -0.5rem;"></div>', unsafe_allow_html=True)
+        st.markdown('<div style="height: 0.3rem;"></div>', unsafe_allow_html=True)
 
         if "auth_mode" not in st.session_state:
             st.session_state.auth_mode = "login"
