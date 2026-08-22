@@ -360,7 +360,7 @@ st.sidebar.caption(f"已登录: {st.session_state.user_email}")
 
 page = st.sidebar.radio(
     "导航",
-    ["仪表盘", "知识问答", "导入笔记", "笔记管理", "复习提醒", "知识图谱", "学习路径", "设置"],
+    ["仪表盘", "知识问答", "导入笔记", "笔记管理", "复习提醒", "知识图谱", "学习路径", "知识广场", "设置"],
     index=0,
 )
 
@@ -990,7 +990,66 @@ elif page == "学习路径":
         st.success("没有需要紧急复习的笔记，表现优秀！")
 
 # ═══════════════════════════════════════════
-#  页面八：设置
+#  页面八：知识广场
+# ═══════════════════════════════════════════
+elif page == "知识广场":
+    st.title("🌐 知识广场")
+    st.markdown("在线搜索知识，一键添加到你的知识库")
+
+    search_query = st.text_input("搜索关键词", placeholder="输入你想搜索的内容...", key="kg_search")
+    col1, col2 = st.columns([1, 5])
+    with col1:
+        search_btn = st.button("搜索", type="primary", key="kg_search_btn")
+
+    if search_btn and search_query.strip():
+        with st.spinner("正在搜索..."):
+            from tools.web_search import web_search
+            results = web_search(search_query, max_results=8)
+        st.session_state.kg_results = results
+        st.session_state.kg_searched = True
+
+    if st.session_state.get("kg_searched"):
+        results = st.session_state.get("kg_results", [])
+        if results and not results[0].get("error"):
+            st.success(f"找到 {len(results)} 条结果")
+            for i, r in enumerate(results):
+                with st.container(border=True):
+                    st.markdown(f"**{i+1}. {r['title']}**")
+                    st.caption(r["url"])
+                    st.markdown(r["snippet"])
+                    tag_input = st.text_input(
+                        "标签（逗号分隔）",
+                        value="网页收藏",
+                        key=f"kg_tag_{i}",
+                        label_visibility="collapsed",
+                        placeholder="标签，逗号分隔",
+                    )
+                    if st.button("一键入库", key=f"kg_add_{i}", type="primary"):
+                        tags = [t.strip() for t in tag_input.split(",") if t.strip()]
+                        with st.spinner("正在抓取全文并入库..."):
+                            from tools.fetch_web import fetch_url
+                            from tools.add_knowledge import execute as add_exec
+                            try:
+                                page_data = fetch_url(r["url"])
+                                full_content = f"[来源: {r['title'] or r['url']}]\n\n{page_data['content']}"
+                                add_result = json.loads(add_exec({
+                                    "content": full_content,
+                                    "tags": tags,
+                                    "importance": "normal",
+                                }, user_id=USER_ID))
+                                if add_result.get("note_id"):
+                                    st.success(f"已入库！{add_result.get('chunks_stored', 0)} 个分块")
+                                else:
+                                    st.error(f"入库失败: {add_result.get('error', '未知错误')}")
+                            except Exception as e:
+                                st.error(f"抓取失败: {e}")
+        elif results and results[0].get("error"):
+            st.error(f"搜索失败: {results[0]['error']}")
+        else:
+            st.info("没有找到相关结果")
+
+# ═══════════════════════════════════════════
+#  页面九：设置
 # ═══════════════════════════════════════════
 elif page == "设置":
     st.title("⚙️ 设置")

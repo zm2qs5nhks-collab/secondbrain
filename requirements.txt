@@ -16,3 +16,4 @@ pydantic
 pandas
 sentence-transformers
 cryptography
+duckduckgo-search
