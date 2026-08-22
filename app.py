@@ -1004,7 +1004,7 @@ elif page == "知识广场":
     if search_btn and search_query.strip():
         with st.spinner("正在搜索..."):
             from tools.web_search import web_search
-            results = web_search(search_query, max_results=8)
+            results = web_search(search_query, max_results=8, user_id=USER_ID)
         st.session_state.kg_results = results
         st.session_state.kg_searched = True
 
