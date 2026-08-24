@@ -994,59 +994,77 @@ elif page == "学习路径":
 # ═══════════════════════════════════════════
 elif page == "知识广场":
     st.title("🌐 知识广场")
-    st.markdown("在线搜索知识，一键添加到你的知识库")
+    st.markdown("搜索网页，一键收藏到知识库")
 
-    search_query = st.text_input("搜索关键词", placeholder="输入你想搜索的内容...", key="kg_search")
-    col1, col2 = st.columns([1, 5])
-    with col1:
-        search_btn = st.button("搜索", type="primary", key="kg_search_btn")
+    tab_search, tab收藏 = st.tabs(["在线搜索", "收藏网页"])
 
-    if search_btn and search_query.strip():
-        with st.spinner("正在搜索..."):
-            from tools.web_search import web_search
-            results = web_search(search_query, max_results=8, user_id=USER_ID)
-        st.session_state.kg_results = results
-        st.session_state.kg_searched = True
+    with tab_search:
+        search_query = st.text_input(
+            "搜索",
+            placeholder="输入关键词，回车在新窗口打开百度搜索...",
+            key="kg_search",
+            label_visibility="collapsed",
+        )
+        if search_query.strip():
+            import urllib.parse
+            baidu_url = f"https://www.baidu.com/s?wd={urllib.parse.quote(search_query)}"
+            st.markdown(f"👉 [点击在新窗口打开百度搜索: {search_query}]({baidu_url})")
 
-    if st.session_state.get("kg_searched"):
-        results = st.session_state.get("kg_results", [])
-        if results and not results[0].get("error"):
-            st.success(f"找到 {len(results)} 条结果")
-            for i, r in enumerate(results):
-                with st.container(border=True):
-                    st.markdown(f"**{i+1}. {r['title']}**")
-                    st.caption(r["url"])
-                    st.markdown(r["snippet"])
-                    tag_input = st.text_input(
-                        "标签（逗号分隔）",
-                        value="网页收藏",
-                        key=f"kg_tag_{i}",
-                        label_visibility="collapsed",
-                        placeholder="标签，逗号分隔",
-                    )
-                    if st.button("一键入库", key=f"kg_add_{i}", type="primary"):
-                        tags = [t.strip() for t in tag_input.split(",") if t.strip()]
-                        with st.spinner("正在抓取全文并入库..."):
-                            from tools.fetch_web import fetch_url
-                            from tools.add_knowledge import execute as add_exec
-                            try:
-                                page_data = fetch_url(r["url"])
-                                full_content = f"[来源: {r['title'] or r['url']}]\n\n{page_data['content']}"
-                                add_result = json.loads(add_exec({
-                                    "content": full_content,
-                                    "tags": tags,
-                                    "importance": "normal",
-                                }, user_id=USER_ID))
-                                if add_result.get("note_id"):
-                                    st.success(f"已入库！{add_result.get('chunks_stored', 0)} 个分块")
-                                else:
-                                    st.error(f"入库失败: {add_result.get('error', '未知错误')}")
-                            except Exception as e:
-                                st.error(f"抓取失败: {e}")
-        elif results and results[0].get("error"):
-            st.error(f"搜索失败: {results[0]['error']}")
-        else:
-            st.info("没有找到相关结果")
+        st.markdown("---")
+        st.markdown("**搜到好文章？粘贴链接一键入库：**")
+        save_url = st.text_input("网页链接", placeholder="https://...", key="kg_save_url")
+        save_tags = st.text_input("标签", value="网页收藏", key="kg_save_tags", placeholder="标签，逗号分隔")
+
+        if st.button("收藏到知识库", type="primary", key="kg_save_btn"):
+            if save_url.strip():
+                tags = [t.strip() for t in save_tags.split(",") if t.strip()]
+                with st.spinner("正在抓取网页并入库..."):
+                    from tools.web_search import fetch_url_content
+                    from tools.add_knowledge import execute as add_exec
+                    try:
+                        page_data = fetch_url_content(save_url)
+                        full_content = f"[来源: {page_data['title'] or page_data['url']}]\n\n{page_data['content']}"
+                        add_result = json.loads(add_exec({
+                            "content": full_content,
+                            "tags": tags,
+                            "importance": "normal",
+                        }, user_id=USER_ID))
+                        if add_result.get("note_id"):
+                            st.success(f"已收藏！{page_data['title']}（{add_result.get('chunks_stored', 0)} 个分块）")
+                        else:
+                            st.error(f"入库失败: {add_result.get('error', '未知错误')}")
+                    except Exception as e:
+                        st.error(f"抓取失败: {e}")
+            else:
+                st.warning("请输入网页链接")
+
+    with tab收藏:
+        st.markdown("直接输入网页地址，抓取正文保存到知识库")
+        url2 = st.text_input("网页地址", placeholder="https://example.com/article", key="kg_tab2_url")
+        tags2 = st.text_input("标签", value="网页收藏", key="kg_tab2_tags")
+        imp2 = st.selectbox("重要度", ["normal", "high", "low"], key="kg_tab2_imp")
+        if st.button("抓取并入库", type="primary", key="kg_tab2_btn"):
+            if url2.strip():
+                tags_list = [t.strip() for t in tags2.split(",") if t.strip()]
+                with st.spinner("正在抓取..."):
+                    from tools.web_search import fetch_url_content
+                    from tools.add_knowledge import execute as add_exec
+                    try:
+                        data = fetch_url_content(url2)
+                        full = f"[来源: {data['title'] or data['url']}]\n\n{data['content']}"
+                        result = json.loads(add_exec({
+                            "content": full,
+                            "tags": tags_list,
+                            "importance": imp2,
+                        }, user_id=USER_ID))
+                        if result.get("note_id"):
+                            st.success(f"已入库！{data['title']}（{result.get('chunks_stored', 0)} 个分块）")
+                        else:
+                            st.error(f"入库失败: {result.get('error', '未知错误')}")
+                    except Exception as e:
+                        st.error(f"抓取失败: {e}")
+            else:
+                st.warning("请输入网页地址")
 
 # ═══════════════════════════════════════════
 #  页面九：设置
