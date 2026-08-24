@@ -515,10 +515,10 @@ elif page == "知识问答":
 # ═══════════════════════════════════════════
 elif page == "导入笔记":
     st.title("📥 导入笔记")
-    st.markdown("支持从**本地文件**、**直接输入**、**网页URL**三种方式导入知识。")
+    st.markdown("支持从**本地文件**、**直接输入**、**网页URL**、**多媒体**四种方式导入知识。")
     st.markdown("---")
 
-    tab_file, tab_text, tab_url = st.tabs(["本地文件", "手动输入", "网页抓取"])
+    tab_file, tab_text, tab_url, tab_media = st.tabs(["本地文件", "手动输入", "网页抓取", "多媒体"])
 
     with tab_file:
         st.subheader("上传文件")
@@ -616,6 +616,76 @@ elif page == "导入笔记":
                     st.balloons()
                 else:
                     st.error(f"保存失败: {save_result.get('error', '未知错误')}")
+
+    with tab_media:
+        st.subheader("上传图片 / 音频 / 视频")
+        st.caption("文件直接存储到知识库，可随时查看和管理")
+
+        media_files = st.file_uploader(
+            "选择文件",
+            type=["jpg", "jpeg", "png", "gif", "bmp", "webp",
+                  "mp3", "wav", "ogg", "flac", "aac", "m4a",
+                  "mp4", "avi", "mov", "mkv", "flv", "wmv", "webm"],
+            accept_multiple_files=True,
+            key="media_upload",
+        )
+        media_tags = st.text_input("标签（逗号分隔）", key="media_tags",
+                                    placeholder="如：课程截图, 讲义录音")
+        media_desc = st.text_input("描述（可选）", key="media_desc",
+                                    placeholder="简单描述这个文件的内容")
+
+        if media_files and st.button("上传并入库", type="primary", key="media_upload_btn"):
+            from storage.file_store import save_file
+            tags = [t.strip() for t in media_tags.split(",") if t.strip()]
+            ok = 0
+            for f in media_files:
+                try:
+                    save_file(
+                        user_id=USER_ID,
+                        file_name=f.name,
+                        file_bytes=f.read(),
+                        tags=tags if tags else ["多媒体"],
+                        description=media_desc,
+                    )
+                    ok += 1
+                except Exception as e:
+                    st.error(f"{f.name} 上传失败: {e}")
+            if ok:
+                st.success(f"成功上传 {ok}/{len(media_files)} 个文件")
+                st.balloons()
+
+        st.markdown("---")
+        st.subheader("已上传的文件")
+        from storage.file_store import list_files, delete_file, count
+        media_count = count(user_id=USER_ID)
+        st.caption(f"共 {media_count} 个文件")
+        type_filter = st.radio("类型", ["全部", "图片", "音频", "视频"],
+                                horizontal=True, key="media_type_filter")
+        type_map = {"全部": None, "图片": "image", "音频": "audio", "视频": "video"}
+        files = list_files(user_id=USER_ID, media_type=type_map[type_filter])
+        if files:
+            for f in files:
+                with st.container(border=True):
+                    c1, c2 = st.columns([4, 1])
+                    with c1:
+                        icon = {"image": "🖼️", "audio": "🎵", "video": "🎬"}.get(f["media_type"], "📄")
+                        st.markdown(f"**{icon} {f['original_name']}**")
+                        st.caption(f"{f['media_type']} | {f['file_size']//1024}KB | 标签: {f.get('tags', [])}")
+                        if f.get("description"):
+                            st.caption(f"描述: {f['description']}")
+                        if f["media_type"] == "image" and os.path.exists(f["file_path"]):
+                            st.image(f["file_path"], width=300)
+                        elif f["media_type"] == "audio" and os.path.exists(f["file_path"]):
+                            st.audio(f["file_path"])
+                        elif f["media_type"] == "video" and os.path.exists(f["file_path"]):
+                            st.video(f["file_path"])
+                    with c2:
+                        if st.button("删除", key=f"del_{f['file_id']}"):
+                            delete_file(f["file_id"], user_id=USER_ID)
+                            st.success("已删除")
+                            st.rerun()
+        else:
+            st.info("暂无文件")
 
 # ═══════════════════════════════════════════
 #  页面四：笔记管理
