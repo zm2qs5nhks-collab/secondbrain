@@ -872,7 +872,19 @@ elif page == "知识图谱":
         st.session_state.kg = KnowledgeGraph(user_id=USER_ID)
     kg = st.session_state.kg
 
-    tab_add, tab_viz, tab_reason, tab_analysis = st.tabs(["添加笔记", "图谱总览", "多跳推理", "节点分析"])
+    if "kg_selected_notes" not in st.session_state:
+        st.session_state.kg_selected_notes = []
+
+    tab_add, tab_pick, tab_viz, tab_reason, tab_analysis = st.tabs(["添加笔记", "选择笔记", "图谱总览", "多跳推理", "节点分析"])
+
+    all_notes = metadata_store.list_notes(user_id=USER_ID)
+
+    def current_kg():
+        """返回当前生效的图谱视图：勾选了笔记 → 子图；未勾选 → 全图"""
+        selected = st.session_state.get("kg_selected_notes", [])
+        if selected:
+            return kg.build_subgraph(selected)
+        return kg
 
     with tab_add:
         st.subheader("输入笔记，自动抽取实体关系")
@@ -880,6 +892,16 @@ elif page == "知识图谱":
             "笔记内容",
             height=150,
             placeholder="例如：Redis是一个开源的内存数据结构存储系统，广泛用于缓存策略。在电商秒杀场景中，Redis可以解决高并发下的库存扣减问题。",
+        )
+
+        link_options = {
+            n["id"]: (n["preview"][:30] + "…" if len(n["preview"]) > 30 else n["preview"])
+            for n in all_notes
+        }
+        link_note = st.selectbox(
+            "关联到已有笔记（可选，标注图谱数据来源）",
+            ["（不关联）"] + list(link_options.keys()),
+            format_func=lambda x: x if x == "（不关联）" else f"{x} · {link_options[x]}",
         )
 
         if st.button("提取并加入图谱", type="primary") and note_content.strip():
@@ -901,17 +923,61 @@ elif page == "知识图谱":
                     for r in relations:
                         st.markdown(f"- {r['source']} →{r['relation']}→ {r['target']}")
 
-                kg.add_entities(entities)
-                kg.add_relations(relations)
+                linked_id = None if link_note == "（不关联）" else link_note
+                kg.add_entities(entities, note_id=linked_id)
+                kg.add_relations(relations, note_id=linked_id)
                 kg.save()
                 st.rerun()
             else:
                 st.warning("未抽取到实体，请尝试更详细的内容。")
 
-    with tab_viz:
-        if len(kg.graph.nodes) == 0:
-            st.info("图谱为空，请先在「添加笔记」页面输入内容。")
+    with tab_pick:
+        st.subheader("🗂️ 选择参与构建图谱的笔记")
+        st.caption("勾选笔记后，「图谱总览 / 多跳推理 / 节点分析 / 导出」将只基于所选笔记的知识点构建，不再混淆在一起。")
+        st.caption("不勾选任何笔记 = 查看全部图谱。")
+
+        if not all_notes:
+            st.info("还没有任何笔记，请先到「导入笔记」添加知识。")
         else:
+            c_all, c_none = st.columns(2)
+            with c_all:
+                if st.button("✅ 全选所有笔记", use_container_width=True):
+                    for n in all_notes:
+                        st.session_state[f"kgsel_{n['id']}"] = True
+                    st.rerun()
+            with c_none:
+                if st.button("⬜ 清空选择", use_container_width=True):
+                    for n in all_notes:
+                        st.session_state[f"kgsel_{n['id']}"] = False
+                    st.rerun()
+
+            st.markdown("---")
+            for n in all_notes:
+                label = n["preview"][:40] + ("…" if len(n["preview"]) > 40 else "")
+                tags = " ".join(f"`{t}`" for t in (n.get("tags") or []))
+                help_text = n["id"] + (f" | {tags}" if tags else "")
+                st.checkbox(
+                    label,
+                    value=n["id"] in st.session_state.get("kg_selected_notes", []),
+                    key=f"kgsel_{n['id']}",
+                    help=help_text,
+                )
+
+            if st.button("🔄 应用选择并刷新图谱", type="primary"):
+                selected = [n["id"] for n in all_notes if st.session_state.get(f"kgsel_{n['id']}", False)]
+                st.session_state["kg_selected_notes"] = selected
+                st.success(f"已选择 {len(selected)} 篇笔记，图谱总览 / 推理 / 导出将按此范围构建。")
+                st.rerun()
+
+    with tab_viz:
+        kg_view = current_kg()
+        if len(kg_view.graph.nodes) == 0:
+            st.info("当前选择范围内图谱为空，请先在「添加笔记」或「导入笔记」添加内容。")
+        else:
+            selected_cnt = len(st.session_state.get("kg_selected_notes", []))
+            scope_str = f"已选 {selected_cnt} 篇笔记（子图）" if selected_cnt else "全部笔记（未勾选）"
+            st.markdown(f"**当前图谱范围：** {scope_str}")
+
             dot_lines = ["digraph KG {", "  rankdir=LR;", "  bgcolor=transparent;"]
             dot_lines.append('  node [shape=box, style="rounded,filled", fontname="Microsoft YaHei", fontsize=10];')
             dot_lines.append('  edge [fontname="Microsoft YaHei", fontsize=8, color="#666666"];')
@@ -920,12 +986,12 @@ elif page == "知识图谱":
                 "技术": "#4ECDC4", "概念": "#FFE66D", "场景": "#FF6B6B",
                 "工具": "#95E1D3", "框架": "#A8D8EA", "方法": "#DCD6F7",
             }
-            for node, data in kg.graph.nodes(data=True):
+            for node, data in kg_view.graph.nodes(data=True):
                 ntype = data.get("type", "未知")
                 color = type_colors.get(ntype, "#CCCCCC")
                 safe = node.replace('"', '\\"')
                 dot_lines.append(f'  "{safe}" [label="{safe}\\n({ntype})", fillcolor="{color}"];')
-            for u, v, data in kg.graph.edges(data=True):
+            for u, v, data in kg_view.graph.edges(data=True):
                 rel = data.get("relation", "")
                 safe_u = u.replace('"', '\\"')
                 safe_v = v.replace('"', '\\"')
@@ -935,15 +1001,46 @@ elif page == "知识图谱":
 
             st.markdown("---")
             col1, col2, col3 = st.columns(3)
-            col1.metric("实体节点", len(kg.graph.nodes))
-            col2.metric("关系边", len(kg.graph.edges))
-            pr = kg.pagerank()
+            col1.metric("实体节点", len(kg_view.graph.nodes))
+            col2.metric("关系边", len(kg_view.graph.edges))
+            pr = kg_view.pagerank()
             top = max(pr.items(), key=lambda x: x[1])[0] if pr else "-"
             col3.metric("核心节点", top)
 
+            st.markdown("---")
+            st.subheader("📤 导出当前图谱")
+            st.caption("导出为独立文件，可在项目外使用：HTML 浏览器直接打开、GraphML 导入 Gephi/Neo4j、JSON/CSV 供程序或表格使用、PNG 图片。")
+            exp_fmt = st.selectbox("导出格式", ["交互式 HTML", "GraphML", "JSON", "CSV 压缩包", "PNG 图片"])
+            exp_key = f"kg_export_{exp_fmt}"
+
+            if exp_fmt == "交互式 HTML":
+                data = kg_view.to_html().encode("utf-8")
+                st.download_button("⬇️ 下载 HTML", data=data, file_name="knowledge_graph.html",
+                                   mime="text/html", key=exp_key, use_container_width=True)
+            elif exp_fmt == "GraphML":
+                data = kg_view.to_graphml_bytes()
+                st.download_button("⬇️ 下载 GraphML", data=data, file_name="knowledge_graph.graphml",
+                                   mime="application/xml", key=exp_key, use_container_width=True)
+            elif exp_fmt == "JSON":
+                data = kg_view.to_json_bytes()
+                st.download_button("⬇️ 下载 JSON", data=data, file_name="knowledge_graph.json",
+                                   mime="application/json", key=exp_key, use_container_width=True)
+            elif exp_fmt == "CSV 压缩包":
+                data = kg_view.to_csv_zip()
+                st.download_button("⬇️ 下载 CSV 压缩包", data=data, file_name="knowledge_graph_csv.zip",
+                                   mime="application/zip", key=exp_key, use_container_width=True)
+            else:
+                try:
+                    data = kg_view.to_png_bytes()
+                    st.download_button("⬇️ 下载 PNG", data=data, file_name="knowledge_graph.png",
+                                       mime="image/png", key=exp_key, use_container_width=True)
+                except Exception as e:
+                    st.warning(f"PNG 导出需要服务器安装 Graphviz（dot 命令），当前不可用：{e}\n\n请改用其他格式。")
+
     with tab_reason:
-        if len(kg.graph.nodes) < 2:
-            st.info("需要至少 2 个实体才能推理。")
+        kg_view = current_kg()
+        if len(kg_view.graph.nodes) < 2:
+            st.info("当前图谱范围内需要至少 2 个实体才能推理。（可调整「选择笔记」扩大范围）")
         else:
             tab_cross, tab_query = st.tabs(["跨领域关联发现", "指定节点查询"])
 
@@ -952,7 +1049,7 @@ elif page == "知识图谱":
                 st.caption("发现不同领域实体之间的多跳连接路径")
                 if st.button("发现跨领域关联", type="primary", key="cross_btn"):
                     with st.spinner("正在计算..."):
-                        links = discover_cross_domain_links(kg)
+                        links = discover_cross_domain_links(kg_view)
                     if not links:
                         st.info("未发现跨领域关联")
                     else:
@@ -967,12 +1064,12 @@ elif page == "知识图谱":
 
             with tab_query:
                 st.subheader("指定节点查询")
-                node_list = [n["name"] for n in kg.get_all_nodes()]
+                node_list = [n["name"] for n in kg_view.get_all_nodes()]
                 selected = st.selectbox("选择起始节点", node_list)
                 hops = st.slider("最大跳数", 1, 4, 2, key="hop_slider")
                 if st.button("查询关联", type="primary", key="query_btn"):
                     with st.spinner("正在推理..."):
-                        related = find_related_concepts(kg, selected, max_hops=hops)
+                        related = find_related_concepts(kg_view, selected, max_hops=hops)
                     if not related:
                         st.info("未找到跨领域关联")
                     else:
@@ -982,10 +1079,11 @@ elif page == "知识图谱":
                             st.caption(f"路径: {path_str}")
 
     with tab_analysis:
-        if len(kg.graph.nodes) == 0:
-            st.info("图谱为空。")
+        kg_view = current_kg()
+        if len(kg_view.graph.nodes) == 0:
+            st.info("当前图谱范围内为空。")
         else:
-            scores = get_importance_scores(kg)
+            scores = get_importance_scores(kg_view)
             import pandas as pd
             df = pd.DataFrame(scores)
             st.dataframe(df, use_container_width=True)

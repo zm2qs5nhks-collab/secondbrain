@@ -67,7 +67,7 @@ def execute(arguments: dict, user_id: str = None) -> str:
 
     graph_result = {}
     try:
-        graph_result = add_note_to_graph(content, user_id=user_id)
+        graph_result = add_note_to_graph(content, user_id=user_id, note_id=note_id)
     except Exception:
         pass
 
