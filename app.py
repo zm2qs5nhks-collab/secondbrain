@@ -871,9 +871,14 @@ elif page == "知识图谱":
     if "kg" not in st.session_state:
         st.session_state.kg = KnowledgeGraph(user_id=USER_ID)
     kg = st.session_state.kg
+    # 关键：每次进入/重跑本页都从磁盘重载图谱，
+    # 否则「导入笔记」页新增的实体无法在图谱中看到（缓存对象陈旧）
+    kg.load()
 
     if "kg_selected_notes" not in st.session_state:
         st.session_state.kg_selected_notes = []
+    if "kg_include_legacy" not in st.session_state:
+        st.session_state.kg_include_legacy = False
 
     tab_add, tab_pick, tab_viz, tab_reason, tab_analysis = st.tabs(["添加笔记", "选择笔记", "图谱总览", "多跳推理", "节点分析"])
 
@@ -882,8 +887,9 @@ elif page == "知识图谱":
     def current_kg():
         """返回当前生效的图谱视图：勾选了笔记 → 子图；未勾选 → 全图"""
         selected = st.session_state.get("kg_selected_notes", [])
+        include_legacy = st.session_state.get("kg_include_legacy", False)
         if selected:
-            return kg.build_subgraph(selected)
+            return kg.build_subgraph(selected, include_unattributed=include_legacy)
         return kg
 
     with tab_add:
@@ -939,34 +945,57 @@ elif page == "知识图谱":
         if not all_notes:
             st.info("还没有任何笔记，请先到「导入笔记」添加知识。")
         else:
+            # 统计每篇笔记在图谱中贡献的实体数，方便用户判断该笔记是否已入图
+            note_entity_cnt = {}
+            for nd in kg.get_all_nodes():
+                for nid in (nd.get("notes") or []):
+                    note_entity_cnt[nid] = note_entity_cnt.get(nid, 0) + 1
+
+            def _sync_selection():
+                current = [n["id"] for n in all_notes
+                           if st.session_state.get(f"kgsel_{n['id']}", False)]
+                st.session_state["kg_selected_notes"] = current
+
             c_all, c_none = st.columns(2)
             with c_all:
                 if st.button("✅ 全选所有笔记", use_container_width=True):
                     for n in all_notes:
                         st.session_state[f"kgsel_{n['id']}"] = True
+                    _sync_selection()
                     st.rerun()
             with c_none:
                 if st.button("⬜ 清空选择", use_container_width=True):
                     for n in all_notes:
                         st.session_state[f"kgsel_{n['id']}"] = False
+                    _sync_selection()
                     st.rerun()
 
             st.markdown("---")
             for n in all_notes:
                 label = n["preview"][:40] + ("…" if len(n["preview"]) > 40 else "")
                 tags = " ".join(f"`{t}`" for t in (n.get("tags") or []))
-                help_text = n["id"] + (f" | {tags}" if tags else "")
+                cnt = note_entity_cnt.get(n["id"], 0)
+                help_text = n["id"] + (f" | {tags}" if tags else "") + f" | 图谱实体 {cnt} 个"
+                label_full = f"{label}  `（图谱实体 {cnt}）`"
                 st.checkbox(
-                    label,
+                    label_full,
                     value=n["id"] in st.session_state.get("kg_selected_notes", []),
                     key=f"kgsel_{n['id']}",
                     help=help_text,
+                    on_change=_sync_selection,
                 )
 
-            if st.button("🔄 应用选择并刷新图谱", type="primary"):
-                selected = [n["id"] for n in all_notes if st.session_state.get(f"kgsel_{n['id']}", False)]
-                st.session_state["kg_selected_notes"] = selected
-                st.success(f"已选择 {len(selected)} 篇笔记，图谱总览 / 推理 / 导出将按此范围构建。")
+            st.markdown("---")
+            st.checkbox(
+                "包含未标注来源的实体（历史旧数据 / 手动添加）",
+                value=st.session_state.get("kg_include_legacy", False),
+                key="kg_include_legacy",
+                help="旧版数据中的实体没有记录来源笔记。开启后，选择特定笔记时仍会显示这些通用实体；关闭则只显示所选笔记真正包含的知识点。",
+            )
+
+            sel_now = st.session_state.get("kg_selected_notes", [])
+            st.info(f"✅ 当前已选 **{len(sel_now)}** 篇笔记" if sel_now else "ℹ️ 当前未勾选任何笔记 → 图谱总览显示**全部**。")
+            if st.button("🔄 刷新图谱视图", type="primary"):
                 st.rerun()
 
     with tab_viz:
@@ -1162,24 +1191,90 @@ elif page == "学习路径":
 # ═══════════════════════════════════════════
 elif page == "知识广场":
     st.title("🌐 知识广场")
-    st.markdown("搜索网页，一键收藏到知识库")
+    st.markdown("联网真实搜索 + 网页一键收藏入库。搜索使用 Bing（服务器端解析 + 可内嵌浏览）。")
+    st.markdown("---")
 
     tab_search, tab收藏 = st.tabs(["在线搜索", "收藏网页"])
 
     with tab_search:
-        search_query = st.text_input(
-            "搜索",
-            placeholder="输入关键词，回车在新窗口打开百度搜索...",
-            key="kg_search",
-            label_visibility="collapsed",
-        )
+        from tools.web_search import search_web, fetch_url_content, bing_search_iframe_url
+        from tools.add_knowledge import execute as add_exec
+
+        c_q, c_b = st.columns([4, 1])
+        with c_q:
+            search_query = st.text_input(
+                "搜索",
+                placeholder="输入关键词，回车搜索真实网页...",
+                key="kg_search",
+                label_visibility="collapsed",
+            )
+        with c_b:
+            do_search = st.button("🔍 搜索", type="primary", use_container_width=True)
+
+        if search_query.strip() and do_search:
+            with st.spinner("正在检索（Bing）..."):
+                try:
+                    results = search_web(search_query, count=10)
+                    st.session_state["kg_search_results"] = results
+                    st.session_state["kg_search_query"] = search_query
+                except Exception as e:
+                    st.error(f"搜索失败: {e}")
+                    st.session_state.pop("kg_search_results", None)
+
+        results = st.session_state.get("kg_search_results")
+
         if search_query.strip():
-            import urllib.parse
-            baidu_url = f"https://www.baidu.com/s?wd={urllib.parse.quote(search_query)}"
-            st.markdown(f"👉 [点击在新窗口打开百度搜索: {search_query}]({baidu_url})")
+            iframe_toggle = st.toggle(
+                "🖥️ 内嵌浏览器直接浏览搜索结果页",
+                value=st.session_state.get("kg_embed_on", False),
+                key="kg_embed_on",
+                help="在页面内嵌 Bing 的真实搜索结果页面，可直接在应用里点击浏览原文。Bing 允许被内嵌。",
+            )
+            if iframe_toggle:
+                st.components.v1.iframe(bing_search_iframe_url(search_query), height=720, scrolling=True)
+
+        if results is None:
+            st.caption("👆 输入关键词开始搜索，或到右侧「收藏网页」直接粘贴链接入库。")
+        elif not results:
+            st.warning("没有搜到结果，换个关键词试试。")
+        else:
+            st.success(f"共找到 {len(results)} 条结果（来自 Bing）")
+            st.markdown("每条可 **一键收藏入库**，或点标题在新窗口打开原文。")
+
+            save_tags_default = st.session_state.get("kg_search_query", "网页收藏")
+            st.caption(f"收藏标签将自动带上关键词：`{save_tags_default}`")
+
+            for i, r in enumerate(results):
+                with st.container(border=True):
+                    col_l, col_r = st.columns([5, 1])
+                    with col_l:
+                        st.markdown(f"**{i+1}. [{r['title']}]({r['url']})**")
+                        if r.get("cite"):
+                            st.caption(r["cite"])
+                        if r.get("snippet"):
+                            st.markdown(r["snippet"])
+                    with col_r:
+                        if st.button("📥 收藏", key=f"kg_save_res_{i}", use_container_width=True):
+                            tags = list({save_tags_default, "网页收藏"})
+                            with st.spinner("抓取网页并入库..."):
+                                try:
+                                    page_data = fetch_url_content(r["url"])
+                                    full_content = f"[来源: {page_data['title'] or r['url']}]({r['url']})\n\n{page_data['content']}"
+                                    from tools.add_knowledge import execute as add_exec
+                                    add_result = json.loads(add_exec({
+                                        "content": full_content,
+                                        "tags": tags,
+                                        "importance": "normal",
+                                    }, user_id=USER_ID))
+                                    if add_result.get("note_id"):
+                                        st.success(f"已收藏！{page_data['title']}")
+                                    else:
+                                        st.error(f"入库失败: {add_result.get('error', '未知错误')}")
+                                except Exception as e:
+                                    st.error(f"抓取失败: {e}")
 
         st.markdown("---")
-        st.markdown("**搜到好文章？粘贴链接一键入库：**")
+        st.markdown("**或者手动粘贴链接一键入库：**")
         save_url = st.text_input("网页链接", placeholder="https://...", key="kg_save_url")
         save_tags = st.text_input("标签", value="网页收藏", key="kg_save_tags", placeholder="标签，逗号分隔")
 
@@ -1187,11 +1282,9 @@ elif page == "知识广场":
             if save_url.strip():
                 tags = [t.strip() for t in save_tags.split(",") if t.strip()]
                 with st.spinner("正在抓取网页并入库..."):
-                    from tools.web_search import fetch_url_content
-                    from tools.add_knowledge import execute as add_exec
                     try:
                         page_data = fetch_url_content(save_url)
-                        full_content = f"[来源: {page_data['title'] or page_data['url']}]\n\n{page_data['content']}"
+                        full_content = f"[来源: {page_data['title'] or save_url}]({save_url})\n\n{page_data['content']}"
                         add_result = json.loads(add_exec({
                             "content": full_content,
                             "tags": tags,

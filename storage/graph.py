@@ -91,10 +91,12 @@ class KnowledgeGraph:
                     edge_notes.append(note_id)
 
     # ─────────── 子图构建 ───────────
-    def build_subgraph(self, note_ids: list[str]) -> "KnowledgeGraph":
+    def build_subgraph(self, note_ids: list[str], include_unattributed: bool = True) -> "KnowledgeGraph":
         """根据所选笔记集合，构建"仅含这些笔记相关实体/关系"的子图。
 
-        - 未标注来源笔记的实体/关系（旧数据、通用实体）视为全局，始终保留
+        - 未标注来源笔记的实体/关系（旧数据、手动添加）：
+            include_unattributed=True  → 视为通用，始终保留（默认，兼容旧行为）
+            include_unattributed=False → 严格过滤，仅当选中时排除它们
         - 标注了来源的，仅当与所选笔记有交集时保留
         - 返回新图谱对象（不写盘）
         """
@@ -103,7 +105,7 @@ class KnowledgeGraph:
         def _keep(notes):
             notes = list(notes or [])
             if not notes:
-                return True
+                return include_unattributed
             return bool(selected & set(notes))
 
         sub = KnowledgeGraph.__new__(KnowledgeGraph)
