@@ -78,7 +78,7 @@ if st.session_state.user_id is None:
     .sticky{
       position:relative;border-radius:4px 4px 10px 10px;padding:1.1rem 1.2rem;
       box-shadow:0 4px 8px rgba(80,60,20,.12);
-      font-family:'Liu Jian Mao Cao',cursive;font-size:1.25rem;
+      font-family:'Ma Shan Zheng',cursive;font-size:1.15rem;
       margin-bottom:1rem;
     }
     .sticky::before{content:'';position:absolute;top:-9px;left:14px;right:14px;height:16px;
@@ -93,13 +93,14 @@ if st.session_state.user_id is None:
 
     /* 输入 = 手写虚线 */
     .stTextInput input {
-      background: transparent !important; border: none !important;
-      border-bottom: 2px dashed var(--ink-faint) !important; border-radius: 0 !important;
-      font-family: 'ZCOOL XiaoWei', serif !important; font-size: .95rem !important;
-      color: var(--ink) !important; box-shadow: none !important;
+      background: #fffdf6 !important; border: 2px solid var(--paper-edge) !important;
+      border-bottom: 2px dashed var(--pen) !important; border-radius: 10px !important;
+      padding: .5rem .7rem !important;
+      font-family: 'ZCOOL XiaoWei', serif !important; font-size: 1.05rem !important;
+      color: var(--ink) !important; box-shadow: 0 2px 0 rgba(90,70,40,.06) !important;
     }
-    .stTextInput input:focus { border-bottom-style: solid !important; border-bottom-color: var(--pen) !important; }
-    .stTextInput input::placeholder { color: var(--ink-faint) !important; }
+    .stTextInput input:focus { border-bottom-style: solid !important; border-bottom-color: var(--pen) !important; background: #fffef9 !important; }
+    .stTextInput input::placeholder { color: var(--ink-soft) !important; }
     .stTextInput label { font-family: 'Ma Shan Zheng', cursive !important; color: var(--ink-soft) !important; font-size:.95rem!important; }
 
     /* 手绘按钮 */
@@ -1168,6 +1169,17 @@ elif page == "知识广场":
         with c_b:
             do_search = st.button("🔍 搜索", type="primary", use_container_width=True)
 
+        # 内嵌浏览器开关：始终显示；无关键词时禁用
+        iframe_toggle = st.toggle(
+            "🖥️ 内嵌浏览器直接浏览搜索结果页",
+            value=st.session_state.get("kg_embed_on", False),
+            key="kg_embed_on",
+            disabled=not search_query.strip(),
+            help="在页面内嵌 Bing 的真实搜索结果页面，可直接在应用里点击浏览原文。输入关键词后启用。",
+        )
+        if iframe_toggle and search_query.strip():
+            st.components.v1.iframe(bing_search_iframe_url(search_query), height=720, scrolling=True)
+
         if search_query.strip() and do_search:
             with st.spinner("正在检索（Bing）..."):
                 try:
@@ -1179,16 +1191,6 @@ elif page == "知识广场":
                     st.session_state.pop("kg_search_results", None)
 
         results = st.session_state.get("kg_search_results")
-
-        if search_query.strip():
-            iframe_toggle = st.toggle(
-                "🖥️ 内嵌浏览器直接浏览搜索结果页",
-                value=st.session_state.get("kg_embed_on", False),
-                key="kg_embed_on",
-                help="在页面内嵌 Bing 的真实搜索结果页面，可直接在应用里点击浏览原文。Bing 允许被内嵌。",
-            )
-            if iframe_toggle:
-                st.components.v1.iframe(bing_search_iframe_url(search_query), height=720, scrolling=True)
 
         if results is None:
             st.caption("👆 输入关键词开始搜索，或到右侧「收藏网页」直接粘贴链接入库。")

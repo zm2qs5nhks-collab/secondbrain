@@ -46,7 +46,7 @@ LOGIN_CSS = r"""
 
 /* 便利贴小卡 */
 .sticky{position:relative;border-radius:4px 4px 10px 10px;padding:1rem 1.1rem;
-  box-shadow:0 4px 8px rgba(80,60,20,.12);font-family:'Liu Jian Mao Cao',cursive;font-size:1.3rem;
+  box-shadow:0 4px 8px rgba(80,60,20,.12);font-family:'Ma Shan Zheng',cursive;font-size:1.15rem;
   margin-bottom:.8rem;transform:rotate(var(--r,0deg));}
 .sticky::before{content:'';position:absolute;top:-9px;left:14px;right:14px;height:16px;background:var(--tape);transform:rotate(-1deg);}
 .sticky.y{background:var(--sticky-y)}
@@ -243,7 +243,7 @@ MAIN_CSS = r"""
 
 /* ── 手帐组件（页面内） ── */
 .sticky{position:relative;border-radius:4px 4px 10px 10px;padding:1rem 1.1rem;
-  box-shadow:0 4px 8px rgba(80,60,20,.12);font-family:'Liu Jian Mao Cao',cursive;font-size:1.3rem;
+  box-shadow:0 4px 8px rgba(80,60,20,.12);font-family:'Ma Shan Zheng',cursive;font-size:1.15rem;
   margin-bottom:.8rem;transform:rotate(var(--r,0deg));}
 .sticky::before{content:'';position:absolute;top:-9px;left:14px;right:14px;height:16px;background:var(--tape);transform:rotate(-1deg);}
 .sticky.y{background:var(--sticky-y)}
@@ -278,14 +278,16 @@ MAIN_CSS = r"""
 }
 [data-testid="stBaseButton-secondary"]:hover, button[kind="secondary"]:hover{border-color:var(--pen)!important;color:var(--pen)!important;}
 
-/* 输入 = 虚线手写线 */
+/* 输入 = 米白纸卡 + 笔划线 */
 [data-testid="stTextInput"] input{
-  background:transparent !important;border:none !important;
-  border-bottom:2px dashed var(--ink-faint) !important;border-radius:0 !important;
-  font-family:'ZCOOL XiaoWei',serif !important;color:var(--ink) !important;box-shadow:none !important;
+  background:#fffdf6 !important;border:2px solid var(--paper-edge)!important;
+  border-bottom:2px dashed var(--pen)!important;border-radius:10px!important;
+  padding:.5rem .7rem!important;
+  font-family:'ZCOOL XiaoWei',serif !important;font-size:1.05rem!important;
+  color:var(--ink) !important;box-shadow:0 2px 0 rgba(90,70,40,.06)!important;
 }
-[data-testid="stTextInput"] input:focus{border-bottom-style:solid!important;border-bottom-color:var(--pen)!important;}
-[data-testid="stTextInput"] input::placeholder{color:var(--ink-faint)!important;}
+[data-testid="stTextInput"] input:focus{border-bottom-style:solid!important;border-bottom-color:var(--pen)!important;background:#fffef9!important;}
+[data-testid="stTextInput"] input::placeholder{color:var(--ink-soft)!important;}
 [data-testid="stTextInput"] label, [data-testid="stTextArea"] label, [data-testid="stFileUploader"] label,
 [data-testid="stSelectbox"] label, [data-testid="stMultiSelect"] label, [data-testid="stSlider"] label{
   font-family:'Ma Shan Zheng',cursive !important;color:var(--ink-soft)!important;}
