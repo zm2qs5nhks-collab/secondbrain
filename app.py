@@ -31,183 +31,112 @@ if "user_email" not in st.session_state:
     st.session_state.user_email = None
 
 if st.session_state.user_id is None:
+    # ── 登录页：手帐便利贴笔记本风 ──
+    from ui_theme import FONT_LINK
+    st.markdown(FONT_LINK, unsafe_allow_html=True)
     st.markdown("""
     <style>
+    :root{
+      --paper:#fbf5e9; --paper-2:#f6eeda; --paper-edge:#e9dcc3;
+      --ink:#3b3226; --ink-soft:#7a6f5e; --ink-faint:#b3a68e;
+      --sticky-y:#ffe9a8; --sticky-p:#ffd6e7; --sticky-b:#d9efff; --sticky-g:#d9f5dc;
+      --pen:#2f5d8f; --pen-dark:#224566; --pen-red:#c0504d; --pen-green:#4a7a4c; --pen-orange:#c07a3a;
+      --tape:rgba(255,255,255,.55);
+    }
     .stApp {
-        background: linear-gradient(135deg, #1a1025 0%, #2d1b69 40%, #1a1025 100%) !important;
-        min-height: 100vh;
+      background:
+        radial-gradient(circle at 15% 10%, rgba(200,180,140,.12), transparent 40%),
+        radial-gradient(circle at 85% 90%, rgba(200,180,140,.10), transparent 45%),
+        var(--paper) !important;
+      min-height: 100vh;
+      font-family:'ZCOOL XiaoWei',serif;
+      color: var(--ink);
     }
-    .block-container {
-        max-width: 100% !important;
-        padding-top: 2rem !important;
+    .stApp::before{
+      content:'';position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.5;
+      background-image:radial-gradient(rgba(150,130,100,.35) .6px, transparent .6px);
+      background-size:3px 3px;
     }
+    .block-container { max-width: 100% !important; padding-top: 1rem !important; }
     [data-testid="stHeader"], [data-testid="stToolbar"] { display: none; }
     [data-testid="stSidebar"] { display: none; }
 
+    /* 手绘纸张卡 */
     .glass-card {
-        background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.04) 100%);
-        backdrop-filter: blur(24px);
-        -webkit-backdrop-filter: blur(24px);
-        border-radius: 24px;
-        border: 1px solid rgba(255, 255, 255, 0.18);
-        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3),
-                    inset 0 1px 0 rgba(255, 255, 255, 0.2),
-                    inset 0 -1px 0 rgba(255, 255, 255, 0.05);
-        padding: 2.5rem 2rem;
-        position: relative;
-        overflow: hidden;
+      position: relative;
+      background: var(--paper);
+      border: 2px solid var(--paper-edge); border-radius: 16px;
+      padding: 2rem 1.8rem; margin-bottom: 1rem;
+      box-shadow: 0 3px 0 rgba(90,70,40,.08), 0 10px 22px rgba(90,70,40,.08);
     }
-    .glass-card::before {
-        content: '';
-        position: absolute;
-        top: 0; left: 0; right: 0;
-        height: 50%;
-        background: linear-gradient(180deg, rgba(255,255,255,0.08) 0%, transparent 100%);
-        border-radius: 24px 24px 0 0;
-        pointer-events: none;
-    }
-    .glass-card::after {
-        content: '';
-        position: absolute;
-        top: -40%; left: -20%;
-        width: 140%;
-        height: 60%;
-        background: radial-gradient(ellipse, rgba(255,255,255,0.06) 0%, transparent 70%);
-        pointer-events: none;
-        transform: rotate(-5deg);
-    }
+    .glass-card::before{content:'';position:absolute;top:-9px;left:50%;transform:translateX(-50%) rotate(-2deg);
+      width:100px;height:20px;background:var(--tape);box-shadow:0 1px 2px rgba(0,0,0,.08);}
+    .auth-title{font-family:'Ma Shan Zheng',cursive;font-size:2rem;color:var(--ink);}
+    .auth-subtitle{font-family:'Caveat',cursive;font-size:1.1rem;color:var(--ink-soft);}
 
-    .stTextInput > div > div > input {
-        border-radius: 12px !important;
-        border: 1px solid rgba(255, 255, 255, 0.15) !important;
-        padding: 0.75rem 1rem !important;
-        font-size: 0.95rem !important;
-        background: rgba(255, 255, 255, 0.07) !important;
-        color: #fff !important;
-        transition: all 0.25s ease !important;
+    /* 便利贴装饰卡 */
+    .sticky{
+      position:relative;border-radius:4px 4px 10px 10px;padding:1.1rem 1.2rem;
+      box-shadow:0 4px 8px rgba(80,60,20,.12);
+      font-family:'Liu Jian Mao Cao',cursive;font-size:1.25rem;
+      margin-bottom:1rem;
     }
-    .stTextInput > div > div > input:focus {
-        border-color: rgba(167, 139, 250, 0.6) !important;
-        box-shadow: 0 0 0 2px rgba(167, 139, 250, 0.15) !important;
-        background: rgba(255, 255, 255, 0.1) !important;
-    }
-    .stTextInput > div > div > input::placeholder {
-        color: rgba(255, 255, 255, 0.35) !important;
-    }
-    .stTextInput label {
-        font-weight: 600 !important;
-        color: rgba(255, 255, 255, 0.75) !important;
-        font-size: 0.85rem !important;
-    }
+    .sticky::before{content:'';position:absolute;top:-9px;left:14px;right:14px;height:16px;
+      background:var(--tape);transform:rotate(-1deg);}
+    .sticky.y{background:var(--sticky-y)}
+    .sticky.p{background:var(--sticky-p)}
+    .sticky.b{background:var(--sticky-b)}
+    .sticky.g{background:var(--sticky-g)}
+    .feature-title{font-family:'Ma Shan Zheng',cursive;font-size:1.15rem;color:var(--ink);margin:.2rem 0 .3rem}
+    .feature-desc{font-size:.9rem;color:var(--ink-soft);line-height:1.55}
+    .feature-icon{font-size:1.9rem}
 
-    div[data-testid="stForm"] {
-        background: transparent !important;
-        border: none !important;
-        padding: 0 !important;
+    /* 输入 = 手写虚线 */
+    .stTextInput input {
+      background: transparent !important; border: none !important;
+      border-bottom: 2px dashed var(--ink-faint) !important; border-radius: 0 !important;
+      font-family: 'ZCOOL XiaoWei', serif !important; font-size: .95rem !important;
+      color: var(--ink) !important; box-shadow: none !important;
     }
+    .stTextInput input:focus { border-bottom-style: solid !important; border-bottom-color: var(--pen) !important; }
+    .stTextInput input::placeholder { color: var(--ink-faint) !important; }
+    .stTextInput label { font-family: 'Ma Shan Zheng', cursive !important; color: var(--ink-soft) !important; font-size:.95rem!important; }
 
+    /* 手绘按钮 */
     .stButton > button[kind="primary"],
     .stButton > button[data-testid="stBaseButton-primary"] {
-        background: linear-gradient(135deg, #7c5cbf 0%, #a78bfa 100%) !important;
-        color: white !important;
-        border: none !important;
-        border-radius: 14px !important;
-        padding: 0.65rem 0 !important;
-        font-size: 1.05rem !important;
-        font-weight: 700 !important;
-        width: 100% !important;
-        box-shadow: 0 4px 20px rgba(124, 92, 191, 0.4) !important;
-        transition: all 0.3s ease !important;
-        letter-spacing: 0.08em;
+      background: var(--pen) !important; color: #fff !important;
+      border: 2px solid var(--pen-dark) !important;
+      border-radius: 12px 10px 13px 9px !important;
+      font-family: 'Ma Shan Zheng', cursive !important; font-size: 1.05rem !important;
+      font-weight: 400 !important; width: 100% !important;
+      box-shadow: 0 2px 0 rgba(0,0,0,.25) !important; letter-spacing: .08em;
+      transform: rotate(-.4deg) !important;
     }
     .stButton > button[kind="primary"]:hover,
-    .stButton > button[data-testid="stBaseButton-primary"]:hover {
-        transform: translateY(-2px) !important;
-        box-shadow: 0 8px 30px rgba(124, 92, 191, 0.55) !important;
-    }
-
+    .stButton > button[data-testid="stBaseButton-primary"]:hover { filter: brightness(1.06) !important; }
     .stButton > button:not([kind="primary"]):not([data-testid="stBaseButton-primary"]) {
-        background: rgba(255, 255, 255, 0.08) !important;
-        color: rgba(255, 255, 255, 0.6) !important;
-        border: 1px solid rgba(255, 255, 255, 0.12) !important;
-        border-radius: 12px !important;
-        font-weight: 600 !important;
-        transition: all 0.25s ease !important;
+      background: var(--paper) !important; color: var(--ink) !important;
+      border: 2px solid var(--ink-soft) !important;
+      border-radius: 12px 10px 13px 9px !important;
+      font-family: 'Ma Shan Zheng', cursive !important;
+      box-shadow: 0 2px 0 rgba(0,0,0,.12) !important;
     }
     .stButton > button:not([kind="primary"]):not([data-testid="stBaseButton-primary"]):hover {
-        background: rgba(255, 255, 255, 0.15) !important;
-        color: #fff !important;
+      border-color: var(--pen) !important; color: var(--pen) !important;
     }
 
-    .auth-switch {
-        text-align: center;
-        font-size: 0.88rem;
-        color: rgba(255, 255, 255, 0.45);
-        margin-top: 1.2rem;
-    }
-    .auth-switch span.hl {
-        color: #a78bfa;
-        font-weight: 600;
-        cursor: pointer;
-    }
+    .auth-switch { text-align:center; font-size:.9rem; color:var(--ink-soft); margin-top:1.2rem;
+      font-family:'Caveat',cursive; }
+    .auth-switch span.hl { color:var(--pen); font-weight:600; cursor:pointer; }
 
-    .feature-card {
-        background: rgba(255, 255, 255, 0.06);
-        backdrop-filter: blur(12px);
-        border: 1px solid rgba(255, 255, 255, 0.08);
-        border-radius: 16px;
-        padding: 1.5rem;
-        margin-bottom: 1rem;
-    }
-    .feature-icon {
-        font-size: 2rem;
-        margin-bottom: 0.5rem;
-    }
-    .feature-title {
-        font-size: 1rem;
-        font-weight: 700;
-        color: rgba(255, 255, 255, 0.9);
-        margin-bottom: 0.3rem;
-    }
-    .feature-desc {
-        font-size: 0.82rem;
-        color: rgba(255, 255, 255, 0.45);
-        line-height: 1.5;
-    }
-
-    .decor-orb {
-        position: fixed;
-        border-radius: 50%;
-        pointer-events: none;
-        z-index: 0;
-    }
-    .decor-orb.o1 {
-        width: 400px; height: 400px;
-        background: radial-gradient(circle, rgba(124,92,191,0.25) 0%, transparent 70%);
-        top: -100px; right: -80px;
-    }
-    .decor-orb.o2 {
-        width: 300px; height: 300px;
-        background: radial-gradient(circle, rgba(167,139,250,0.15) 0%, transparent 70%);
-        bottom: -50px; left: -50px;
-    }
-    .decor-orb.o3 {
-        width: 150px; height: 150px;
-        background: radial-gradient(circle, rgba(124,92,191,0.12) 0%, transparent 70%);
-        top: 40%; left: 8%;
-    }
-
-    .stAlert {
-        border-radius: 12px !important;
-        background: rgba(255, 255, 255, 0.08) !important;
-        border: 1px solid rgba(255, 255, 255, 0.1) !important;
-    }
-    .stAlert p, .stAlert li { color: rgba(255, 255, 255, 0.85) !important; }
-    [data-testid="stFormSubmitButton"] button { width: 100% !important; }
+    .stAlert { border-radius:12px !important; border-style:solid !important; border-width:2px !important;
+      box-shadow:0 2px 0 rgba(80,60,20,.08)!important; }
+    .stAlert p, .stAlert li { color: var(--ink) !important; }
+    .decor-pin { font-size: 1.6rem; filter: drop-shadow(0 1px 1px rgba(0,0,0,.2)); text-align:center; }
     </style>
-    <div class="decor-orb o1"></div>
-    <div class="decor-orb o2"></div>
-    <div class="decor-orb o3"></div>
+    <div style="position:absolute;top:14px;left:22px;transform:rotate(-6deg)"><span style="font-size:1.9rem">🗒️</span></div>
+    <div style="position:absolute;bottom:16px;right:22px;transform:rotate(5deg)"><span style="font-size:1.9rem">📌</span></div>
     """, unsafe_allow_html=True)
 
     left_col, center_col, right_col = st.columns([1, 1.3, 1], gap="medium")
@@ -215,17 +144,17 @@ if st.session_state.user_id is None:
     with left_col:
         st.markdown("""
         <div style="padding-top: 1rem;">
-            <div class="feature-card">
+            <div class="sticky y" style="--r:-1.5deg">
                 <div class="feature-icon">🤖</div>
                 <div class="feature-title">智能问答</div>
                 <div class="feature-desc">基于你的知识库，AI 实时检索并回答问题，每一条回答都有出处。</div>
             </div>
-            <div class="feature-card">
+            <div class="sticky b" style="--r:1deg">
                 <div class="feature-icon">📐</div>
                 <div class="feature-title">语义搜索</div>
                 <div class="feature-desc">不只是关键词匹配，深度理解你的笔记含义，精准找到相关内容。</div>
             </div>
-            <div class="feature-card">
+            <div class="sticky g" style="--r:-.8deg">
                 <div class="feature-icon">🔄</div>
                 <div class="feature-title">遗忘曲线</div>
                 <div class="feature-desc">基于艾宾浩斯遗忘曲线，智能安排复习节点，让知识长期保留。</div>
@@ -236,17 +165,17 @@ if st.session_state.user_id is None:
     with right_col:
         st.markdown("""
         <div style="padding-top: 1rem;">
-            <div class="feature-card">
+            <div class="sticky p" style="--r:1.5deg">
                 <div class="feature-icon">🔒</div>
                 <div class="feature-title">数据私有</div>
                 <div class="feature-desc">所有数据存储在你自己的服务器上，完全掌控隐私，绝不上传第三方。</div>
             </div>
-            <div class="feature-card">
+            <div class="sticky y" style="--r:-1deg">
                 <div class="feature-icon">⚡</div>
                 <div class="feature-title">多源导入</div>
                 <div class="feature-desc">支持文本、文件、网页 URL 一键导入，自动切片、向量化、入库。</div>
             </div>
-            <div class="feature-card">
+            <div class="sticky b" style="--r:.8deg">
                 <div class="feature-icon">🔌</div>
                 <div class="feature-title">开放 API</div>
                 <div class="feature-desc">提供标准 RESTful API 接口，轻松接入第三方工具与自动化流程。</div>
@@ -257,10 +186,11 @@ if st.session_state.user_id is None:
     with center_col:
         st.markdown("""
         <div class="glass-card">
+            <div class="decor-pin">📌</div>
             <div style="position:relative; z-index:1; text-align:center;">
                 <div style="font-size:2rem; margin-bottom:0.3rem;">🧠</div>
                 <div class="auth-title">第二大脑</div>
-                <div class="auth-subtitle">你的 AI 知识管理助手</div>
+                <div class="auth-subtitle">把每一个想法钉进记忆的笔记本</div>
             </div>
         </div>
         """, unsafe_allow_html=True)
@@ -353,9 +283,19 @@ set_user_settings(
 from storage import vector_store, metadata_store
 from scheduler import forgetting_curve as fc
 from tools import add_knowledge, search_knowledge, manage_knowledge, reminder
+from ui_theme import apply_main_theme, page_header, render_sticky, notebook_line
+
+# ── 全局手帐皮肤（含侧边栏牛皮纸 + 全部控件）──
+apply_main_theme()
 
 # ─── 侧边栏导航 ───
-st.sidebar.title("🧠 第二大脑")
+st.sidebar.markdown("""
+<div style="position:relative;text-align:center;padding:.6rem .4rem .2rem">
+  <div style="font-size:2rem">🧠</div>
+  <div style="font-family:'Ma Shan Zheng',cursive;font-size:1.4rem;color:var(--ink)">第二大脑</div>
+  <div style="font-family:'Caveat',cursive;color:var(--ink-soft);font-size:.95rem">翻开你的知识笔记本 ✎</div>
+</div>
+""", unsafe_allow_html=True)
 st.sidebar.caption(f"已登录: {st.session_state.user_email}")
 
 page = st.sidebar.radio(
@@ -368,7 +308,7 @@ st.sidebar.divider()
 stats_count = metadata_store.count(user_id=USER_ID)
 st.sidebar.metric("知识库笔记数", stats_count)
 
-if st.sidebar.button("退出登录"):
+if st.sidebar.button("退出登录", use_container_width=True):
     st.session_state.user_id = None
     st.session_state.user_email = None
     if "agent" in st.session_state:
@@ -409,12 +349,17 @@ if page == "仪表盘":
     else:
         greeting = "🌆 晚上好，今天有什么收获吗"
 
-    st.title("🧠 第二大脑")
-    st.markdown(f"### {greeting}")
+    st.markdown("""
+    <div style="display:flex;align-items:baseline;gap:.8rem;flex-wrap:wrap;margin:.2rem 0 .2rem">
+      <span style="font-size:1.9rem">🧠</span>
+      <span class="pp-title" style="font-size:1.9rem">第二大脑</span>
+      <span style="font-family:'Caveat',cursive;color:var(--ink-soft);font-size:1.05rem">%s</span>
+    </div>
+    """ % greeting, unsafe_allow_html=True)
 
     due = fc.get_notes_for_review(user_id=USER_ID)
     if due:
-        st.info(f"💡 你有 **{len(due)}** 条知识需要复习啦，去「复习提醒」看看吧")
+        render_sticky(f"⏰ 有 {len(due)} 条旧笔记在等你复习，去「复习提醒」看看吧！", color="y", angle=-0.5)
 
     c1, c2, c3, c4 = st.columns(4)
     all_notes = metadata_store.list_notes(user_id=USER_ID)
@@ -425,30 +370,42 @@ if page == "仪表盘":
     high_imp = sum(1 for n in all_notes if n.get("importance") == "high")
     reminders = fc.get_notes_for_review(user_id=USER_ID)
 
-    c1.metric("总笔记数", total)
-    c2.metric("标签种类", len(tags_set))
-    c3.metric("高重要度", high_imp)
-    c4.metric("待复习", len(reminders))
+    c1.metric("📝 总笔记数", total)
+    c2.metric("🏷️ 标签种类", len(tags_set))
+    c3.metric("⭐ 高重要度", high_imp)
+    c4.metric("📖 待复习", len(reminders))
 
-    st.markdown("---")
+    notebook_line()
 
     col_left, col_right = st.columns([2, 1])
 
     with col_left:
-        st.subheader("最近笔记")
+        st.markdown("""
+        <div style="display:flex;justify-content:space-between;align-items:baseline;margin:.3rem 0 .4rem">
+          <h3 style="font-family:'Ma Shan Zheng',cursive;color:var(--ink);margin:0">📄 最近记的</h3>
+          <span style="font-family:'Caveat',cursive;color:var(--pen)">翻到「笔记管理」→</span>
+        </div>
+        <div style="background:repeating-linear-gradient(transparent,transparent 33px,var(--paper-edge) 33px,var(--paper-edge) 34px),var(--paper);
+          border:2px solid var(--paper-edge);border-radius:14px;padding:.8rem 1rem;
+          box-shadow:0 3px 0 rgba(90,70,40,.07)">
+        """, unsafe_allow_html=True)
         if all_notes:
             for note in all_notes[:8]:
                 tags_str = " ".join([f"`{t}`" for t in note.get("tags", [])])
                 imp = "🔴" if note.get("importance") == "high" else "🔵"
-                with st.container():
-                    st.markdown(f"{imp} **{note['id']}** — {note['preview']}")
-                    if tags_str:
-                        st.caption(tags_str)
+                st.markdown(f"{imp} **{note['id']}** — {note['preview']}")
+                if tags_str:
+                    st.caption(tags_str)
         else:
             st.info("知识库还是空的，去「导入笔记」添加第一条吧！")
+        st.markdown("</div>", unsafe_allow_html=True)
 
     with col_right:
-        st.subheader("标签分布")
+        st.markdown("""
+        <div style="background:var(--paper);border:2px solid var(--paper-edge);border-radius:14px;padding:.8rem 1rem;
+          box-shadow:0 3px 0 rgba(90,70,40,.07)">
+          <h3 style="font-family:'Ma Shan Zheng',cursive;color:var(--ink);margin:0 0 .5rem">🎨 标签热度</h3>
+        """, unsafe_allow_html=True)
         if tags_set:
             tag_counts = {}
             for n in all_notes:
@@ -460,14 +417,14 @@ if page == "仪表盘":
                 st.progress(min(cnt / max(tag_counts.values()), 1.0))
         else:
             st.caption("暂无标签数据")
+        st.markdown("</div>", unsafe_allow_html=True)
 
 # ═══════════════════════════════════════════
 #  页面二：知识问答（对话）
 # ═══════════════════════════════════════════
 elif page == "知识问答":
-    st.title("💬 知识问答")
-    st.caption("和你的第二大脑对话，它会自动调用工具完成任务")
-    st.caption("💡 可以闲聊、问知识、让我记东西、帮你复习")
+    page_header("💬", "和你的笔记聊天", "AI 会翻开你的笔记本帮你找答案")
+    render_sticky("可以闲聊、问知识、让我记东西、帮你复习～", color="g", angle=0.5)
 
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = []
@@ -514,9 +471,8 @@ elif page == "知识问答":
 #  页面三：导入笔记
 # ═══════════════════════════════════════════
 elif page == "导入笔记":
-    st.title("📥 导入笔记")
-    st.markdown("支持从**本地文件**、**直接输入**、**网页URL**、**多媒体**四种方式导入知识。")
-    st.markdown("---")
+    page_header("📥", "导入笔记", "从本地文件、手动输入、网页 URL、多媒体四种方式收进来")
+    notebook_line()
 
     tab_file, tab_text, tab_url, tab_media = st.tabs(["本地文件", "手动输入", "网页抓取", "多媒体"])
 
@@ -691,17 +647,22 @@ elif page == "导入笔记":
 #  页面四：笔记管理
 # ═══════════════════════════════════════════
 elif page == "笔记管理":
-    st.title("📚 笔记管理")
-    st.markdown("---")
+    page_header("📚", "笔记整理簿", "每一页都是你的积累，翻看、复习、整理")
+    notebook_line()
 
     all_notes = metadata_store.list_notes(user_id=USER_ID)
 
     col1, col2 = st.columns([3, 1])
     with col2:
-        st.subheader("筛选")
+        st.markdown("""
+        <div style="background:var(--sticky-p);border:2px solid #efc3d4;border-radius:12px;padding:.7rem .9rem;
+          box-shadow:0 2px 0 rgba(80,60,20,.08);transform:rotate(.4deg)">
+          <h3 style="font-family:'Ma Shan Zheng',cursive;color:var(--ink);margin:0 0 .4rem">🔍 筛选</h3>
+        """, unsafe_allow_html=True)
         filter_tag = st.text_input("按标签筛选", placeholder="输入标签")
         filter_imp = st.multiselect("按重要度", ["high", "normal", "low"])
         sort_by = st.selectbox("排序", ["最新创建", "最近访问", "访问次数"])
+        st.markdown("</div>", unsafe_allow_html=True)
 
     if filter_tag:
         all_notes = [n for n in all_notes if filter_tag in n.get("tags", [])]
@@ -750,9 +711,8 @@ elif page == "笔记管理":
 #  页面五：复习提醒
 # ═══════════════════════════════════════════
 elif page == "复习提醒":
-    st.title("⏰ 复习提醒")
-    st.markdown("基于**遗忘曲线算法**，智能追踪你的知识记忆状态。")
-    st.markdown("---")
+    page_header("⏰", "复习提醒", "基于遗忘曲线算法，智能追踪你的知识记忆状态")
+    notebook_line()
 
     tab_review, tab_curves = st.tabs(["待复习列表", "遗忘曲线分析"])
 
@@ -860,9 +820,8 @@ elif page == "复习提醒":
 #  页面六：知识图谱
 # ═══════════════════════════════════════════
 elif page == "知识图谱":
-    st.title("🕸️ 知识图谱")
-    st.markdown("基于 **LLM 实体抽取 + NetworkX** 构建真正的知识图谱，支持多跳推理关联发现。")
-    st.markdown("---")
+    page_header("🕸️", "知识图谱", "LLM 实体抽取 + NetworkX，支持多跳推理关联发现")
+    notebook_line()
 
     from storage.graph import KnowledgeGraph
     from storage.extractor import extract_from_text
@@ -1124,9 +1083,8 @@ elif page == "知识图谱":
 #  页面七：学习路径
 # ═══════════════════════════════════════════
 elif page == "学习路径":
-    st.title("🎯 个性化学习路径")
-    st.markdown("根据遗忘曲线和标签掌握度，智能推荐下一步学习方向。")
-    st.markdown("---")
+    page_header("🎯", "个性化学习路径", "根据遗忘曲线和标签掌握度，推荐下一步学习方向")
+    notebook_line()
 
     from storage.learning_path import get_learning_path, get_weak_notes
 
@@ -1190,9 +1148,8 @@ elif page == "学习路径":
 #  页面八：知识广场
 # ═══════════════════════════════════════════
 elif page == "知识广场":
-    st.title("🌐 知识广场")
-    st.markdown("联网真实搜索 + 网页一键收藏入库。搜索使用 Bing（服务器端解析 + 可内嵌浏览）。")
-    st.markdown("---")
+    page_header("🌐", "知识广场", "去外面搜集知识，剪下来贴进你的笔记本")
+    notebook_line()
 
     tab_search, tab收藏 = st.tabs(["在线搜索", "收藏网页"])
 
@@ -1245,33 +1202,37 @@ elif page == "知识广场":
             st.caption(f"收藏标签将自动带上关键词：`{save_tags_default}`")
 
             for i, r in enumerate(results):
-                with st.container(border=True):
-                    col_l, col_r = st.columns([5, 1])
-                    with col_l:
-                        st.markdown(f"**{i+1}. [{r['title']}]({r['url']})**")
-                        if r.get("cite"):
-                            st.caption(r["cite"])
-                        if r.get("snippet"):
-                            st.markdown(r["snippet"])
-                    with col_r:
-                        if st.button("📥 收藏", key=f"kg_save_res_{i}", use_container_width=True):
-                            tags = list({save_tags_default, "网页收藏"})
-                            with st.spinner("抓取网页并入库..."):
-                                try:
-                                    page_data = fetch_url_content(r["url"])
-                                    full_content = f"[来源: {page_data['title'] or r['url']}]({r['url']})\n\n{page_data['content']}"
-                                    from tools.add_knowledge import execute as add_exec
-                                    add_result = json.loads(add_exec({
-                                        "content": full_content,
-                                        "tags": tags,
-                                        "importance": "normal",
-                                    }, user_id=USER_ID))
-                                    if add_result.get("note_id"):
-                                        st.success(f"已收藏！{page_data['title']}")
-                                    else:
-                                        st.error(f"入库失败: {add_result.get('error', '未知错误')}")
-                                except Exception as e:
-                                    st.error(f"抓取失败: {e}")
+                st.markdown(
+                    f'<div class="pz-item zoom-in"><span class="no">{i+1}</span>',
+                    unsafe_allow_html=True,
+                )
+                col_l, col_r = st.columns([5, 1])
+                with col_l:
+                    st.markdown(f"**[{r['title']}]({r['url']})**")
+                    if r.get("cite"):
+                        st.caption(r["cite"])
+                    if r.get("snippet"):
+                        st.markdown(r["snippet"])
+                with col_r:
+                    if st.button("📥 收藏", key=f"kg_save_res_{i}", use_container_width=True):
+                        tags = list({save_tags_default, "网页收藏"})
+                        with st.spinner("抓取网页并入库..."):
+                            try:
+                                page_data = fetch_url_content(r["url"])
+                                full_content = f"[来源: {page_data['title'] or r['url']}]({r['url']})\n\n{page_data['content']}"
+                                from tools.add_knowledge import execute as add_exec
+                                add_result = json.loads(add_exec({
+                                    "content": full_content,
+                                    "tags": tags,
+                                    "importance": "normal",
+                                }, user_id=USER_ID))
+                                if add_result.get("note_id"):
+                                    st.success(f"已收藏！{page_data['title']}")
+                                else:
+                                    st.error(f"入库失败: {add_result.get('error', '未知错误')}")
+                            except Exception as e:
+                                st.error(f"抓取失败: {e}")
+                st.markdown("</div>", unsafe_allow_html=True)
 
         st.markdown("---")
         st.markdown("**或者手动粘贴链接一键入库：**")
@@ -1330,17 +1291,23 @@ elif page == "知识广场":
 # ═══════════════════════════════════════════
 #  页面九：设置
 # ═══════════════════════════════════════════
-elif page == "设置":
-    st.title("⚙️ 设置")
-    st.markdown("---")
+else:  # 页面九：设置
+    page_header("⚙️", "笔记本偏好", "配置你的第二大脑 API 与数据")
+    notebook_line()
 
-    st.subheader("API 配置")
+    st.markdown("""
+    <div class="setpanel" style="position:relative;background:var(--paper);border:2px solid var(--paper-edge);
+      border-radius:14px;padding:1.1rem 1.2rem;margin-bottom:1rem;box-shadow:0 2px 0 rgba(90,70,40,.06)">
+      <div class="tape"></div>
+      <h3 style="font-family:'Ma Shan Zheng',cursive;color:var(--ink);margin:0 0 .5rem">🔧 API 配置</h3>
+    """, unsafe_allow_html=True)
     from memory import long_term
 
     current_url = long_term.get_preference("api_base_url", config.OPENAI_BASE_URL, user_id=USER_ID)
     current_key = long_term.get_preference("api_key", config.OPENAI_API_KEY, user_id=USER_ID)
     current_model = long_term.get_preference("model_name", config.MODEL_NAME, user_id=USER_ID)
     current_embedding = long_term.get_preference("embedding_model", config.EMBEDDING_MODEL, user_id=USER_ID)
+    st.markdown("</div>", unsafe_allow_html=True)
 
     new_url = st.text_input("API Base URL", value=current_url, key="api_url")
     if current_key and current_key != config.OPENAI_API_KEY:
@@ -1371,8 +1338,11 @@ elif page == "设置":
         st.success("已重置，页面刷新后将使用 .env 中的配置")
         st.rerun()
 
-    st.markdown("---")
-    st.subheader("数据管理")
+    st.markdown("""
+    <div class="setpanel" style="position:relative;background:var(--paper);border:2px solid var(--paper-edge);
+      border-radius:14px;padding:1.1rem 1.2rem;margin-bottom:1rem;box-shadow:0 2px 0 rgba(90,70,40,.06)">
+      <h3 style="font-family:'Ma Shan Zheng',cursive;color:var(--ink);margin:0 0 .5rem">🗂️ 数据管理</h3>
+    """, unsafe_allow_html=True)
 
     col1, col2, col3 = st.columns(3)
     with col1:
@@ -1396,3 +1366,5 @@ elif page == "设置":
     with col3:
         st.metric("向量库文档数", vector_store.count(user_id=USER_ID))
         st.metric("元数据笔记数", metadata_store.count(user_id=USER_ID))
+
+    st.markdown("</div>", unsafe_allow_html=True)
