@@ -2,9 +2,14 @@
 PostgreSQL 数据库连接
 """
 
+import json
 import psycopg2
 import psycopg2.extras
 import config
+
+# psycopg2 默认把 json/jsonb 列读成字符串，这里全局注册为 dict/list
+psycopg2.extras.register_default_json(loads=json.loads)
+psycopg2.extras.register_default_jsonb(loads=json.loads)
 
 _conn = None
 

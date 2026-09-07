@@ -99,16 +99,20 @@ def delete_by_note_id(note_id: str, user_id: str = None):
 
 
 def get_note_full_content(note_id: str, user_id: str = None) -> str:
-    all_rows = query_all("SELECT content, metadata FROM note_embeddings")
-    chunks = []
-    for row in all_rows:
-        meta = row.get("metadata") or {}
-        if meta.get("note_id") == note_id:
-            chunks.append({
-                "content": row["content"],
-                "chunk_index": meta.get("chunk_index", 0),
-            })
-    if not chunks:
+    if user_id:
+        rows = query_all(
+            """SELECT content FROM note_embeddings
+               WHERE metadata->>'note_id' = %s AND user_id = %s
+               ORDER BY (metadata->>'chunk_index')::int""",
+            (note_id, user_id),
+        )
+    else:
+        rows = query_all(
+            """SELECT content FROM note_embeddings
+               WHERE metadata->>'note_id' = %s
+               ORDER BY (metadata->>'chunk_index')::int""",
+            (note_id,),
+        )
+    if not rows:
         return ""
-    chunks.sort(key=lambda x: x["chunk_index"])
-    return "\n\n".join(c["content"] for c in chunks)
+    return "\n\n".join(r["content"] for r in rows)
