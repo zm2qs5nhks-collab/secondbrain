@@ -205,7 +205,32 @@ MAIN_CSS = r"""
 }
 [data-testid="stApp"]::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.5;
   background-image:radial-gradient(rgba(150,130,100,.35) .6px, transparent .6px);background-size:3px 3px;}
-[data-testid="stToolbar"]{display:none}
+/* 桌面端隐藏 header/toolbar（部署按钮、全屏等），移动端保留（否则原生的 >>>/<<< 侧边栏按钮会被一起藏掉） */
+@media (min-width:769px){
+  [data-testid="stHeader"]{display:none}
+  [data-testid="stToolbar"]{display:none}
+}
+@media (max-width:768px){
+  /* 恢复 header 与 toolbar，让原生 stExpandSidebarButton / stSidebarCollapseButton 可用 */
+  [data-testid="stHeader"]{display:flex;background:transparent!important;box-shadow:none!important;border:none!important;pointer-events:none;}
+  [data-testid="stToolbar"]{display:flex!important;pointer-events:auto;}
+  [data-testid="stExpandSidebarButton"],
+  [data-testid="stSidebarCollapseButton"]{display:none!important;}
+  /* 自定义左上角 >>>/<<< 侧边栏唤出按钮（移动端） */
+  .mob-sb-toggle{
+    position:fixed;left:.55rem;top:.55rem;z-index:999999;
+    width:40px;height:40px;border-radius:50%;
+    background:var(--sticky-y);border:3px solid #e0c76f;
+    box-shadow:0 3px 0 rgba(80,60,20,.18),0 8px 16px rgba(80,60,20,.18);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'Caveat',cursive;font-size:1rem;font-weight:700;color:var(--ink);
+    cursor:pointer;transform:rotate(-1deg);transition:transform .15s;
+    user-select:none;-webkit-user-select:none;touch-action:manipulation;
+  }
+  .mob-sb-toggle:active{transform:rotate(-1deg) scale(.92);}
+  /* 页面主体留出按钮空间 */
+  .block-container{padding-left:1rem!important;padding-right:1rem!important;}
+}
 
 /* ── 侧边栏 = 牛皮纸装订册 ── */
 [data-testid="stSidebar"]{

@@ -289,6 +289,21 @@ from ui_theme import apply_main_theme, page_header, render_sticky, notebook_line
 # ── 全局手帐皮肤（含侧边栏牛皮纸 + 全部控件）──
 apply_main_theme()
 
+# ── 移动端侧边栏唤出按钮（自定义 >>>/<<< 圆钮，仅移动端可见）──
+st.markdown("""
+<div class="mob-sb-toggle" onclick="
+var btn=document.querySelector('[data-testid=\"stExpandSidebarButton\"] button, [data-testid=\"stSidebarCollapseButton\"] button');
+if(btn) btn.click();
+" aria-label="切换侧边栏">»</div>
+""", unsafe_allow_html=True)
+
+# ── 主动推送：登录后若有待复习笔记，右上角 toast 弹出提醒（每会话仅一次）──
+if not st.session_state.get("_due_toast_shown"):
+    _due = fc.get_notes_for_review(user_id=USER_ID)
+    if _due:
+        st.toast(f"⏰ 有 {len(_due)} 条旧笔记等你复习，去「复习提醒」看看吧！", icon="⏰")
+    st.session_state["_due_toast_shown"] = True
+
 # ─── 侧边栏导航 ───
 st.sidebar.markdown("""
 <div style="position:relative;text-align:center;padding:.6rem .4rem .2rem">
@@ -316,6 +331,7 @@ if st.sidebar.button("退出登录", use_container_width=True):
         del st.session_state.agent
     if "chat_history" in st.session_state:
         del st.session_state.chat_history
+    st.session_state["_due_toast_shown"] = False
     st.rerun()
 
 
