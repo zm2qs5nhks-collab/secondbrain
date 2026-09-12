@@ -211,26 +211,46 @@ MAIN_CSS = r"""
   [data-testid="stToolbar"]{display:none}
 }
 @media (max-width:768px){
-  /* 恢复 header 与 toolbar，让原生 stExpandSidebarButton / stSidebarCollapseButton 可用 */
+  /* 恢复 header 与 toolbar，让原生 stExpandSidebarButton / stSidebarCollapseButton 可点 */
   [data-testid="stHeader"]{display:flex;background:transparent!important;box-shadow:none!important;border:none!important;pointer-events:none;}
   [data-testid="stToolbar"]{display:flex!important;pointer-events:auto;}
+  /* 放大原生 >>> / <<< 为醒目手帐圆钮 + 「菜单」标签提示 */
   [data-testid="stExpandSidebarButton"],
-  [data-testid="stSidebarCollapseButton"]{display:none!important;}
-  /* 自定义左上角 >>>/<<< 侧边栏唤出按钮（移动端） */
-  .mob-sb-toggle{
-    position:fixed;left:.55rem;top:.55rem;z-index:999999;
-    width:40px;height:40px;border-radius:50%;
-    background:var(--sticky-y);border:3px solid #e0c76f;
-    box-shadow:0 3px 0 rgba(80,60,20,.18),0 8px 16px rgba(80,60,20,.18);
-    display:flex;align-items:center;justify-content:center;
-    font-family:'Caveat',cursive;font-size:1rem;font-weight:700;color:var(--ink);
-    cursor:pointer;transform:rotate(-1deg);transition:transform .15s;
-    user-select:none;-webkit-user-select:none;touch-action:manipulation;
+  [data-testid="stSidebarCollapseButton"]{
+    position:relative!important;
+    display:flex!important;align-items:center;justify-content:center;
+    width:44px!important;height:44px!important;margin:.35rem!important;
+    border-radius:50%!important;
+    background:var(--sticky-y)!important;
+    border:2px solid #e0c76f!important;
+    box-shadow:0 3px 0 rgba(80,60,20,.2),0 8px 16px rgba(80,60,20,.18)!important;
   }
-  .mob-sb-toggle:active{transform:rotate(-1deg) scale(.92);}
+  [data-testid="stExpandSidebarButton"]:hover,
+  [data-testid="stSidebarCollapseButton"]:hover{background:#ffe29c!important;}
+  [data-testid="stExpandSidebarButton"] svg,
+  [data-testid="stSidebarCollapseButton"] svg{width:22px!important;height:22px!important;color:#2b2b2b!important;fill:#2b2b2b!important;}
+  [data-testid="stExpandSidebarButton"]::after,
+  [data-testid="stSidebarCollapseButton"]::after{
+    content:'≡ 菜单';display:block;position:absolute;left:50%;top:calc(100% + 6px);
+    transform:translateX(-50%);white-space:nowrap;
+    font-family:'Ma Shan Zheng',cursive;font-size:.9rem;color:#2b2b2b;
+    background:rgba(255,255,255,.7);border:1px solid rgba(80,60,20,.25);
+    border-radius:999px;padding:.05rem .55rem;line-height:1.3;
+  }
+  @keyframes mobSbPulse{0%,100%{box-shadow:0 3px 0 rgba(80,60,20,.2),0 0 0 0 rgba(224,199,111,.55)}50%{box-shadow:0 3px 0 rgba(80,60,20,.2),0 0 0 9px rgba(224,199,111,0)}}
+  [data-testid="stExpandSidebarButton"]{animation:mobSbPulse 1.8s infinite;}
   /* 页面主体留出按钮空间 */
   .block-container{padding-left:1rem!important;padding-right:1rem!important;}
 }
+/* toast 适配手帐浅色主题（默认深色在浅色背景下看不清） */
+[data-testid="stToast"]{
+  background:#fffdf4!important;color:#2b2b2b!important;
+  border:2px solid #e0c76f!important;border-radius:14px!important;
+  box-shadow:0 6px 18px rgba(80,60,20,.22)!important;
+}
+[data-testid="stToast"] [data-testid="stToastText"]{color:#2b2b2b!important;font-family:'Ma Shan Zheng',cursive!important;}
+[data-testid="stToast"] [data-testid="stToastDynamicIcon"]{color:var(--pen)!important;}
+[data-testid="stToast"] button{color:#2b2b2b!important;background:transparent!important;}
 
 /* ── 侧边栏 = 牛皮纸装订册 ── */
 [data-testid="stSidebar"]{
