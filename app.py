@@ -333,12 +333,75 @@ components.html(
     height=0,
 )
 
-# ── 主动推送：登录后若有待复习笔记，右上角 toast 弹出提醒（每会话仅一次）──
+# ── 主动推送①：登录后若有待复习笔记，右上角 toast 弹出提醒（每会话仅一次）──
 if not st.session_state.get("_due_toast_shown"):
     _due = fc.get_notes_for_review(user_id=USER_ID)
     if _due:
         st.toast(f"⏰ 有 {len(_due)} 条旧笔记等你复习，去「复习提醒」看看吧！", icon="⏰")
+        st.session_state["_last_review_push"] = time.time()
     st.session_state["_due_toast_shown"] = True
+
+
+# ── 主动推送②：持续/定时复习推送（每 5 分钟检查一次，30 分钟内不重复打扰）──
+@st.fragment(run_every="5m")
+def _review_pusher():
+    try:
+        _due = fc.get_notes_for_review(user_id=USER_ID)
+    except Exception:
+        return
+    if not _due:
+        return
+    _now = time.time()
+    if _now - st.session_state.get("_last_review_push", 0) < 1800:
+        return
+    st.session_state["_last_review_push"] = _now
+    _urgent = sum(1 for d in _due if d.get("urgency") == "紧急")
+    _msg = f"⏰ 还有 {len(_due)} 条笔记等待复习"
+    if _urgent:
+        _msg += f"（其中 {_urgent} 条紧急）"
+    st.toast(_msg, icon="⏰")
+
+
+_review_pusher()
+
+
+# ── 主动推送③：切换模块时的数据驱动智能提醒（每模块每会话只提示一次）──
+def _page_tip(page: str):
+    _shown = st.session_state.setdefault("_page_tips_shown", [])
+    if page in _shown:
+        return
+    _shown.append(page)
+    try:
+        if page == "仪表盘":
+            _due = fc.get_notes_for_review(user_id=USER_ID)
+            if _due:
+                st.toast(f"📌 有 {len(_due)} 条笔记到复习时间了，去「复习提醒」看看", icon="📌")
+        elif page == "复习提醒":
+            _due = fc.get_notes_for_review(user_id=USER_ID)
+            if _due:
+                _urgent = sum(1 for d in _due if d.get("urgency") == "紧急")
+                _msg = f"⏰ 待复习 {len(_due)} 条"
+                if _urgent:
+                    _msg += f"，其中 {_urgent} 条很紧急"
+                st.toast(_msg, icon="⏰")
+        elif page == "笔记管理":
+            _total = metadata_store.count(user_id=USER_ID)
+            if _total == 0:
+                st.toast("📝 还没有笔记，去「导入笔记」添加第一条吧", icon="📝")
+            else:
+                st.toast(f"📚 知识库共 {_total} 条笔记", icon="📚")
+        elif page == "知识广场":
+            st.toast("🌐 输入关键词即可内嵌浏览并一键收藏", icon="🌐")
+        elif page == "知识问答":
+            st.toast("💬 可以直接问我你记录过的知识", icon="💬")
+        elif page == "知识图谱":
+            st.toast("🕸️ 看看你的知识点之间有哪些隐藏联系", icon="🕸️")
+        elif page == "学习路径":
+            st.toast("🧭 这里会按复习曲线为你规划学习顺序", icon="🧭")
+        elif page == "设置":
+            st.toast("⚙️ 配置 API Key 后即可使用 AI 问答", icon="⚙️")
+    except Exception:
+        pass
 
 # ─── 侧边栏导航 ───
 st.sidebar.markdown("""
@@ -356,6 +419,13 @@ page = st.sidebar.radio(
     index=0,
 )
 
+# 检测模块切换 → 触发数据驱动提醒（首次进入不弹，避免与登录提醒重复）
+_prev_page = st.session_state.get("_prev_page")
+if _prev_page != page:
+    st.session_state["_prev_page"] = page
+    if _prev_page is not None:
+        _page_tip(page)
+
 st.sidebar.divider()
 stats_count = metadata_store.count(user_id=USER_ID)
 st.sidebar.metric("知识库笔记数", stats_count)
@@ -368,6 +438,9 @@ if st.sidebar.button("退出登录", use_container_width=True):
     if "chat_history" in st.session_state:
         del st.session_state.chat_history
     st.session_state["_due_toast_shown"] = False
+    st.session_state["_last_review_push"] = 0
+    st.session_state["_page_tips_shown"] = []
+    st.session_state["_prev_page"] = None
     st.rerun()
 
 
