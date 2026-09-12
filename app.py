@@ -1221,16 +1221,17 @@ elif page == "知识广场":
         with c_b:
             do_search = st.button("🔍 搜索", type="primary", use_container_width=True)
 
-        # 内嵌浏览器开关：始终显示；无关键词时禁用
+        # 内嵌浏览器开关：始终可点（不再因无关键词而禁用，避免看起来"无法访问"）
         iframe_toggle = st.toggle(
             "🖥️ 内嵌浏览器直接浏览搜索结果页",
-            value=st.session_state.get("kg_embed_on", False),
             key="kg_embed_on",
-            disabled=not search_query.strip(),
-            help="在页面内嵌 Bing 的真实搜索结果页面，可直接在应用里点击浏览原文。输入关键词后启用。",
+            help="在页面内嵌 Bing 的真实搜索结果页面，可直接在应用里点击浏览原文。",
         )
-        if iframe_toggle and search_query.strip():
-            st.components.v1.iframe(bing_search_iframe_url(search_query), height=720, scrolling=True)
+        if iframe_toggle:
+            if search_query.strip():
+                st.components.v1.iframe(bing_search_iframe_url(search_query), height=720, scrolling=True)
+            else:
+                st.info("👆 请先在上方输入关键词并回车，内嵌浏览器会自动加载搜索结果页。")
 
         if search_query.strip() and do_search:
             with st.spinner("正在检索（Bing）..."):
