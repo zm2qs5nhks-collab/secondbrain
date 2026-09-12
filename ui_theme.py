@@ -205,43 +205,25 @@ MAIN_CSS = r"""
 }
 [data-testid="stApp"]::before{content:'';position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.5;
   background-image:radial-gradient(rgba(150,130,100,.35) .6px, transparent .6px);background-size:3px 3px;}
-/* 桌面端隐藏 header/toolbar（部署按钮、全屏等），移动端保留（否则原生的 >>>/<<< 侧边栏按钮会被一起藏掉） */
-@media (min-width:769px){
-  [data-testid="stHeader"]{display:none}
-  [data-testid="stToolbar"]{display:none}
+/* 隐藏 Streamlit 原生顶栏，保持手帐干净。注意：DOM 仍保留，
+   侧边栏切换按钮(stExpandSidebarButton/stSidebarCollapseButton)依旧可被程序化点击 */
+[data-testid="stHeader"]{display:none!important}
+[data-testid="stToolbar"]{display:none!important}
+/* 自定义侧边栏切换按钮：固定在左上角，任何屏幕尺寸都清晰可见、可点 */
+.sb-toggle{
+  position:fixed;left:.6rem;top:.6rem;z-index:2147483000;
+  display:inline-flex;align-items:center;gap:.35rem;
+  padding:.42rem .8rem;border-radius:999px;
+  background:var(--sticky-y);border:2px solid #e0c76f;
+  box-shadow:0 3px 0 rgba(80,60,20,.2),0 8px 16px rgba(80,60,20,.18);
+  font-family:'Ma Shan Zheng',cursive;font-size:1.05rem;color:#2b2b2b;
+  cursor:pointer;user-select:none;-webkit-user-select:none;touch-action:manipulation;
+  transition:transform .12s,background .12s;white-space:nowrap;
 }
-@media (max-width:768px){
-  /* 恢复 header 与 toolbar，让原生 stExpandSidebarButton / stSidebarCollapseButton 可点 */
-  [data-testid="stHeader"]{display:flex;background:transparent!important;box-shadow:none!important;border:none!important;pointer-events:none;}
-  [data-testid="stToolbar"]{display:flex!important;pointer-events:auto;}
-  /* 放大原生 >>> / <<< 为醒目手帐圆钮 + 「菜单」标签提示 */
-  [data-testid="stExpandSidebarButton"],
-  [data-testid="stSidebarCollapseButton"]{
-    position:relative!important;
-    display:flex!important;align-items:center;justify-content:center;
-    width:44px!important;height:44px!important;margin:.35rem!important;
-    border-radius:50%!important;
-    background:var(--sticky-y)!important;
-    border:2px solid #e0c76f!important;
-    box-shadow:0 3px 0 rgba(80,60,20,.2),0 8px 16px rgba(80,60,20,.18)!important;
-  }
-  [data-testid="stExpandSidebarButton"]:hover,
-  [data-testid="stSidebarCollapseButton"]:hover{background:#ffe29c!important;}
-  [data-testid="stExpandSidebarButton"] svg,
-  [data-testid="stSidebarCollapseButton"] svg{width:22px!important;height:22px!important;color:#2b2b2b!important;fill:#2b2b2b!important;}
-  [data-testid="stExpandSidebarButton"]::after,
-  [data-testid="stSidebarCollapseButton"]::after{
-    content:'≡ 菜单';display:block;position:absolute;left:50%;top:calc(100% + 6px);
-    transform:translateX(-50%);white-space:nowrap;
-    font-family:'Ma Shan Zheng',cursive;font-size:.9rem;color:#2b2b2b;
-    background:rgba(255,255,255,.7);border:1px solid rgba(80,60,20,.25);
-    border-radius:999px;padding:.05rem .55rem;line-height:1.3;
-  }
-  @keyframes mobSbPulse{0%,100%{box-shadow:0 3px 0 rgba(80,60,20,.2),0 0 0 0 rgba(224,199,111,.55)}50%{box-shadow:0 3px 0 rgba(80,60,20,.2),0 0 0 9px rgba(224,199,111,0)}}
-  [data-testid="stExpandSidebarButton"]{animation:mobSbPulse 1.8s infinite;}
-  /* 页面主体留出按钮空间 */
-  .block-container{padding-left:1rem!important;padding-right:1rem!important;}
-}
+.sb-toggle:hover{background:#ffe29c;}
+.sb-toggle:active{transform:scale(.94);}
+.sb-toggle .sb-ico{font-size:1.1rem;line-height:1;}
+
 /* toast 适配手帐浅色主题（默认深色在浅色背景下看不清） */
 [data-testid="stToast"]{
   background:#fffdf4!important;color:#2b2b2b!important;

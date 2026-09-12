@@ -8,6 +8,7 @@ import os
 sys.path.insert(0, os.path.dirname(__file__))
 
 import streamlit as st
+import streamlit.components.v1 as components
 import json
 import time
 from pathlib import Path
@@ -266,6 +267,19 @@ if st.session_state.user_id is None:
                         st.session_state.auth_mode = "login"
                         st.rerun()
 
+    # 未登录：清理可能残留的侧边栏切换按钮（退出登录后）
+    components.html(
+        """
+<script>
+(function(){
+  var d = window.parent.document;
+  var e = d.getElementById('sbToggle'); if (e) e.remove();
+})();
+</script>
+""",
+        height=0,
+    )
+
     st.stop()
 
 # ─── 登录成功 ───
@@ -288,6 +302,36 @@ from ui_theme import apply_main_theme, page_header, render_sticky, notebook_line
 
 # ── 全局手帐皮肤（含侧边栏牛皮纸 + 全部控件）──
 apply_main_theme()
+
+# ── 侧边栏切换按钮：用 components.html 注入到父页面（固定左上角，点击原生 >>>/<<<）──
+# 说明：st.markdown 的 unsafe_allow_html 会过滤掉 onclick，故必须走组件 iframe。
+# 每次 rerun 都移除并重建，避免旧 iframe realm 销毁后处理器失效。
+components.html(
+    """
+<script>
+(function(){
+  var d = window.parent.document;
+  var old = d.getElementById('sbToggle');
+  if (old) old.remove();
+  var el = d.createElement('div');
+  el.id = 'sbToggle';
+  el.className = 'sb-toggle';
+  el.setAttribute('role','button');
+  el.setAttribute('aria-label','展开或收起侧边栏');
+  el.innerHTML = '<span class="sb-ico">\\u2630</span><span>菜单</span>';
+  el.onclick = function(){
+    var sb = d.querySelector('[data-testid=stSidebar]');
+    var exp = sb && sb.getAttribute('aria-expanded') === 'true';
+    var b = exp ? d.querySelector('[data-testid=stSidebarCollapseButton] button')
+                : d.querySelector('button[data-testid=stExpandSidebarButton]');
+    if (b) b.click();
+  };
+  d.body.appendChild(el);
+})();
+</script>
+""",
+    height=0,
+)
 
 # ── 主动推送：登录后若有待复习笔记，右上角 toast 弹出提醒（每会话仅一次）──
 if not st.session_state.get("_due_toast_shown"):
