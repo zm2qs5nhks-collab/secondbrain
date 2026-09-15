@@ -511,39 +511,36 @@ if page == "仪表盘":
           <h3 style="font-family:'Ma Shan Zheng',cursive;color:var(--ink);margin:0">📄 最近记的</h3>
           <span style="font-family:'Caveat',cursive;color:var(--pen)">翻到「笔记管理」→</span>
         </div>
-        <div style="background:repeating-linear-gradient(transparent,transparent 33px,var(--paper-edge) 33px,var(--paper-edge) 34px),var(--paper);
-          border:2px solid var(--paper-edge);border-radius:14px;padding:.8rem 1rem;
-          box-shadow:0 3px 0 rgba(90,70,40,.07)">
         """, unsafe_allow_html=True)
-        if all_notes:
-            for note in all_notes[:8]:
-                tags_str = " ".join([f"`{t}`" for t in note.get("tags", [])])
-                imp = "🔴" if note.get("importance") == "high" else "🔵"
-                st.markdown(f"{imp} **{note['id']}** — {note['preview']}")
-                if tags_str:
-                    st.caption(tags_str)
-        else:
-            st.info("知识库还是空的，去「导入笔记」添加第一条吧！")
-        st.markdown("</div>", unsafe_allow_html=True)
+        with st.container():
+            st.markdown('<span class="hb-card"></span>', unsafe_allow_html=True)
+            if all_notes:
+                for note in all_notes[:8]:
+                    tags_str = " ".join([f"`{t}`" for t in note.get("tags", [])])
+                    imp = "🔴" if note.get("importance") == "high" else "🔵"
+                    st.markdown(f"{imp} **{note['id']}** — {note['preview']}")
+                    if tags_str:
+                        st.caption(tags_str)
+            else:
+                st.info("知识库还是空的，去「导入笔记」添加第一条吧！")
 
     with col_right:
         st.markdown("""
-        <div style="background:var(--paper);border:2px solid var(--paper-edge);border-radius:14px;padding:.8rem 1rem;
-          box-shadow:0 3px 0 rgba(90,70,40,.07)">
-          <h3 style="font-family:'Ma Shan Zheng',cursive;color:var(--ink);margin:0 0 .5rem">🎨 标签热度</h3>
+        <h3 style="font-family:'Ma Shan Zheng',cursive;color:var(--ink);margin:0 0 .5rem">🎨 标签热度</h3>
         """, unsafe_allow_html=True)
-        if tags_set:
-            tag_counts = {}
-            for n in all_notes:
-                for t in n.get("tags", []):
-                    tag_counts[t] = tag_counts.get(t, 0) + 1
-            sorted_tags = sorted(tag_counts.items(), key=lambda x: x[1], reverse=True)
-            for tag, cnt in sorted_tags[:10]:
-                st.markdown(f"**{tag}** `×{cnt}`")
-                st.progress(min(cnt / max(tag_counts.values()), 1.0))
-        else:
-            st.caption("暂无标签数据")
-        st.markdown("</div>", unsafe_allow_html=True)
+        with st.container():
+            st.markdown('<span class="hb-card"></span>', unsafe_allow_html=True)
+            if tags_set:
+                tag_counts = {}
+                for n in all_notes:
+                    for t in n.get("tags", []):
+                        tag_counts[t] = tag_counts.get(t, 0) + 1
+                sorted_tags = sorted(tag_counts.items(), key=lambda x: x[1], reverse=True)
+                for tag, cnt in sorted_tags[:10]:
+                    st.markdown(f"**{tag}** `×{cnt}`")
+                    st.progress(min(cnt / max(tag_counts.values()), 1.0))
+            else:
+                st.caption("暂无标签数据")
 
 # ═══════════════════════════════════════════
 #  页面二：知识问答（对话）
@@ -863,6 +860,7 @@ elif page == "复习提醒":
                 )
 
                 with st.container():
+                    st.markdown('<span class="hb-card"></span>', unsafe_allow_html=True)
                     st.markdown(f"### {urgency_color} {r['urgency']} — {preview}")
                     col_a, col_b, col_c = st.columns(3)
                     col_a.metric("记忆保留率", f"{r['retention']*100:.0f}%")
@@ -1242,6 +1240,7 @@ elif page == "学习路径":
             label = {"high": "紧急复习", "medium": "建议复习", "explore": "拓展深入"}.get(urgency, "一般")
 
             with st.container():
+                st.markdown('<span class="hb-card"></span>', unsafe_allow_html=True)
                 st.markdown(f"### {icon} **{tag}** — {label}")
                 st.markdown(f"💡 {reason}")
                 st.caption(f"涉及 {total} 条笔记")
@@ -1265,11 +1264,13 @@ elif page == "学习路径":
         for wn in weak_notes:
             ret = wn["retention"]
             tags_str = " ".join([f"`{t}`" for t in wn["tags"]])
-            st.markdown(
-                f"🔴 **{wn['preview']}** — 保留率 {ret*100:.0f}%"
-            )
-            if tags_str:
-                st.caption(tags_str)
+            with st.container():
+                st.markdown('<span class="hb-card"></span>', unsafe_allow_html=True)
+                st.markdown(
+                    f"🔴 **{wn['preview']}** — 保留率 {ret*100:.0f}%"
+                )
+                if tags_str:
+                    st.caption(tags_str)
     else:
         st.success("没有需要紧急复习的笔记，表现优秀！")
 

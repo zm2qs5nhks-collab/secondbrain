@@ -359,6 +359,16 @@ MAIN_CSS = r"""
   border-radius:14px!important;box-shadow:0 3px 0 rgba(90,70,40,.07)!important;}
 [data-testid="stExpander"] summary{font-family:'Ma Shan Zheng',cursive!important;border-radius:12px;padding:.5rem .8rem!important;}
 
+/* 手帐卡片容器：在 st.container() 内放 <span class="hb-card"></span> 即可给整块套上纸卡框 */
+.hb-card{display:none!important;}
+[data-testid="stVerticalBlock"]:has(> [data-testid="stElementContainer"] .hb-card){
+  background:var(--paper)!important;
+  border:2px solid var(--paper-edge)!important;
+  border-radius:14px!important;
+  padding:.85rem 1rem!important;
+  box-shadow:0 3px 0 rgba(90,70,40,.07)!important;
+}
+
 /* 指标 */
 [data-testid="stMetric"]{background:var(--paper)!important;border:2px solid var(--paper-edge)!important;
   border-radius:14px!important;padding:.7rem 1rem!important;box-shadow:0 2px 0 rgba(90,70,40,.07)!important;}
