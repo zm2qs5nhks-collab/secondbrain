@@ -512,17 +512,17 @@ if page == "仪表盘":
           <span style="font-family:'Caveat',cursive;color:var(--pen)">翻到「笔记管理」→</span>
         </div>
         """, unsafe_allow_html=True)
-        with st.container():
-            st.markdown('<span class="hb-card"></span>', unsafe_allow_html=True)
-            if all_notes:
-                for note in all_notes[:8]:
-                    tags_str = " ".join([f"`{t}`" for t in note.get("tags", [])])
-                    imp = "🔴" if note.get("importance") == "high" else "🔵"
+        if all_notes:
+            for note in all_notes[:8]:
+                tags_str = " ".join([f"`{t}`" for t in note.get("tags", [])])
+                imp = "🔴" if note.get("importance") == "high" else "🔵"
+                with st.container():
+                    st.markdown('<span class="hb-card hb-lines"></span>', unsafe_allow_html=True)
                     st.markdown(f"{imp} **{note['id']}** — {note['preview']}")
                     if tags_str:
                         st.caption(tags_str)
-            else:
-                st.info("知识库还是空的，去「导入笔记」添加第一条吧！")
+        else:
+            st.info("知识库还是空的，去「导入笔记」添加第一条吧！")
 
     with col_right:
         st.markdown("""
