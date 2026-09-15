@@ -495,13 +495,19 @@ if page == "仪表盘":
         tags_set.update(n.get("tags", []))
     high_imp = sum(1 for n in all_notes if n.get("importance") == "high")
     reminders = fc.get_notes_for_review(user_id=USER_ID)
-    _week_ago = time.time() - 7 * 86400
-    _new_week = sum(1 for n in all_notes if (n.get("created_at") or 0) > _week_ago)
+    _today0 = datetime.datetime.now().replace(hour=0, minute=0, second=0, microsecond=0).timestamp()
+    _notes_today = sum(1 for n in all_notes if (n.get("created_at") or 0) >= _today0)
+    _tags_today = set()
+    for _n in all_notes:
+        if (_n.get("created_at") or 0) >= _today0:
+            _tags_today.update(_n.get("tags", []))
 
-    c1.metric("📝 总笔记数", total, delta=f"+{_new_week} 本周" if _new_week else None)
-    c2.metric("🏷️ 标签种类", len(tags_set))
+    c1.metric("📝 总笔记数", total,
+              delta=f"+{_notes_today} 今天", delta_color="normal" if _notes_today else "off")
+    c2.metric("🏷️ 标签种类", len(tags_set),
+              delta=f"+{len(_tags_today)} 今天", delta_color="normal" if _tags_today else "off")
     c3.metric("⭐ 高重要度", high_imp,
-              delta=f"占比 {round(high_imp / total * 100)}%" if total else None, delta_color="off")
+              delta=f"占比 {round(high_imp / total * 100)}%" if total else "暂无", delta_color="off")
     c4.metric("📖 待复习", len(reminders),
               delta="需要处理" if reminders else "已清空", delta_color="off")
 
