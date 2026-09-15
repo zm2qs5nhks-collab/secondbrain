@@ -1,0 +1,19 @@
+[Unit]
+Description=Second Brain API + MCP Server (FastAPI + Streamable HTTP MCP)
+After=network.target postgresql.service
+Wants=postgresql.service
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/secondbrain
+# 同时提供 REST(/api/*) 与 MCP(/mcp)
+ExecStart=/root/secondbrain/venv/bin/uvicorn api:app --host 0.0.0.0 --port 8000
+Restart=on-failure
+RestartSec=5
+Environment=PYTHONUNBUFFERED=1
+# 如需显式加载环境变量（默认会读取 WorkingDirectory 下的 .env）：
+# EnvironmentFile=/root/secondbrain/.env
+
+[Install]
+WantedBy=multi-user.target

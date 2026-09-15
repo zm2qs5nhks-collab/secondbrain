@@ -165,3 +165,35 @@ pip install -r requirements.txt   # 新增 mcp>=1.30,<2
 - 先登录取 Token：`POST /api/auth/login`（body: `{"email","password"}`）
 - MCP 地址：`http://<host>:8000/mcp`，请求头 `Authorization: Bearer <token>`
 - REST 业务端点不变，鉴权从「token=user_id」升级为「正规 API Token」
+
+---
+
+## 七、用 systemd 常驻服务（推荐）
+
+项目提供两个服务文件（`deploy/` 下）：
+- `secondbrain.service` —— Streamlit Web 界面（8501）
+- `secondbrain-api.service` —— REST + MCP（8000）
+
+安装并启动：
+
+```bash
+cp /root/secondbrain/deploy/secondbrain.service     /etc/systemd/system/
+cp /root/secondbrain/deploy/secondbrain-api.service /etc/systemd/system/
+systemctl daemon-reload
+systemctl enable --now secondbrain secondbrain-api
+
+# 查看状态与日志
+systemctl status secondbrain-api --no-pager
+journalctl -u secondbrain-api -n 50 --no-pager
+```
+
+更新代码后重启：
+
+```bash
+cd /root/secondbrain && git pull   # 或按上文用 zip 覆盖
+venv/bin/pip install -r requirements.txt
+systemctl restart secondbrain-api secondbrain
+```
+
+> 提示：API 进程同时提供 `/api/*` 与 `/mcp`；Streamlit 是独立进程，两者互不影响。
+> 若只跑其中一个，按需 `enable --now` 对应服务即可。
