@@ -9,6 +9,7 @@ import hashlib
 import hmac
 import time
 import json
+from contextlib import asynccontextmanager
 from pathlib import Path
 from fastapi import FastAPI, Request, HTTPException
 from fastapi.responses import JSONResponse
@@ -23,23 +24,40 @@ XIAOYI_AK = os.getenv("XIAOYI_AK", "")
 XIAOYI_SK = os.getenv("XIAOYI_SK", "")
 API_SECRET_KEY = os.getenv("API_SECRET_KEY", "")
 
-app = FastAPI(title="第二大脑 API", version="3.0")
+from storage.api_tokens import verify_token, create_token, list_tokens, revoke_token
+
+
+@asynccontextmanager
+async def _lifespan(app: FastAPI):
+    # 运行 MCP Streamable HTTP 的会话管理器（未安装 mcp 时不影响 REST）
+    try:
+        from mcp_server import mcp as _mcp
+        async with _mcp.session_manager.run():
+            yield
+    except Exception:
+        yield
+
+
+app = FastAPI(title="第二大脑 API", version="3.0", lifespan=_lifespan)
+
+# 挂载 MCP（Streamable HTTP）：客户端地址 http(s)://<host>/mcp
+try:
+    from mcp_server import mcp as _mcp
+    app.mount("/mcp", _mcp.streamable_http_app())
+except Exception as _e:  # pragma: no cover
+    print(f"[api] MCP 未挂载: {_e}")
 
 
 def _get_user_id_from_token(request: Request) -> str:
-    """从 Authorization header 中提取 user_id"""
+    """从 Authorization: Bearer <api_token> 解析并校验用户"""
     auth_header = request.headers.get("Authorization", "")
-    if not auth_header.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="缺少 Authorization 头")
-    token = auth_header.replace("Bearer ", "")
-    if not token:
-        raise HTTPException(status_code=401, detail="Token 为空")
-
-    from storage.db import query_one
-    user = query_one("SELECT id FROM users WHERE id = %s", (token,))
-    if user:
-        return str(user["id"])
-    raise HTTPException(status_code=401, detail="Token 无效或已过期")
+    if not auth_header.lower().startswith("bearer "):
+        raise HTTPException(status_code=401, detail="缺少 Authorization: Bearer <token> 头")
+    token = auth_header[7:].strip()
+    user_id = verify_token(token)
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Token 无效或已撤销")
+    return user_id
 
 
 def verify_ak_sk(request: Request):
@@ -94,6 +112,52 @@ class GraphRequest(BaseModel):
     content: str = ""
     node: str = ""
     max_hops: int = 2
+
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+class TokenCreateRequest(BaseModel):
+    name: str = "default"
+
+
+@app.post("/api/auth/login")
+async def auth_login(req: LoginRequest):
+    """邮箱+密码换取 API Token（供 REST / MCP 客户端使用）"""
+    if not req.email or not req.password:
+        raise HTTPException(status_code=400, detail="邮箱和密码不能为空")
+    pwd_hash = hashlib.sha256(req.password.encode()).hexdigest()
+    from storage.db import query_one
+    user = query_one(
+        "SELECT id, email FROM users WHERE email = %s AND password_hash = %s",
+        (req.email, pwd_hash),
+    )
+    if not user:
+        raise HTTPException(status_code=401, detail="邮箱或密码错误")
+    token = create_token(str(user["id"]), name="login")
+    return {"status": "success", "token": token, "user_id": str(user["id"]), "email": user["email"]}
+
+
+@app.get("/api/tokens")
+async def tokens_list(request: Request):
+    user_id = _get_user_id_from_token(request)
+    return {"tokens": list_tokens(user_id)}
+
+
+@app.post("/api/tokens")
+async def tokens_create(request: Request, req: Optional[TokenCreateRequest] = None):
+    user_id = _get_user_id_from_token(request)
+    name = (req.name if req else None) or "default"
+    token = create_token(user_id, name=name)
+    return {"status": "success", "token": token}
+
+
+@app.delete("/api/tokens/{token_id}")
+async def tokens_revoke(token_id: str, request: Request):
+    user_id = _get_user_id_from_token(request)
+    if not revoke_token(user_id, token_id):
+        raise HTTPException(status_code=404, detail="Token 不存在")
+    return {"status": "success"}
 
 
 @app.post("/api/add_note")

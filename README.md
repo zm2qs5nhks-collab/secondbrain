@@ -54,3 +54,48 @@ A: 在 Supabase 的 SQL Editor 中执行 `setup_supabase.sql`。
 
 **Q: 知识图谱功能报错？**
 A: 确保网络能访问 DeepSeek API，知识图谱需要调用 LLM 抽取实体。
+
+## 接入智能体（MCP / REST / Skills）
+
+Web 界面之外，本项目还提供两种外部接入方式，**共用同一套 `tools/*` 与数据库**。
+
+### 1. 获取 API Token
+```bash
+curl -X POST http://<host>:8000/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"you@example.com","password":"你的密码"}'
+# -> {"status":"success","token":"sb_...","user_id":"...","email":"..."}
+```
+
+### 2. MCP（Claude Desktop / Claude Code / Cursor 等）
+- 地址：`http(s)://<host>:8000/mcp`
+- 鉴权：请求头 `Authorization: Bearer <token>`
+
+Claude Code：
+```bash
+claude mcp add --transport http second-brain http://<host>:8000/mcp \
+  --header "Authorization: Bearer sb_xxx"
+```
+
+Claude Desktop（`claude_desktop_config.json`）：
+```json
+{
+  "mcpServers": {
+    "second-brain": {
+      "type": "http",
+      "url": "http://<host>:8000/mcp",
+      "headers": { "Authorization": "Bearer sb_xxx" }
+    }
+  }
+}
+```
+
+暴露的 MCP 工具：`add_knowledge`、`search_knowledge`、`manage_knowledge`、`send_reminder`、`fetch_web_content`、`knowledge_graph`。
+
+### 3. REST（小艺 / Coze / Dify 等 OpenAPI 插件）
+- 业务：`POST /api/add_note`、`/api/search`、`/api/reminders`、`/api/manage`、`/api/fetch_web`、`/api/knowledge_graph`
+- Token 管理：`GET /api/tokens`、`POST /api/tokens`、`DELETE /api/tokens/{id}`
+- 健康检查：`GET /api/health`
+
+### 4. Skills（Claude 系）
+`skills/` 提供 `knowledge-capture`、`spaced-review`、`knowledge-graph` 三个技能（含 `SKILL.md` 与可直接调 REST 的脚本），告诉智能体「何时用哪个工具」。

@@ -139,3 +139,29 @@ A: 部分网站有反爬机制，这是正常的。可以在浏览器中先确�
 
 **Q: 数据会丢失吗？**
 A: 不会。所有数据存储在 Supabase 云端，只要不删除 Supabase 项目，数据永久保存。
+
+---
+
+## 六、接入智能体（MCP / REST）
+
+API 服务（`api.py`）现在**同时**提供 REST 与 MCP（Streamable HTTP），启动方式不变：
+
+```bash
+uvicorn api:app --host 0.0.0.0 --port 8000
+```
+
+### 1. 执行 Token 表迁移（首次升级必做）
+```bash
+psql -U secondbrain -d secondbrain -f migrations/add_api_tokens.sql
+# 或重新执行 setup_postgresql.sql（含 IF NOT EXISTS，可重复执行）
+```
+
+### 2. 安装新依赖
+```bash
+pip install -r requirements.txt   # 新增 mcp>=1.30,<2
+```
+
+### 3. 使用
+- 先登录取 Token：`POST /api/auth/login`（body: `{"email","password"}`）
+- MCP 地址：`http://<host>:8000/mcp`，请求头 `Authorization: Bearer <token>`
+- REST 业务端点不变，鉴权从「token=user_id」升级为「正规 API Token」
