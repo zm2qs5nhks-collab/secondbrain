@@ -234,6 +234,15 @@ MAIN_CSS = r"""
 [data-testid="stToast"] [data-testid="stToastDynamicIcon"]{color:var(--pen)!important;}
 [data-testid="stToast"] button{color:#2b2b2b!important;background:transparent!important;}
 
+/* 笔记完整内容：只读纸张盒子（替代有 key/value 冲突的 disabled text_area） */
+.note-full-content{
+  white-space:pre-wrap;word-break:break-word;
+  background:#fffdf6;border:2px solid var(--paper-edge);border-radius:12px;
+  padding:.85rem 1rem;max-height:320px;overflow-y:auto;
+  font-family:'ZCOOL XiaoWei',serif;color:var(--ink);line-height:1.75;font-size:1rem;
+  box-shadow:inset 0 2px 6px rgba(90,70,40,.06);
+}
+
 /* ── 侧边栏 = 牛皮纸装订册 ── */
 [data-testid="stSidebar"]{
   background:

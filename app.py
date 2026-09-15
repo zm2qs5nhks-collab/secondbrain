@@ -819,12 +819,15 @@ elif page == "笔记管理":
                 st.caption(f"记忆保留率: {retention*100:.0f}%")
 
                 from storage.vector_store import get_note_full_content
+                import html as _html
                 full_content = get_note_full_content(note["id"], user_id=USER_ID)
                 if full_content:
                     st.markdown("---")
                     st.markdown("**完整内容：**")
-                    st.text_area("笔记内容", value=full_content, height=200,
-                                 disabled=True, key=f"content_{note['id']}")
+                    st.markdown(
+                        f'<div class="note-full-content">{_html.escape(full_content)}</div>',
+                        unsafe_allow_html=True,
+                    )
                 else:
                     st.info("完整内容未找到（可能是旧数据，重新添加笔记即可）")
 
