@@ -91,4 +91,8 @@ def execute(sql: str, params=None):
 
 
 def execute_returning(sql: str, params=None) -> dict | None:
-    return _run(sql, params, fetch=True, returning=True)
+    # 注意：fetch=True 分支不会自动 commit，写操作(INSERT/UPDATE ... RETURNING)必须手动提交，
+    # 否则数据停留在未提交事务中，只有同一连接可见（其他连接/进程看不到）
+    result = _run(sql, params, fetch=True, returning=True)
+    get_conn().commit()
+    return result
