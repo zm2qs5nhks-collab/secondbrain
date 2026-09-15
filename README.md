@@ -60,6 +60,10 @@ A: 确保网络能访问 DeepSeek API，知识图谱需要调用 LLM 抽取实�
 Web 界面之外，本项目还提供两种外部接入方式，**共用同一套 `tools/*` 与数据库**。
 
 ### 1. 获取 API Token
+**方式一（推荐，普通用户）**：登录网页 → 左侧「设置」→「🔑 接入智能体」→ 点「生成新 Token」→ 复制保存。
+> 需在 `.env` 配置 `PUBLIC_BASE_URL`（如 `http://39.96.27.17:8000`），页面才会显示正确地址。
+
+**方式二（命令行）**：
 ```bash
 curl -X POST http://<host>:8000/api/auth/login \
   -H "Content-Type: application/json" \

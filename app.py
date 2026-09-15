@@ -1466,6 +1466,50 @@ else:  # 页面九：设置
         st.success("已重置，页面刷新后将使用 .env 中的配置")
         st.rerun()
 
+    # ── API Token：接入智能体 ──
+    _base = config.PUBLIC_BASE_URL or "http://<你的服务器>:8000"
+    st.markdown(f"""
+    <div class="setpanel" style="position:relative;background:var(--paper);border:2px solid var(--paper-edge);
+      border-radius:14px;padding:1.1rem 1.2rem;margin-bottom:1rem;box-shadow:0 2px 0 rgba(90,70,40,.06)">
+      <div class="tape"></div>
+      <h3 style="font-family:'Ma Shan Zheng',cursive;color:var(--ink);margin:0 0 .4rem">🔑 接入智能体（API Token）</h3>
+      <p style="font-family:'ZCOOL XiaoWei',serif;color:var(--ink-soft);margin:0">
+        把知识库接入 Claude / Cursor / Coze / Dify 等助手，需要一把钥匙（Token）。<br>
+        MCP 地址：<code>{_base}/mcp</code><br>
+        REST 地址：<code>{_base}/api</code>
+      </p>
+    </div>
+    """, unsafe_allow_html=True)
+
+    from storage import api_tokens as _tok
+    try:
+        if st.button("➕ 生成新 Token", type="primary"):
+            st.session_state["_new_token"] = _tok.create_token(USER_ID, name="web")
+        if st.session_state.get("_new_token"):
+            st.success("Token 已生成，请立即复制保存（只显示这一次）：")
+            st.code(st.session_state["_new_token"], language=None)
+            if st.button("我已保存，隐藏"):
+                st.session_state.pop("_new_token", None)
+                st.rerun()
+        _tokens = _tok.list_tokens(USER_ID)
+        if _tokens:
+            st.caption("已有 Token：")
+            for _t in _tokens:
+                _c1, _c2 = st.columns([4, 1])
+                with _c1:
+                    _state = "已撤销" if _t.get("revoked") else "有效"
+                    st.markdown(f"`{_t['token_prefix']}...` · {_t.get('name') or 'default'} · {_state}")
+                with _c2:
+                    if not _t.get("revoked"):
+                        if st.button("撤销", key=f"revoke_{_t['id']}"):
+                            _tok.revoke_token(USER_ID, str(_t["id"]))
+                            st.rerun()
+        else:
+            st.caption("还没有 Token，点上面按钮生成一个。")
+    except Exception as _e:
+        st.warning(f"Token 功能不可用（可能还没建表）：{_e}")
+        st.caption("请在服务器执行：psql -U secondbrain -d secondbrain -f migrations/add_api_tokens.sql")
+
     st.markdown("""
     <div class="setpanel" style="position:relative;background:var(--paper);border:2px solid var(--paper-edge);
       border-radius:14px;padding:1.1rem 1.2rem;margin-bottom:1rem;box-shadow:0 2px 0 rgba(90,70,40,.06)">

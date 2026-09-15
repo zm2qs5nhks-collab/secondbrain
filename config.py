@@ -28,6 +28,9 @@ DB_NAME = os.getenv("DB_NAME", "secondbrain")
 DB_USER = os.getenv("DB_USER", "secondbrain")
 DB_PASSWORD = os.getenv("DB_PASSWORD", "123456")
 
+# 对外暴露的 API/MCP 基地址（用于在网页里展示给用户接入智能体），如 http://39.96.27.17:8000
+PUBLIC_BASE_URL = os.getenv("PUBLIC_BASE_URL", "").rstrip("/")
+
 AGENT_MAX_ITERATIONS = 5
 RAG_CHUNK_SIZE = 500
 RAG_CHUNK_OVERLAP = 50
