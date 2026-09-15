@@ -495,13 +495,44 @@ if page == "仪表盘":
         tags_set.update(n.get("tags", []))
     high_imp = sum(1 for n in all_notes if n.get("importance") == "high")
     reminders = fc.get_notes_for_review(user_id=USER_ID)
+    _week_ago = time.time() - 7 * 86400
+    _new_week = sum(1 for n in all_notes if (n.get("created_at") or 0) > _week_ago)
 
-    c1.metric("📝 总笔记数", total)
+    c1.metric("📝 总笔记数", total, delta=f"+{_new_week} 本周" if _new_week else None)
     c2.metric("🏷️ 标签种类", len(tags_set))
-    c3.metric("⭐ 高重要度", high_imp)
-    c4.metric("📖 待复习", len(reminders))
+    c3.metric("⭐ 高重要度", high_imp,
+              delta=f"占比 {round(high_imp / total * 100)}%" if total else None, delta_color="off")
+    c4.metric("📖 待复习", len(reminders),
+              delta="需要处理" if reminders else "已清空", delta_color="off")
 
     notebook_line()
+
+    def _rel_time(ts):
+        if not ts:
+            return ""
+        d = time.time() - ts
+        if d < 60:
+            return "刚刚"
+        if d < 3600:
+            return f"{int(d // 60)} 分钟前"
+        if d < 86400:
+            return f"{int(d // 3600)} 小时前"
+        if d < 172800:
+            return "昨天"
+        return f"{int(d // 86400)} 天前"
+
+    def _note_icon(note):
+        src = (note.get("source") or "").lower()
+        tags = [str(t).lower() for t in (note.get("tags") or [])]
+        if src == "web":
+            return "🌐"
+        if src == "api":
+            return "🔌"
+        if any("python" in t for t in tags):
+            return "🐍"
+        if any(("数据" in t) or ("sql" in t) or ("mysql" in t) for t in tags):
+            return "🗄️"
+        return "📄"
 
     col_left, col_right = st.columns([2, 1])
 
@@ -516,11 +547,14 @@ if page == "仪表盘":
             for note in all_notes[:8]:
                 tags_str = " ".join([f"`{t}`" for t in note.get("tags", [])])
                 imp = "🔴" if note.get("importance") == "high" else "🔵"
+                icon = _note_icon(note)
+                when = _rel_time(note.get("created_at"))
                 with st.container():
                     st.markdown('<span class="hb-card hb-lines"></span>', unsafe_allow_html=True)
-                    st.markdown(f"{imp} **{note['id']}** — {note['preview']}")
-                    if tags_str:
-                        st.caption(tags_str)
+                    st.markdown(f"{imp} {icon} **{note['id']}** — {note['preview']}")
+                    _meta = "　".join(x for x in [tags_str, when] if x)
+                    if _meta:
+                        st.caption(_meta)
         else:
             st.info("知识库还是空的，去「导入笔记」添加第一条吧！")
 
