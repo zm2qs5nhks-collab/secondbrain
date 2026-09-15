@@ -368,9 +368,20 @@ MAIN_CSS = r"""
   padding:.85rem 1rem!important;
   box-shadow:0 3px 0 rgba(90,70,40,.07)!important;
 }
-/* 加 .hb-lines 标记 → 叠加笔记本横格线背景 */
+/* 隐藏标记元素自身占位，让内容从容器顶部开始 */
+[data-testid="stVerticalBlock"]:has(> [data-testid="stElementContainer"] .hb-card) > [data-testid="stElementContainer"]:first-child{
+  display:none!important;
+}
+/* 加 .hb-lines 标记 → 笔记本横格线；行高与线距一致，让文字坐在线上 */
 [data-testid="stVerticalBlock"]:has(> [data-testid="stElementContainer"] .hb-lines){
-  background:repeating-linear-gradient(transparent,transparent 33px,var(--paper-edge) 33px,var(--paper-edge) 34px),var(--paper)!important;
+  background:repeating-linear-gradient(transparent 0,transparent 33px,var(--paper-edge) 33px,var(--paper-edge) 34px),var(--paper)!important;
+  padding:0 1rem!important;
+}
+[data-testid="stVerticalBlock"]:has(> [data-testid="stElementContainer"] .hb-lines) [data-testid="stMarkdownContainer"] p{
+  line-height:34px!important;margin:0!important;
+}
+[data-testid="stVerticalBlock"]:has(> [data-testid="stElementContainer"] .hb-lines) [data-testid="stCaptionContainer"]{
+  line-height:34px!important;margin:0!important;
 }
 
 /* 指标 */
