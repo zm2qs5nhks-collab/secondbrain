@@ -65,6 +65,14 @@ def _run(sql, params, fetch, returning):
         else:
             conn.commit()
             result = None
+    except Exception:
+        # 出错后必须回滚，否则连接会停在 "current transaction is aborted" 状态，
+        # 导致后续所有查询全部失败
+        try:
+            conn.rollback()
+        except Exception:
+            _reset()
+        raise
     finally:
         cur.close()
     return result
