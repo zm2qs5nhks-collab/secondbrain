@@ -1025,7 +1025,7 @@ elif page == "知识图谱":
     _arch_desc = {a["id"]: a["desc"] for a in _archs}
     _kg_view = current_kg()
 
-    _c1, _c2 = st.columns([2, 1])
+    _c1, _c2, _c3 = st.columns([2, 1, 1])
     with _c1:
         _sel_arch = st.selectbox(
             "🧩 图谱架构（选择你实际需要的结构）",
@@ -1037,8 +1037,13 @@ elif page == "知识图谱":
             _names = [n["name"] for n in _kg_view.get_all_nodes()]
             if _names:
                 _center = st.selectbox("中心节点", _names, key="kg_radial_center")
+    with _c3:
+        st.markdown("<div style='height:1.75rem'></div>", unsafe_allow_html=True)
+        _hide_iso = st.checkbox("隐藏无连线的孤立节点", key="kg_hide_isolated",
+                                help="只显示彼此有关系的节点，隐藏没有连线的孤立实体。")
     st.caption(f"📐 {_arch_desc[_sel_arch]}")
-    view = gv.build_view(_kg_view, _sel_arch, center=_center, note_tags=note_tags)
+    view = gv.build_view(_kg_view, _sel_arch, center=_center, note_tags=note_tags,
+                         hide_isolated=_hide_iso)
 
     tab_add, tab_pick, tab_viz, tab_reason, tab_analysis = st.tabs(["添加笔记", "选择笔记", "图谱总览", "多跳推理", "节点分析"])
 
@@ -1086,6 +1091,45 @@ elif page == "知识图谱":
                 st.rerun()
             else:
                 st.warning("未抽取到实体，请尝试更详细的内容。")
+
+        # ── 补抽缺失的笔记实体 ──
+        st.markdown("---")
+        st.subheader("🩹 补抽缺失的笔记实体")
+        st.caption("有些笔记可能因模型输出异常而没抽到实体。这里可以找出这些笔记并重新抽取。")
+        _graph_note_ids = set()
+        for _nd in kg.get_all_nodes():
+            _graph_note_ids.update(_nd.get("notes") or [])
+        _missing = [n for n in all_notes if n["id"] not in _graph_note_ids]
+        if not all_notes:
+            st.caption("暂无笔记。")
+        elif not _missing:
+            st.success("所有笔记都已在图谱中，无缺失。")
+        else:
+            st.info(f"发现 **{len(_missing)}** 条笔记在图谱中没有实体。")
+            if st.button(f"🔁 为这 {len(_missing)} 条笔记补抽实体", type="primary", key="kg_reextract"):
+                from storage.vector_store import get_note_full_content
+                _ok, _fail, _err = 0, 0, ""
+                _prog = st.progress(0.0)
+                for _i, _n in enumerate(_missing, 1):
+                    _content = get_note_full_content(_n["id"], user_id=USER_ID) or _n.get("preview", "")
+                    try:
+                        if _content.strip():
+                            _r = extract_from_text(_content)
+                            kg.add_entities(_r.get("entities", []), note_id=_n["id"])
+                            kg.add_relations(_r.get("relations", []), note_id=_n["id"])
+                            _ok += 1
+                        else:
+                            _fail += 1
+                    except Exception as _e:
+                        _fail += 1
+                        _err = f"{type(_e).__name__}: {_e}"
+                    _prog.progress(_i / len(_missing))
+                kg.save()
+                _msg = f"补抽完成：成功 {_ok} 条，失败 {_fail} 条。"
+                if _fail and _err:
+                    _msg += f" 最后一次错误：{_err}"
+                st.success(_msg)
+                st.rerun()
 
     with tab_pick:
         st.subheader("🗂️ 选择参与构建图谱的笔记")
@@ -1155,7 +1199,22 @@ elif page == "知识图谱":
             st.markdown(f"**当前架构：** {view['name']} ｜ **范围：** {scope_str}")
             if view.get("note"):
                 st.warning(view["note"])
-            components.html(gv.view_to_html(view, title="知识图谱"), height=780, scrolling=True)
+            if view["architecture"] == "list":
+                import pandas as _pd
+                st.markdown("**实体**")
+                st.dataframe(
+                    _pd.DataFrame([{"实体": n["id"], "类型": n["type"], "连接数": n["degree"],
+                                    "分组": n.get("group_label")} for n in view["nodes"]]),
+                    use_container_width=True, hide_index=True,
+                )
+                st.markdown("**关系**")
+                st.dataframe(
+                    _pd.DataFrame([{"源": e["source"], "关系": e["relation"],
+                                    "目标": e["target"], "类别": e["category"]} for e in view["edges"]]),
+                    use_container_width=True, hide_index=True,
+                )
+            else:
+                components.html(gv.view_to_html(view, title="知识图谱"), height=780, scrolling=True)
 
             st.markdown("---")
             col1, col2, col3 = st.columns(3)

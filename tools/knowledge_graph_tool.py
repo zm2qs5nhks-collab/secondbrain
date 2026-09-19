@@ -23,8 +23,12 @@ def get_schema() -> dict:
                     },
                     "architecture": {
                         "type": "string",
-                        "enum": ["concept", "hierarchy", "timeline", "causal", "flow", "radial", "community", "topic"],
-                        "description": "图谱架构（action=view 时使用）：concept 概念网络、hierarchy 层级树、timeline 时序线、causal 因果链、flow 流程图、radial 中心辐射、community 社区、topic 主题聚类",
+                        "enum": ["concept", "hierarchy", "timeline", "causal", "flow", "radial", "community", "topic", "list"],
+                        "description": "图谱架构（action=view 时使用）：concept 概念网络、hierarchy 层级树、timeline 时序线、causal 因果链、flow 流程图、radial 中心辐射、community 社区、topic 主题聚类、list 列表清单",
+                    },
+                    "hide_isolated": {
+                        "type": "boolean",
+                        "description": "是否隐藏无连线的孤立节点（action=view 时使用，默认 false）",
                     },
                     "center": {
                         "type": "string",
@@ -111,7 +115,8 @@ def execute(arguments: dict, user_id: str = None) -> str:
         from storage import graph_views as gv
         arch = arguments.get("architecture", "concept")
         center = arguments.get("center") or None
-        view = gv.build_view(kg, arch, center=center)
+        hide_iso = bool(arguments.get("hide_isolated", False))
+        view = gv.build_view(kg, arch, center=center, hide_isolated=hide_iso)
         return json.dumps({
             "architecture": view["architecture"],
             "name": view["name"],

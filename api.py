@@ -114,6 +114,7 @@ class GraphRequest(BaseModel):
     max_hops: int = 2
     graph_type: str = "concept"
     center: str = ""
+    hide_isolated: bool = False
 
 class LoginRequest(BaseModel):
     email: str
@@ -330,7 +331,8 @@ async def knowledge_graph_api(req: GraphRequest, request: Request):
 
     elif req.action == "view":
         from storage import graph_views as gv
-        view = gv.build_view(kg, req.graph_type or "concept", center=(req.center or None))
+        view = gv.build_view(kg, req.graph_type or "concept", center=(req.center or None),
+                             hide_isolated=req.hide_isolated)
         return {
             "architecture": view["architecture"],
             "name": view["name"],

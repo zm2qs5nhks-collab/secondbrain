@@ -3,17 +3,28 @@ LLM 实体关系抽取器
 """
 
 import json
+import re
 from agent.llm import chat_completion
 
 
 def extract_json(text: str) -> dict | list:
-    """从 LLM 输出中提取 JSON"""
-    text = text.strip()
+    """从 LLM 输出中稳健地提取 JSON（容忍 ```json 包裹、前后废话）"""
+    text = (text or "").strip()
     if text.startswith("```"):
-        lines = text.split("\n")
-        lines = [l for l in lines if not l.strip().startswith("```")]
-        text = "\n".join(lines)
-    return json.loads(text)
+        text = re.sub(r"^```[a-zA-Z]*\s*", "", text)
+        text = re.sub(r"\s*```$", "", text).strip()
+    try:
+        return json.loads(text)
+    except Exception:
+        pass
+    for op, cl in (("{", "}"), ("[", "]")):
+        i, j = text.find(op), text.rfind(cl)
+        if i != -1 and j != -1 and j > i:
+            try:
+                return json.loads(text[i:j + 1])
+            except Exception:
+                continue
+    raise ValueError("无法从模型输出中解析 JSON")
 
 
 SYSTEM_PROMPT = """你是一个知识图谱构建专家。你的任务是从笔记文本中提取实体和关系，并给每条关系标注「类别」。

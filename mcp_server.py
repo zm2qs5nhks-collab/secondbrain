@@ -119,8 +119,9 @@ def knowledge_graph_tool_fn(
     ctx: Context,
     action: Literal["add", "query", "discover", "stats", "view"],
     architecture: Literal["concept", "hierarchy", "timeline", "causal",
-                          "flow", "radial", "community", "topic"] = "concept",
+                          "flow", "radial", "community", "topic", "list"] = "concept",
     center: str = "",
+    hide_isolated: bool = False,
     content: str = "",
     node: str = "",
     max_hops: int = 2,
@@ -128,6 +129,6 @@ def knowledge_graph_tool_fn(
     return _call(
         "knowledge_graph",
         {"action": action, "architecture": architecture, "center": center,
-         "content": content, "node": node, "max_hops": max_hops},
+         "hide_isolated": hide_isolated, "content": content, "node": node, "max_hops": max_hops},
         ctx,
     )

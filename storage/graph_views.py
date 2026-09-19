@@ -31,6 +31,7 @@ ARCHITECTURES = [
     {"id": "radial",    "name": "中心辐射/思维导图", "desc": "以核心节点为中心向外发散"},
     {"id": "community", "name": "社区发现图",       "desc": "自动划分知识群体/社区"},
     {"id": "topic",     "name": "主题聚类图",       "desc": "按主题/标签把节点聚成簇"},
+    {"id": "list",      "name": "列表清单",         "desc": "以列表/表格直接罗列实体与关系（原始形式）"},
 ]
 _BY_ID = {a["id"]: a for a in ARCHITECTURES}
 # 架构 → 关系类别
@@ -115,7 +116,8 @@ def _topic_groups(G: nx.DiGraph, note_tags: dict | None):
 
 
 def build_view(kg, architecture: str = "concept", center: str = None,
-               note_tags: dict | None = None, max_nodes: int = 300) -> dict:
+               note_tags: dict | None = None, max_nodes: int = 300,
+               hide_isolated: bool = False) -> dict:
     """基于基础图谱构建指定架构的视图（纯计算，不改数据）
 
     返回：
@@ -141,7 +143,9 @@ def build_view(kg, architecture: str = "concept", center: str = None,
 
     groups, group_labels, levels, sub = {}, {}, {}, G
 
-    if arch == "concept":
+    if arch == "list":
+        sub, view["layout"] = G, "list"
+    elif arch == "concept":
         sub, view["layout"] = G, "force"
     elif arch in _CAT_OF:
         cat = _CAT_OF[arch]
@@ -175,6 +179,12 @@ def build_view(kg, architecture: str = "concept", center: str = None,
     elif arch == "topic":
         sub, view["layout"] = G, "force"
         groups, group_labels = _topic_groups(G, note_tags)
+
+    # 隐藏孤立节点（无任何连线）
+    if hide_isolated:
+        sub = sub.copy()
+        for n in [n for n in list(sub.nodes) if sub.degree(n) == 0]:
+            sub.remove_node(n)
 
     # 节点数限制（按度数取 top，避免超大图卡死）
     nodes_all = list(sub.nodes)
@@ -349,6 +359,36 @@ def _positions(view: dict, W: int = 1200, H: int = 860, PAD: int = 90) -> dict:
     return pos
 
 
+def _list_to_html(view: dict, title: str) -> str:
+    rows_e = "".join(
+        f"<tr><td>{html_escape.escape(n['id'])}</td><td>{html_escape.escape(str(n.get('type','')))}</td>"
+        f"<td>{n.get('degree', 0)}</td><td>{html_escape.escape(str(n.get('group_label','')))}</td></tr>"
+        for n in view["nodes"]
+    )
+    rows_r = "".join(
+        f"<tr><td>{html_escape.escape(e['source'])}</td><td>{html_escape.escape(str(e.get('relation','')))}</td>"
+        f"<td>{html_escape.escape(e['target'])}</td><td>{html_escape.escape(str(e.get('category','')))}</td></tr>"
+        for e in view["edges"]
+    )
+    return f"""<!DOCTYPE html>
+<html lang="zh-CN"><head><meta charset="UTF-8"><title>{html_escape.escape(title)}</title>
+<style>
+ body{{font-family:'Microsoft YaHei',sans-serif;margin:0;background:#f5f6f8;color:#333}}
+ .wrap{{padding:16px 20px}} h2{{font-size:16px;margin:0 0 4px}}
+ .stat{{color:#666;font-size:12px;margin-bottom:12px}}
+ table{{border-collapse:collapse;width:100%;background:#fff;margin-bottom:18px}}
+ th,td{{border:1px solid #e0e2e6;padding:6px 10px;font-size:13px;text-align:left}}
+ th{{background:#f0f2f5}} h3{{font-size:14px;margin:14px 0 6px}}
+</style></head><body><div class="wrap">
+ <h2>📋 {html_escape.escape(view['name'])} · {html_escape.escape(title)}</h2>
+ <div class="stat">实体 {view['stats']['nodes']} · 关系 {view['stats']['edges']}</div>
+ <h3>实体</h3>
+ <table><thead><tr><th>实体</th><th>类型</th><th>连接数</th><th>分组</th></tr></thead><tbody>{rows_e}</tbody></table>
+ <h3>关系</h3>
+ <table><thead><tr><th>源</th><th>关系</th><th>目标</th><th>类别</th></tr></thead><tbody>{rows_r}</tbody></table>
+</div></body></html>"""
+
+
 def view_to_html(view: dict, title: str = "知识图谱") -> str:
     """把视图渲染为自包含交互式 HTML（可缩放/拖拽/点节点高亮）"""
     nodes = view["nodes"]
@@ -356,6 +396,8 @@ def view_to_html(view: dict, title: str = "知识图谱") -> str:
         return ("<html><body style=\"font-family:sans-serif;padding:24px;color:#666\">"
                 f"<h3>{html_escape.escape(title)}</h3><p>{html_escape.escape(view.get('note') or '暂无数据')}</p>"
                 "</body></html>")
+    if view.get("layout") == "list":
+        return _list_to_html(view, title)
 
     W, H = 1200, 860
     pos = _positions(view, W, H)

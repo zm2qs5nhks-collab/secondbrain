@@ -66,16 +66,20 @@ def execute(arguments: dict, user_id: str = None) -> str:
             long_term.add_topic(tag, [note_id], user_id=user_id)
 
     graph_result = {}
+    graph_error = None
     try:
         graph_result = add_note_to_graph(content, user_id=user_id, note_id=note_id)
-    except Exception:
-        pass
+    except Exception as e:
+        graph_error = f"{type(e).__name__}: {e}"
 
-    return json.dumps({
+    payload = {
         "status": "success",
         "note_id": note_id,
         "chunks_stored": count,
         "tags": tags,
         "graph": graph_result,
         "message": f"已保存到知识库（{count}个分块）",
-    }, ensure_ascii=False)
+    }
+    if graph_error:
+        payload["graph_error"] = graph_error
+    return json.dumps(payload, ensure_ascii=False)
