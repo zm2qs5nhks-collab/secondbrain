@@ -15,6 +15,7 @@
 """
 
 import math
+import random
 import html as html_escape
 
 import networkx as nx
@@ -246,7 +247,37 @@ def view_to_kg(view: dict):
 
 # ═══════════════════════ 渲染（自包含 SVG/HTML） ═══════════════════════
 
-def _positions(view: dict, W: int = 1000, H: int = 720, PAD: int = 80) -> dict:
+def _spread(pos: dict, min_dist: float, W: int, H: int, PAD: int, iters: int = 60) -> dict:
+    """简单松弛：把距离过近的节点互相推开，缓解重叠"""
+    if len(pos) < 2:
+        return pos
+    ids = list(pos)
+    rnd = random.Random(0)
+    for _ in range(iters):
+        moved = False
+        for i in range(len(ids)):
+            for j in range(i + 1, len(ids)):
+                a, b = ids[i], ids[j]
+                ax, ay = pos[a]
+                bx, by = pos[b]
+                dx, dy = bx - ax, by - ay
+                d = math.hypot(dx, dy)
+                if d < min_dist:
+                    if d < 1e-6:
+                        dx, dy, d = rnd.uniform(-1, 1), rnd.uniform(-1, 1), 1.0
+                    push = (min_dist - d) / 2
+                    ux, uy = dx / d, dy / d
+                    pos[a] = (ax - ux * push, ay - uy * push)
+                    pos[b] = (bx + ux * push, by + uy * push)
+                    moved = True
+        if not moved:
+            break
+    for k, (x, y) in list(pos.items()):
+        pos[k] = (min(max(x, PAD), W - PAD), min(max(y, PAD), H - PAD))
+    return pos
+
+
+def _positions(view: dict, W: int = 1200, H: int = 860, PAD: int = 90) -> dict:
     nodes = view["nodes"]
     ids = [n["id"] for n in nodes]
     if not ids:
@@ -298,7 +329,14 @@ def _positions(view: dict, W: int = 1000, H: int = 720, PAD: int = 80) -> dict:
         g = nx.Graph()
         g.add_nodes_from(ids)
         g.add_edges_from((e["source"], e["target"]) for e in view["edges"])
-        raw = nx.spring_layout(g, seed=42, k=1.0)
+        n = max(len(ids), 2)
+        try:
+            if len(g) <= 150:
+                raw = nx.kamada_kawai_layout(g)
+            else:
+                raw = nx.spring_layout(g, seed=42, k=2.6 / math.sqrt(n), iterations=200)
+        except Exception:
+            raw = nx.spring_layout(g, seed=42, k=2.6 / math.sqrt(n), iterations=200)
         xs = [p[0] for p in raw.values()]
         ys = [p[1] for p in raw.values()]
         xspan = max(max(xs) - min(xs), 1e-6)
@@ -306,6 +344,8 @@ def _positions(view: dict, W: int = 1000, H: int = 720, PAD: int = 80) -> dict:
         for i, (x, y) in raw.items():
             pos[i] = (PAD + (x - min(xs)) / xspan * (W - 2 * PAD),
                       PAD + (y - min(ys)) / yspan * (H - 2 * PAD))
+    # 统一做一次防重叠松弛
+    pos = _spread(pos, min_dist=86, W=W, H=H, PAD=PAD)
     return pos
 
 
@@ -317,7 +357,7 @@ def view_to_html(view: dict, title: str = "知识图谱") -> str:
                 f"<h3>{html_escape.escape(title)}</h3><p>{html_escape.escape(view.get('note') or '暂无数据')}</p>"
                 "</body></html>")
 
-    W, H = 1000, 720
+    W, H = 1200, 860
     pos = _positions(view, W, H)
     group_color = {g["id"]: g["color"] for g in view["groups"]}
     gmap = {n["id"]: n.get("group") for n in nodes}
@@ -346,7 +386,8 @@ def view_to_html(view: dict, title: str = "知识图谱") -> str:
             f'<g class="node" data-id="{label}" transform="translate({x:.1f},{y:.1f})">'
             f'<circle r="{r}" fill="{color}" stroke="#333" stroke-width="1.5">'
             f'<title>{label} · {html_escape.escape(n.get("type",""))} · {sub}</title></circle>'
-            f'<text text-anchor="middle" dy="4" font-size="11" font-family="Microsoft YaHei,sans-serif" font-weight="600">{label}</text>'
+            f'<text text-anchor="middle" dy="4" font-size="11" font-family="Microsoft YaHei,sans-serif" '
+            f'font-weight="600" paint-order="stroke" stroke="#ffffff" stroke-width="3" stroke-linejoin="round">{label}</text>'
             f'</g>'
         )
 
@@ -393,18 +434,44 @@ def view_to_html(view: dict, title: str = "知识图谱") -> str:
   var nodes=[].slice.call(svg.querySelectorAll('g.node'));
   var edges=[].slice.call(svg.querySelectorAll('line[data-s]'));
   var vb=svg.getAttribute('viewBox').split(' ').map(Number);
-  var zoom=1,tx=0,ty=0;
-  function apply(){{svg.setAttribute('viewBox',(vb[0]+tx)+' '+(vb[1]+ty)+' '+(vb[2]/zoom)+' '+(vb[3]/zoom));}}
+  var W0=vb[2],H0=vb[3];
+  var scale=1,ox=0,oy=0;
+  function apply(){{svg.setAttribute('viewBox',(vb[0]+ox)+' '+(vb[1]+oy)+' '+(W0/scale)+' '+(H0/scale));}}
   nodes.forEach(function(n){{n.addEventListener('click',function(){{
     var id=n.getAttribute('data-id');
     nodes.forEach(function(x){{x.style.opacity=(x.getAttribute('data-id')===id)?1:0.12;}});
     edges.forEach(function(e){{var s=e.getAttribute('data-s'),t=e.getAttribute('data-t');e.style.opacity=(s===id||t===id)?1:0.06;}});
   }});}});
   svg.addEventListener('dblclick',function(){{nodes.forEach(function(x){{x.style.opacity=1;}});edges.forEach(function(e){{e.style.opacity=0.75;}});}});
-  svg.addEventListener('wheel',function(ev){{ev.preventDefault();var f=ev.deltaY>0?1.15:0.87;zoom=Math.min(Math.max(zoom*f,0.3),8);apply();}});
+  svg.addEventListener('wheel',function(ev){{
+    ev.preventDefault();
+    var rect=svg.getBoundingClientRect();
+    var cx=(ev.clientX-rect.left)/rect.width, cy=(ev.clientY-rect.top)/rect.height;
+    var mx=vb[0]+ox+cx*(W0/scale), my=vb[1]+oy+cy*(H0/scale);
+    var f=ev.deltaY>0?0.87:1.15;
+    scale=Math.min(Math.max(scale*f,0.3),8);
+    ox=mx-vb[0]-cx*(W0/scale); oy=my-vb[1]-cy*(H0/scale);
+    apply();
+  }},{{passive:false}});
   var drag=false,sx=0,sy=0;
-  svg.addEventListener('mousedown',function(ev){{if(ev.target.closest('g.node'))return;drag=true;sx=ev.clientX;sy=ev.clientY;}});
-  window.addEventListener('mousemove',function(ev){{if(!drag)return;tx+=(ev.clientX-sx);ty+=(ev.clientY-sy);sx=ev.clientX;sy=ev.clientY;apply();}});
+  svg.addEventListener('mousedown',function(ev){{if(ev.target.closest('g.node'))return;drag=true;sx=ev.clientX;sy=ev.clientY;ev.preventDefault();}});
+  window.addEventListener('mousemove',function(ev){{
+    if(!drag)return;
+    var rect=svg.getBoundingClientRect();
+    var dx=(ev.clientX-sx)*(W0/scale)/rect.width;
+    var dy=(ev.clientY-sy)*(H0/scale)/rect.height;
+    ox-=dx; oy-=dy; sx=ev.clientX; sy=ev.clientY; apply();
+  }});
   window.addEventListener('mouseup',function(){{drag=false;}});
+  var tsx=0,tsy=0;
+  svg.addEventListener('touchstart',function(ev){{if(ev.touches.length===1){{drag=true;tsx=ev.touches[0].clientX;tsy=ev.touches[0].clientY;}}}},{{passive:true}});
+  svg.addEventListener('touchmove',function(ev){{
+    if(!drag||ev.touches.length!==1)return;
+    var rect=svg.getBoundingClientRect(); var t=ev.touches[0];
+    var dx=(t.clientX-tsx)*(W0/scale)/rect.width;
+    var dy=(t.clientY-tsy)*(H0/scale)/rect.height;
+    ox-=dx; oy-=dy; tsx=t.clientX; tsy=t.clientY; apply();
+  }},{{passive:true}});
+  svg.addEventListener('touchend',function(){{drag=false;}});
 }})();
 </script></body></html>"""

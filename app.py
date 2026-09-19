@@ -1101,6 +1101,11 @@ elif page == "知识图谱":
                 for nid in (nd.get("notes") or []):
                     note_entity_cnt[nid] = note_entity_cnt.get(nid, 0) + 1
 
+            # 初始化每个笔记的选择键（仅首次），避免 value= 与 key= 冲突导致的回弹
+            _sel_now = st.session_state.get("kg_selected_notes", [])
+            for n in all_notes:
+                st.session_state.setdefault(f"kgsel_{n['id']}", n["id"] in _sel_now)
+
             def _sync_selection():
                 current = [n["id"] for n in all_notes
                            if st.session_state.get(f"kgsel_{n['id']}", False)]
@@ -1127,18 +1132,11 @@ elif page == "知识图谱":
                 cnt = note_entity_cnt.get(n["id"], 0)
                 help_text = n["id"] + (f" | {tags}" if tags else "") + f" | 图谱实体 {cnt} 个"
                 label_full = f"{label}  `（图谱实体 {cnt}）`"
-                st.checkbox(
-                    label_full,
-                    value=n["id"] in st.session_state.get("kg_selected_notes", []),
-                    key=f"kgsel_{n['id']}",
-                    help=help_text,
-                    on_change=_sync_selection,
-                )
+                st.checkbox(label_full, key=f"kgsel_{n['id']}", help=help_text, on_change=_sync_selection)
 
             st.markdown("---")
             st.checkbox(
                 "包含未标注来源的实体（历史旧数据 / 手动添加）",
-                value=st.session_state.get("kg_include_legacy", False),
                 key="kg_include_legacy",
                 help="旧版数据中的实体没有记录来源笔记。开启后，选择特定笔记时仍会显示这些通用实体；关闭则只显示所选笔记真正包含的知识点。",
             )
