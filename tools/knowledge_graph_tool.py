@@ -23,8 +23,8 @@ def get_schema() -> dict:
                     },
                     "architecture": {
                         "type": "string",
-                        "enum": ["concept", "hierarchy", "timeline", "causal", "flow", "radial", "community", "topic", "list"],
-                        "description": "图谱架构（action=view 时使用）：concept 概念网络、hierarchy 层级树、timeline 时序线、causal 因果链、flow 流程图、radial 中心辐射、community 社区、topic 主题聚类、list 列表清单",
+                        "enum": ["concept", "hierarchy", "timeline", "causal", "flow", "radial", "community", "topic", "classic", "list"],
+                        "description": "图谱架构（action=view 时使用）：concept 概念网络、hierarchy 层级树、timeline 时序线、causal 因果链、flow 流程图、radial 中心辐射、community 社区、topic 主题聚类、classic 经典方框图、list 表格清单",
                     },
                     "hide_isolated": {
                         "type": "boolean",

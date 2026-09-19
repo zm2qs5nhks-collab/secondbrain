@@ -119,7 +119,7 @@ def knowledge_graph_tool_fn(
     ctx: Context,
     action: Literal["add", "query", "discover", "stats", "view"],
     architecture: Literal["concept", "hierarchy", "timeline", "causal",
-                          "flow", "radial", "community", "topic", "list"] = "concept",
+                          "flow", "radial", "community", "topic", "classic", "list"] = "concept",
     center: str = "",
     hide_isolated: bool = False,
     content: str = "",

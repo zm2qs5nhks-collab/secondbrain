@@ -31,7 +31,8 @@ ARCHITECTURES = [
     {"id": "radial",    "name": "中心辐射/思维导图", "desc": "以核心节点为中心向外发散"},
     {"id": "community", "name": "社区发现图",       "desc": "自动划分知识群体/社区"},
     {"id": "topic",     "name": "主题聚类图",       "desc": "按主题/标签把节点聚成簇"},
-    {"id": "list",      "name": "列表清单",         "desc": "以列表/表格直接罗列实体与关系（原始形式）"},
+    {"id": "classic",   "name": "经典图（方框罗列）", "desc": "最初的样式：节点是方框、带「(类型)」，连线带关系名"},
+    {"id": "list",      "name": "表格清单",         "desc": "以表格罗列实体与关系"},
 ]
 _BY_ID = {a["id"]: a for a in ARCHITECTURES}
 # 架构 → 关系类别
@@ -143,7 +144,9 @@ def build_view(kg, architecture: str = "concept", center: str = None,
 
     groups, group_labels, levels, sub = {}, {}, {}, G
 
-    if arch == "list":
+    if arch == "classic":
+        sub, view["layout"] = G, "classic"
+    elif arch == "list":
         sub, view["layout"] = G, "list"
     elif arch == "concept":
         sub, view["layout"] = G, "force"
@@ -357,6 +360,27 @@ def _positions(view: dict, W: int = 1200, H: int = 860, PAD: int = 90) -> dict:
     # 统一做一次防重叠松弛
     pos = _spread(pos, min_dist=86, W=W, H=H, PAD=PAD)
     return pos
+
+
+def view_to_dot(view: dict, rankdir: str = "LR") -> str:
+    """生成 Graphviz DOT（经典方框样式：节点带类型、连线带关系名）"""
+    lines = ["digraph KG {", f"  rankdir={rankdir};", "  bgcolor=transparent;"]
+    lines.append('  node [shape=box, style="rounded,filled", fontname="Microsoft YaHei", fontsize=10];')
+    lines.append('  edge [fontname="Microsoft YaHei", fontsize=8, color="#666666"];')
+    group_color = {g["id"]: g["color"] for g in view.get("groups", [])}
+    gmap = {n["id"]: n.get("group") for n in view["nodes"]}
+    for n in view["nodes"]:
+        color = group_color.get(gmap.get(n["id"]), TYPE_COLORS.get(n.get("type"), "#CCCCCC"))
+        name = str(n["id"]).replace('"', '\\"')
+        ntype = str(n.get("type", "")).replace('"', '\\"')
+        lines.append(f'  "{name}" [label="{name}\\n({ntype})", fillcolor="{color}"];')
+    for e in view["edges"]:
+        s = str(e["source"]).replace('"', '\\"')
+        t = str(e["target"]).replace('"', '\\"')
+        rel = str(e.get("relation", "")).replace('"', '\\"')
+        lines.append(f'  "{s}" -> "{t}" [label="{rel}"];')
+    lines.append("}")
+    return "\n".join(lines)
 
 
 def _list_to_html(view: dict, title: str) -> str:

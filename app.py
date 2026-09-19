@@ -1199,7 +1199,9 @@ elif page == "知识图谱":
             st.markdown(f"**当前架构：** {view['name']} ｜ **范围：** {scope_str}")
             if view.get("note"):
                 st.warning(view["note"])
-            if view["architecture"] == "list":
+            if view["architecture"] == "classic":
+                st.graphviz_chart(gv.view_to_dot(view), use_container_width=True)
+            elif view["architecture"] == "list":
                 import pandas as _pd
                 st.markdown("**实体**")
                 st.dataframe(
