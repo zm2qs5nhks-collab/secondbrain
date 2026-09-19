@@ -105,21 +105,53 @@ def _normalize(result: dict) -> dict:
     return {"entities": ents, "relations": relations}
 
 
+_ENT_RE = re.compile(r'\{\s*"name"\s*:\s*"((?:[^"\\]|\\.)*)"\s*,\s*"type"\s*:\s*"((?:[^"\\]|\\.)*)"', re.S)
+_REL_RE = re.compile(
+    r'\{\s*"source"\s*:\s*"((?:[^"\\]|\\.)*)"\s*,\s*"relation"\s*:\s*"((?:[^"\\]|\\.)*)"'
+    r'\s*,\s*"target"\s*:\s*"((?:[^"\\]|\\.)*)"', re.S)
+
+
+def _salvage(text: str) -> dict:
+    """从（可能被截断的）模型输出里抢救出完整的实体/关系对象"""
+    text = text or ""
+    ents = [{"name": n, "type": t} for n, t in _ENT_RE.findall(text)]
+    rels = [{"source": s, "relation": r, "target": t} for s, r, t in _REL_RE.findall(text)]
+    return {"entities": ents, "relations": rels}
+
+
 def extract_from_text(text: str, user_id: str = None) -> dict:
     """从文本中抽取实体和关系（user_id 用于选用该用户配置的模型）"""
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
         {"role": "user", "content": f"请从以下笔记中提取实体和关系：\n\n{text}"},
     ]
-    response = chat_completion(messages, user_id=user_id)
-    raw = (response.get("content") or "").strip()
+    raw = ""
+    for _ in range(2):  # 空内容重试一次
+        response = chat_completion(messages, user_id=user_id)
+        raw = (response.get("content") or "").strip()
+        if raw:
+            break
     if not raw:
         raise ValueError("模型返回了空内容（可能被内容过滤或超时）")
+
+    parsed = None
     try:
-        result = _normalize(extract_json(raw))
-    except Exception as e:
-        raise ValueError(f"模型输出无法解析为 JSON：{type(e).__name__}: {e}；原始输出前 300 字：{raw[:300]}")
-    return result
+        parsed = extract_json(raw)
+    except Exception:
+        parsed = None
+
+    if parsed is not None:
+        result = _normalize(parsed)
+        if result["entities"]:
+            return result
+
+    # 解析失败 / 没抽到实体 → 从原始输出里抢救（应对 JSON 被截断）
+    salv = _salvage(raw)
+    if salv["entities"] or salv["relations"]:
+        return _normalize(salv)
+    if parsed is not None:
+        return _normalize(parsed)
+    raise ValueError(f"模型输出无法解析为 JSON；原始输出前 300 字：{raw[:300]}")
 
 
 def extract_from_notes(notes: list[dict], user_id: str = None) -> dict:

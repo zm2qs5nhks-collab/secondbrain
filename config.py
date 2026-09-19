@@ -26,7 +26,7 @@ EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "text-embedding-3-small")
 LLM_TIMEOUT = int(os.getenv("LLM_TIMEOUT", "60"))
 LLM_MAX_RETRIES = int(os.getenv("LLM_MAX_RETRIES", "1"))
 # 单次生成的最大 token（长笔记抽取 JSON 可能被默认值截断）
-LLM_MAX_TOKENS = int(os.getenv("LLM_MAX_TOKENS", "4096"))
+LLM_MAX_TOKENS = int(os.getenv("LLM_MAX_TOKENS", "8192"))
 # 遇到 429 限流时的额外重试次数（每次退避等待）
 LLM_RATE_RETRIES = int(os.getenv("LLM_RATE_RETRIES", "3"))
 
