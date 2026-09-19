@@ -993,6 +993,7 @@ elif page == "知识图谱":
     from storage.graph import KnowledgeGraph
     from storage.extractor import extract_from_text
     from storage.reasoning import discover_cross_domain_links, find_related_concepts, get_importance_scores
+    import storage.graph_views as gv
 
     if "kg" not in st.session_state:
         st.session_state.kg = KnowledgeGraph(user_id=USER_ID)
@@ -1006,9 +1007,8 @@ elif page == "知识图谱":
     if "kg_include_legacy" not in st.session_state:
         st.session_state.kg_include_legacy = False
 
-    tab_add, tab_pick, tab_viz, tab_reason, tab_analysis = st.tabs(["添加笔记", "选择笔记", "图谱总览", "多跳推理", "节点分析"])
-
     all_notes = metadata_store.list_notes(user_id=USER_ID)
+    note_tags = {n["id"]: (n.get("tags") or []) for n in all_notes}
 
     def current_kg():
         """返回当前生效的图谱视图：勾选了笔记 → 子图；未勾选 → 全图"""
@@ -1017,6 +1017,30 @@ elif page == "知识图谱":
         if selected:
             return kg.build_subgraph(selected, include_unattributed=include_legacy)
         return kg
+
+    # ── 图谱架构选择（单选：一次只看一种结构）──
+    _archs = gv.list_architectures()
+    _arch_ids = [a["id"] for a in _archs]
+    _arch_name = {a["id"]: a["name"] for a in _archs}
+    _arch_desc = {a["id"]: a["desc"] for a in _archs}
+    _kg_view = current_kg()
+
+    _c1, _c2 = st.columns([2, 1])
+    with _c1:
+        _sel_arch = st.selectbox(
+            "🧩 图谱架构（选择你实际需要的结构）",
+            _arch_ids, format_func=lambda x: _arch_name[x], key="kg_arch",
+        )
+    with _c2:
+        _center = None
+        if _sel_arch == "radial":
+            _names = [n["name"] for n in _kg_view.get_all_nodes()]
+            if _names:
+                _center = st.selectbox("中心节点", _names, key="kg_radial_center")
+    st.caption(f"📐 {_arch_desc[_sel_arch]}")
+    view = gv.build_view(_kg_view, _sel_arch, center=_center, note_tags=note_tags)
+
+    tab_add, tab_pick, tab_viz, tab_reason, tab_analysis = st.tabs(["添加笔记", "选择笔记", "图谱总览", "多跳推理", "节点分析"])
 
     with tab_add:
         st.subheader("输入笔记，自动抽取实体关系")
@@ -1125,77 +1149,61 @@ elif page == "知识图谱":
                 st.rerun()
 
     with tab_viz:
-        kg_view = current_kg()
-        if len(kg_view.graph.nodes) == 0:
-            st.info("当前选择范围内图谱为空，请先在「添加笔记」或「导入笔记」添加内容。")
+        if len(view["nodes"]) == 0:
+            st.info(view.get("note") or "当前选择范围内图谱为空，请先在「添加笔记」或「导入笔记」添加内容。")
         else:
             selected_cnt = len(st.session_state.get("kg_selected_notes", []))
             scope_str = f"已选 {selected_cnt} 篇笔记（子图）" if selected_cnt else "全部笔记（未勾选）"
-            st.markdown(f"**当前图谱范围：** {scope_str}")
-
-            dot_lines = ["digraph KG {", "  rankdir=LR;", "  bgcolor=transparent;"]
-            dot_lines.append('  node [shape=box, style="rounded,filled", fontname="Microsoft YaHei", fontsize=10];')
-            dot_lines.append('  edge [fontname="Microsoft YaHei", fontsize=8, color="#666666"];')
-
-            type_colors = {
-                "技术": "#4ECDC4", "概念": "#FFE66D", "场景": "#FF6B6B",
-                "工具": "#95E1D3", "框架": "#A8D8EA", "方法": "#DCD6F7",
-            }
-            for node, data in kg_view.graph.nodes(data=True):
-                ntype = data.get("type", "未知")
-                color = type_colors.get(ntype, "#CCCCCC")
-                safe = node.replace('"', '\\"')
-                dot_lines.append(f'  "{safe}" [label="{safe}\\n({ntype})", fillcolor="{color}"];')
-            for u, v, data in kg_view.graph.edges(data=True):
-                rel = data.get("relation", "")
-                safe_u = u.replace('"', '\\"')
-                safe_v = v.replace('"', '\\"')
-                dot_lines.append(f'  "{safe_u}" -> "{safe_v}" [label="{rel}"];')
-            dot_lines.append("}")
-            st.graphviz_chart("\n".join(dot_lines), use_container_width=True)
+            st.markdown(f"**当前架构：** {view['name']} ｜ **范围：** {scope_str}")
+            if view.get("note"):
+                st.warning(view["note"])
+            components.html(gv.view_to_html(view, title="知识图谱"), height=780, scrolling=True)
 
             st.markdown("---")
             col1, col2, col3 = st.columns(3)
-            col1.metric("实体节点", len(kg_view.graph.nodes))
-            col2.metric("关系边", len(kg_view.graph.edges))
-            pr = kg_view.pagerank()
-            top = max(pr.items(), key=lambda x: x[1])[0] if pr else "-"
-            col3.metric("核心节点", top)
+            col1.metric("实体节点", view["stats"]["nodes"])
+            col2.metric("关系边", view["stats"]["edges"])
+            col3.metric("分组", view["stats"]["groups"])
+            if view["groups"]:
+                st.caption("分组：" + "　".join(f"{g['label']}({g['size']})" for g in view["groups"][:20]))
 
             st.markdown("---")
-            st.subheader("📤 导出当前图谱")
-            st.caption("导出为独立文件，可在项目外使用：HTML 浏览器直接打开、GraphML 导入 Gephi/Neo4j、JSON/CSV 供程序或表格使用、PNG 图片。")
-            exp_fmt = st.selectbox("导出格式", ["交互式 HTML", "GraphML", "JSON", "CSV 压缩包", "PNG 图片"])
-            exp_key = f"kg_export_{exp_fmt}"
+            st.subheader("📤 导出当前架构图谱")
+            st.caption("导出为独立文件：HTML 浏览器直接打开、GraphML 导入 Gephi/Neo4j、JSON/CSV 供程序或表格使用、PNG 图片。")
+            vkg = gv.view_to_kg(view)
+            exp_fmt = st.selectbox("导出格式", ["交互式 HTML", "GraphML", "JSON", "CSV 压缩包", "PNG 图片"], key="kg_exp_fmt")
+            exp_key = f"kg_export_{view['architecture']}_{exp_fmt}"
+            fname = f"kg_{view['architecture']}"
 
             if exp_fmt == "交互式 HTML":
-                data = kg_view.to_html().encode("utf-8")
-                st.download_button("⬇️ 下载 HTML", data=data, file_name="knowledge_graph.html",
+                data = gv.view_to_html(view, title="知识图谱").encode("utf-8")
+                st.download_button("⬇️ 下载 HTML", data=data, file_name=f"{fname}.html",
                                    mime="text/html", key=exp_key, use_container_width=True)
             elif exp_fmt == "GraphML":
-                data = kg_view.to_graphml_bytes()
-                st.download_button("⬇️ 下载 GraphML", data=data, file_name="knowledge_graph.graphml",
+                data = vkg.to_graphml_bytes()
+                st.download_button("⬇️ 下载 GraphML", data=data, file_name=f"{fname}.graphml",
                                    mime="application/xml", key=exp_key, use_container_width=True)
             elif exp_fmt == "JSON":
-                data = kg_view.to_json_bytes()
-                st.download_button("⬇️ 下载 JSON", data=data, file_name="knowledge_graph.json",
+                data = vkg.to_json_bytes()
+                st.download_button("⬇️ 下载 JSON", data=data, file_name=f"{fname}.json",
                                    mime="application/json", key=exp_key, use_container_width=True)
             elif exp_fmt == "CSV 压缩包":
-                data = kg_view.to_csv_zip()
-                st.download_button("⬇️ 下载 CSV 压缩包", data=data, file_name="knowledge_graph_csv.zip",
+                data = vkg.to_csv_zip()
+                st.download_button("⬇️ 下载 CSV 压缩包", data=data, file_name=f"{fname}_csv.zip",
                                    mime="application/zip", key=exp_key, use_container_width=True)
             else:
                 try:
-                    data = kg_view.to_png_bytes()
-                    st.download_button("⬇️ 下载 PNG", data=data, file_name="knowledge_graph.png",
+                    data = vkg.to_png_bytes()
+                    st.download_button("⬇️ 下载 PNG", data=data, file_name=f"{fname}.png",
                                        mime="image/png", key=exp_key, use_container_width=True)
                 except Exception as e:
                     st.warning(f"PNG 导出需要服务器安装 Graphviz（dot 命令），当前不可用：{e}\n\n请改用其他格式。")
 
     with tab_reason:
-        kg_view = current_kg()
+        kg_view = gv.view_to_kg(view)
+        st.caption(f"当前架构：{view['name']}（推理基于该架构的子图）")
         if len(kg_view.graph.nodes) < 2:
-            st.info("当前图谱范围内需要至少 2 个实体才能推理。（可调整「选择笔记」扩大范围）")
+            st.info("当前架构下需要至少 2 个实体才能推理。（可换架构或调整「选择笔记」扩大范围）")
         else:
             tab_cross, tab_query = st.tabs(["跨领域关联发现", "指定节点查询"])
 
@@ -1234,9 +1242,9 @@ elif page == "知识图谱":
                             st.caption(f"路径: {path_str}")
 
     with tab_analysis:
-        kg_view = current_kg()
+        kg_view = gv.view_to_kg(view)
         if len(kg_view.graph.nodes) == 0:
-            st.info("当前图谱范围内为空。")
+            st.info("当前架构范围内为空。")
         else:
             scores = get_importance_scores(kg_view)
             import pandas as pd

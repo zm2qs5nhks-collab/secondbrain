@@ -16,11 +16,16 @@ def extract_json(text: str) -> dict | list:
     return json.loads(text)
 
 
-SYSTEM_PROMPT = """你是一个知识图谱构建专家。你的任务是从笔记文本中提取实体和关系。
+SYSTEM_PROMPT = """你是一个知识图谱构建专家。你的任务是从笔记文本中提取实体和关系，并给每条关系标注「类别」。
 
 规则：
-1. 实体类型包括：技术、概念、人物、场景、方法、工具、框架等
-2. 关系类型包括：应用于、依赖、属于、对比、解决、包含、使用等
+1. 实体类型：技术、概念、人物、场景、方法、工具、框架、事件、指标 等
+2. 每条关系必须带一个 category，只能是以下之一：
+   - hierarchy  层级/分类：属于、包含、是一种、分为、子类、父类、上位、下位、组成
+   - temporal   时序/发展：先于、之后、之前、随后、发展、演进、演变、源于、起源
+   - causal     因果：导致、因为、由于、引起、解决、避免、使得、所以、原因、结果、依赖
+   - sequential 流程/步骤：首先、然后、接着、下一步、最后、依次、步骤、流程
+   - assoc      其它关联：应用于、对比、使用、相关 等
 3. 实体名称要标准化（如 "Redis" 不要写成 "redis数据库"）
 4. 只提取有明确语义关系的实体对，不要强行建立关系
 5. 输出严格的 JSON 格式
@@ -31,9 +36,49 @@ SYSTEM_PROMPT = """你是一个知识图谱构建专家。你的任务是从笔�
     {"name": "实体名", "type": "实体类型"}
   ],
   "relations": [
-    {"source": "源实体", "relation": "关系类型", "target": "目标实体"}
+    {"source": "源实体", "relation": "关系短语", "target": "目标实体", "category": "hierarchy|temporal|causal|sequential|assoc"}
   ]
 }"""
+
+VALID_CATEGORIES = {"hierarchy", "temporal", "causal", "sequential", "assoc"}
+
+# 关系短语 → 类别 的关键词兜底（旧数据 / LLM 漏标时使用）
+CATEGORY_KEYWORDS = {
+    "hierarchy": ["属于", "包含", "是一种", "分为", "子类", "父类", "上位", "下位", "组成", "分类", "部分"],
+    "temporal": ["先于", "之后", "之前", "随后", "发展", "演进", "演变", "源于", "起源", "然后"],
+    "causal": ["导致", "因为", "由于", "引起", "解决", "避免", "使得", "所以", "原因", "结果", "依赖", "促成"],
+    "sequential": ["首先", "然后", "接着", "下一步", "最后", "依次", "步骤", "流程", "顺序"],
+}
+
+
+def infer_category(relation: str) -> str:
+    """根据关系短语推断类别（兜底）"""
+    r = relation or ""
+    for cat, kws in CATEGORY_KEYWORDS.items():
+        if any(k in r for k in kws):
+            return cat
+    return "assoc"
+
+
+def _normalize(result: dict) -> dict:
+    """规范化抽取结果：补全 category、去重"""
+    if not isinstance(result, dict):
+        return {"entities": [], "relations": []}
+    entities = result.get("entities", []) or []
+    relations = []
+    for r in result.get("relations", []) or []:
+        if not isinstance(r, dict):
+            continue
+        cat = (r.get("category") or "").strip().lower()
+        if cat not in VALID_CATEGORIES:
+            cat = infer_category(r.get("relation", ""))
+        relations.append({
+            "source": r.get("source", ""),
+            "relation": r.get("relation", "关联"),
+            "target": r.get("target", ""),
+            "category": cat,
+        })
+    return {"entities": entities, "relations": relations}
 
 
 def extract_from_text(text: str) -> dict:
@@ -43,7 +88,7 @@ def extract_from_text(text: str) -> dict:
         {"role": "user", "content": f"请从以下笔记中提取实体和关系：\n\n{text}"},
     ]
     response = chat_completion(messages)
-    return extract_json(response["content"])
+    return _normalize(extract_json(response["content"]))
 
 
 def extract_from_notes(notes: list[dict]) -> dict:

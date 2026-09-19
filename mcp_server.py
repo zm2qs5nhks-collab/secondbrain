@@ -117,13 +117,17 @@ def fetch_web_content_tool(ctx: Context, url: str, tags: Optional[list[str]] = N
 @mcp.tool(name="knowledge_graph", description=_desc("knowledge_graph"))
 def knowledge_graph_tool_fn(
     ctx: Context,
-    action: Literal["add", "query", "discover", "stats"],
+    action: Literal["add", "query", "discover", "stats", "view"],
+    architecture: Literal["concept", "hierarchy", "timeline", "causal",
+                          "flow", "radial", "community", "topic"] = "concept",
+    center: str = "",
     content: str = "",
     node: str = "",
     max_hops: int = 2,
 ) -> str:
     return _call(
         "knowledge_graph",
-        {"action": action, "content": content, "node": node, "max_hops": max_hops},
+        {"action": action, "architecture": architecture, "center": center,
+         "content": content, "node": node, "max_hops": max_hops},
         ctx,
     )

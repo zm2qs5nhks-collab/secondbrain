@@ -112,6 +112,8 @@ class GraphRequest(BaseModel):
     content: str = ""
     node: str = ""
     max_hops: int = 2
+    graph_type: str = "concept"
+    center: str = ""
 
 class LoginRequest(BaseModel):
     email: str
@@ -325,6 +327,20 @@ async def knowledge_graph_api(req: GraphRequest, request: Request):
     elif req.action == "stats":
         pr = kg.pagerank()
         return {"nodes": len(kg.graph.nodes), "edges": len(kg.graph.edges), "top_nodes": [{"name": n, "score": round(s, 4)} for n, s in list(pr.items())[:5]]}
+
+    elif req.action == "view":
+        from storage import graph_views as gv
+        view = gv.build_view(kg, req.graph_type or "concept", center=(req.center or None))
+        return {
+            "architecture": view["architecture"],
+            "name": view["name"],
+            "layout": view["layout"],
+            "stats": view["stats"],
+            "groups": view["groups"],
+            "nodes": view["nodes"],
+            "edges": view["edges"],
+            "note": view.get("note", ""),
+        }
 
     return JSONResponse({"error": "无效操作"}, status_code=400)
 

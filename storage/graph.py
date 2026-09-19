@@ -40,7 +40,8 @@ class KnowledgeGraph:
                 if rel["source"] in self.graph and rel["target"] in self.graph:
                     self.graph.add_edge(
                         rel["source"], rel["target"],
-                        relation=rel["relation"],
+                        relation=rel.get("relation"),
+                        category=rel.get("category", ""),
                         notes=rel.get("notes", []),
                     )
 
@@ -61,6 +62,7 @@ class KnowledgeGraph:
                 {
                     "source": u, "target": v,
                     "relation": d.get("relation", ""),
+                    "category": d.get("category", ""),
                     "notes": list(d.get("notes", [])),
                 }
                 for u, v, d in self.graph.edges(data=True)
@@ -80,13 +82,21 @@ class KnowledgeGraph:
                     notes.append(note_id)
 
     def add_relations(self, relations: list[dict], note_id: str = None):
-        """添加关系边；note_id 用于标注来源笔记"""
+        """添加关系边；note_id 用于标注来源笔记；category 标注关系类别"""
         for r in relations:
             src, tgt = r["source"], r["target"]
             if src in self.graph and tgt in self.graph:
                 if not self.graph.has_edge(src, tgt):
-                    self.graph.add_edge(src, tgt, relation=r.get("relation", "关联"), notes=[])
-                edge_notes = self.graph.edges[src, tgt].setdefault("notes", [])
+                    self.graph.add_edge(
+                        src, tgt,
+                        relation=r.get("relation", "关联"),
+                        category=r.get("category", ""),
+                        notes=[],
+                    )
+                edge = self.graph.edges[src, tgt]
+                if not edge.get("category") and r.get("category"):
+                    edge["category"] = r["category"]
+                edge_notes = edge.setdefault("notes", [])
                 if note_id and note_id not in edge_notes:
                     edge_notes.append(note_id)
 
@@ -119,7 +129,8 @@ class KnowledgeGraph:
 
         for u, v, data in self.graph.edges(data=True):
             if u in sub.graph and v in sub.graph and _keep(data.get("notes")):
-                sub.graph.add_edge(u, v, relation=data.get("relation", "关联"), notes=list(data.get("notes", [])))
+                sub.graph.add_edge(u, v, relation=data.get("relation", "关联"),
+                                   category=data.get("category", ""), notes=list(data.get("notes", [])))
         return sub
 
     # ─────────── 查询 ───────────
@@ -197,7 +208,8 @@ class KnowledgeGraph:
 
     def get_all_edges(self) -> list[dict]:
         return [
-            {"source": u, "target": v, "relation": d.get("relation", ""), "notes": list(d.get("notes", []))}
+            {"source": u, "target": v, "relation": d.get("relation", ""),
+             "category": d.get("category", ""), "notes": list(d.get("notes", []))}
             for u, v, d in self.graph.edges(data=True)
         ]
 

@@ -12,14 +12,23 @@ def get_schema() -> dict:
         "type": "function",
         "function": {
             "name": "knowledge_graph",
-            "description": "操作知识图谱。支持：add（将内容加入图谱，自动抽取实体关系）、query（查询某个实体的关联节点）、discover（发现跨领域关联）、stats（查看图谱统计）。",
+            "description": "操作知识图谱。支持：add（将内容加入图谱，自动抽取实体关系）、query（查询某个实体的关联节点）、discover（发现跨领域关联）、stats（查看图谱统计）、view（按指定架构返回图谱视图：概念网络/层级树/时序线/因果链/流程图/中心辐射/社区/主题聚类）。",
             "parameters": {
                 "type": "object",
                 "properties": {
                     "action": {
                         "type": "string",
-                        "enum": ["add", "query", "discover", "stats"],
+                        "enum": ["add", "query", "discover", "stats", "view"],
                         "description": "操作类型",
+                    },
+                    "architecture": {
+                        "type": "string",
+                        "enum": ["concept", "hierarchy", "timeline", "causal", "flow", "radial", "community", "topic"],
+                        "description": "图谱架构（action=view 时使用）：concept 概念网络、hierarchy 层级树、timeline 时序线、causal 因果链、flow 流程图、radial 中心辐射、community 社区、topic 主题聚类",
+                    },
+                    "center": {
+                        "type": "string",
+                        "description": "中心节点（action=view 且 architecture=radial 时使用）",
                     },
                     "content": {
                         "type": "string",
@@ -96,6 +105,22 @@ def execute(arguments: dict, user_id: str = None) -> str:
             "nodes": len(kg.graph.nodes),
             "edges": len(kg.graph.edges),
             "top_nodes": [{"name": n, "pagerank": round(s, 4)} for n, s in top5],
+        }, ensure_ascii=False)
+
+    elif action == "view":
+        from storage import graph_views as gv
+        arch = arguments.get("architecture", "concept")
+        center = arguments.get("center") or None
+        view = gv.build_view(kg, arch, center=center)
+        return json.dumps({
+            "architecture": view["architecture"],
+            "name": view["name"],
+            "layout": view["layout"],
+            "stats": view["stats"],
+            "groups": view["groups"],
+            "nodes": view["nodes"],
+            "edges": view["edges"],
+            "note": view.get("note", ""),
         }, ensure_ascii=False)
 
     else:
