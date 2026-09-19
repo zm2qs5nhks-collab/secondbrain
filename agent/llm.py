@@ -3,11 +3,19 @@ LLM 调用封装
 """
 
 import json
+import time
 from openai import OpenAI
 import config
 
 _clients = {}
 _settings = {}
+
+_RATE_HINTS = ("429", "rate limit", "too many requests", "1302", "1305")
+
+
+def _is_rate_limit(err: Exception) -> bool:
+    m = str(err).lower()
+    return any(h in m for h in _RATE_HINTS)
 
 
 def set_user_settings(user_id: str, api_key: str = None, base_url: str = None,
@@ -58,7 +66,22 @@ def chat_completion(messages: list[dict], tools: list[dict] = None,
     if tools:
         kwargs["tools"] = tools
         kwargs["tool_choice"] = "auto"
-    response = client.chat.completions.create(**kwargs)
+
+    # 429 限流自动重试（指数退避），避免整批抽取因为偶发限流全军覆没
+    retries = int(getattr(config, "LLM_RATE_RETRIES", 3))
+    response = None
+    for attempt in range(retries + 1):
+        try:
+            response = client.chat.completions.create(**kwargs)
+            break
+        except Exception as e:
+            if _is_rate_limit(e) and attempt < retries:
+                time.sleep(min(3 * (attempt + 1), 15))
+                continue
+            raise
+    if response is None:
+        raise RuntimeError("LLM 调用失败：超过重试次数")
+
     msg = response.choices[0].message
     result = {"content": msg.content, "tool_calls": None}
     if msg.tool_calls:

@@ -1123,6 +1123,13 @@ elif page == "知识图谱":
                     _full = (get_note_full_content(_n["id"], user_id=USER_ID) or "").strip()
                     _content = _full or (_n.get("preview", "") or "").strip()
                     _src = "全文" if _full else "摘要"
+                    if len(_content) < 5:
+                        _empty += 1
+                        _logs.append(f"⚠️ {_n['id']}：内容过短（{len(_content)} 字），跳过")
+                        _prog.progress(_i / len(_missing))
+                        continue
+                    if _i > 1:
+                        time.sleep(1.2)  # 逐条限速，降低触发 429 的概率
                     try:
                         _r = extract_from_text(_content, user_id=USER_ID)
                         _ents = _r.get("entities", [])
