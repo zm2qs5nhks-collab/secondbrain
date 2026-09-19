@@ -36,7 +36,12 @@ def get_client(user_id: str = None) -> OpenAI:
     key = user_id or "__default__"
     if key not in _clients:
         s = _get_settings(user_id)
-        _clients[key] = OpenAI(api_key=s["api_key"], base_url=s["base_url"])
+        _clients[key] = OpenAI(
+            api_key=s["api_key"],
+            base_url=s["base_url"],
+            timeout=getattr(config, "LLM_TIMEOUT", 60),
+            max_retries=getattr(config, "LLM_MAX_RETRIES", 1),
+        )
     return _clients[key]
 
 

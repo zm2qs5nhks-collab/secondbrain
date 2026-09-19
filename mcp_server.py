@@ -61,8 +61,9 @@ def _user_id(ctx: Context) -> str:
 
 
 def _call(name: str, arguments: dict, ctx: Context) -> str:
-    user_id = _user_id(ctx)
+    # 注意：user_id 解析也要放进 try，否则鉴权/DB 抖动会变成协议级错误
     try:
+        user_id = _user_id(ctx)
         return _MODULES[name].execute(arguments, user_id=user_id)
     except Exception as e:
         return json.dumps({"error": f"{type(e).__name__}: {e}"}, ensure_ascii=False)
