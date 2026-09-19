@@ -72,37 +72,57 @@ def infer_category(relation: str) -> str:
 
 
 def _normalize(result: dict) -> dict:
-    """规范化抽取结果：补全 category、去重"""
+    """规范化抽取结果：补全 category、校验实体、去重"""
     if not isinstance(result, dict):
         return {"entities": [], "relations": []}
-    entities = result.get("entities", []) or []
+    ents = []
+    seen = set()
+    for e in (result.get("entities", []) or []):
+        if not isinstance(e, dict):
+            continue
+        name = str(e.get("name", "")).strip()
+        if not name or name in seen:
+            continue
+        seen.add(name)
+        ents.append({"name": name, "type": str(e.get("type", "未知") or "未知")})
     relations = []
-    for r in result.get("relations", []) or []:
+    for r in (result.get("relations", []) or []):
         if not isinstance(r, dict):
+            continue
+        src = str(r.get("source", "")).strip()
+        tgt = str(r.get("target", "")).strip()
+        if not src or not tgt:
             continue
         cat = (r.get("category") or "").strip().lower()
         if cat not in VALID_CATEGORIES:
             cat = infer_category(r.get("relation", ""))
         relations.append({
-            "source": r.get("source", ""),
-            "relation": r.get("relation", "关联"),
-            "target": r.get("target", ""),
+            "source": src,
+            "relation": str(r.get("relation", "关联") or "关联"),
+            "target": tgt,
             "category": cat,
         })
-    return {"entities": entities, "relations": relations}
+    return {"entities": ents, "relations": relations}
 
 
-def extract_from_text(text: str) -> dict:
-    """从文本中抽取实体和关系"""
+def extract_from_text(text: str, user_id: str = None) -> dict:
+    """从文本中抽取实体和关系（user_id 用于选用该用户配置的模型）"""
     messages = [
         {"role": "system", "content": SYSTEM_PROMPT},
         {"role": "user", "content": f"请从以下笔记中提取实体和关系：\n\n{text}"},
     ]
-    response = chat_completion(messages)
-    return _normalize(extract_json(response["content"]))
+    response = chat_completion(messages, user_id=user_id)
+    raw = (response.get("content") or "").strip()
+    if not raw:
+        raise ValueError("模型返回了空内容（可能被内容过滤或超时）")
+    try:
+        result = _normalize(extract_json(raw))
+    except Exception as e:
+        raise ValueError(f"模型输出无法解析为 JSON：{type(e).__name__}: {e}；原始输出前 300 字：{raw[:300]}")
+    return result
 
 
-def extract_from_notes(notes: list[dict]) -> dict:
+def extract_from_notes(notes: list[dict], user_id: str = None) -> dict:
     """批量抽取，返回合并后的实体和关系"""
     all_entities = {}
     all_relations = []
@@ -111,7 +131,7 @@ def extract_from_notes(notes: list[dict]) -> dict:
         content = note.get("content", "")
         if not content:
             continue
-        result = extract_from_text(content)
+        result = extract_from_text(content, user_id=user_id)
 
         for entity in result.get("entities", []):
             key = entity["name"]

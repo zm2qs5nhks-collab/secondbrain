@@ -25,6 +25,8 @@ EMBEDDING_MODEL = os.getenv("EMBEDDING_MODEL", "text-embedding-3-small")
 # 单次 LLM/Embedding 请求超时（秒）与重试次数，避免长任务把工具调用拖到客户端超时
 LLM_TIMEOUT = int(os.getenv("LLM_TIMEOUT", "60"))
 LLM_MAX_RETRIES = int(os.getenv("LLM_MAX_RETRIES", "1"))
+# 单次生成的最大 token（长笔记抽取 JSON 可能被默认值截断）
+LLM_MAX_TOKENS = int(os.getenv("LLM_MAX_TOKENS", "4096"))
 
 DB_HOST = os.getenv("DB_HOST", "localhost")
 DB_PORT = os.getenv("DB_PORT", "5432")

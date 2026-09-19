@@ -53,6 +53,7 @@ def chat_completion(messages: list[dict], tools: list[dict] = None,
         "model": s["model_name"],
         "messages": messages,
         "temperature": 0.7,
+        "max_tokens": getattr(config, "LLM_MAX_TOKENS", 4096),
     }
     if tools:
         kwargs["tools"] = tools

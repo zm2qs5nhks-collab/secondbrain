@@ -1100,6 +1100,13 @@ elif page == "知识图谱":
         for _nd in kg.get_all_nodes():
             _graph_note_ids.update(_nd.get("notes") or [])
         _missing = [n for n in all_notes if n["id"] not in _graph_note_ids]
+
+        if st.session_state.get("kg_reextract_summary"):
+            st.success(st.session_state["kg_reextract_summary"])
+            with st.expander("上次补抽明细", expanded=False):
+                for _l in st.session_state.get("kg_reextract_log", []):
+                    st.caption(_l)
+
         if not all_notes:
             st.caption("暂无笔记。")
         elif not _missing:
@@ -1108,27 +1115,35 @@ elif page == "知识图谱":
             st.info(f"发现 **{len(_missing)}** 条笔记在图谱中没有实体。")
             if st.button(f"🔁 为这 {len(_missing)} 条笔记补抽实体", type="primary", key="kg_reextract"):
                 from storage.vector_store import get_note_full_content
-                _ok, _fail, _err = 0, 0, ""
+                kg.load()  # 写前重载最新图谱，避免覆盖其它进程写入
+                _ok, _empty, _fail = 0, 0, 0
+                _logs = []
                 _prog = st.progress(0.0)
                 for _i, _n in enumerate(_missing, 1):
-                    _content = get_note_full_content(_n["id"], user_id=USER_ID) or _n.get("preview", "")
+                    _full = (get_note_full_content(_n["id"], user_id=USER_ID) or "").strip()
+                    _content = _full or (_n.get("preview", "") or "").strip()
+                    _src = "全文" if _full else "摘要"
                     try:
-                        if _content.strip():
-                            _r = extract_from_text(_content)
-                            kg.add_entities(_r.get("entities", []), note_id=_n["id"])
-                            kg.add_relations(_r.get("relations", []), note_id=_n["id"])
+                        _r = extract_from_text(_content, user_id=USER_ID)
+                        _ents = _r.get("entities", [])
+                        _rels = _r.get("relations", [])
+                        kg.add_entities(_ents, note_id=_n["id"])
+                        kg.add_relations(_rels, note_id=_n["id"])
+                        if _ents:
                             _ok += 1
+                            _logs.append(f"✅ {_n['id']}（{_src} {len(_content)} 字）：{len(_ents)} 实体 / {len(_rels)} 关系")
                         else:
-                            _fail += 1
+                            _empty += 1
+                            _logs.append(f"⚠️ {_n['id']}（{_src} {len(_content)} 字）：模型未抽到实体")
                     except Exception as _e:
                         _fail += 1
-                        _err = f"{type(_e).__name__}: {_e}"
+                        _logs.append(f"❌ {_n['id']}（{_src} {len(_content)} 字）：{type(_e).__name__}: {_e}")
                     _prog.progress(_i / len(_missing))
                 kg.save()
-                _msg = f"补抽完成：成功 {_ok} 条，失败 {_fail} 条。"
-                if _fail and _err:
-                    _msg += f" 最后一次错误：{_err}"
-                st.success(_msg)
+                st.session_state["kg_reextract_summary"] = (
+                    f"补抽完成：成功 {_ok} 条 ｜ 未抽到实体 {_empty} 条 ｜ 失败 {_fail} 条"
+                )
+                st.session_state["kg_reextract_log"] = _logs
                 st.rerun()
 
     with tab_pick:

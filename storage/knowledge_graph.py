@@ -18,7 +18,8 @@ def get_kg(user_id: str = None) -> KnowledgeGraph:
 def add_note_to_graph(content: str, user_id: str = None, note_id: str = None) -> dict:
     """从笔记内容中抽取实体关系并加入图谱；note_id 用于标注来源笔记"""
     kg = get_kg(user_id)
-    result = extract_from_text(content)
+    kg.load()  # 写前重载，避免覆盖其它进程（如网页端）刚写入的内容
+    result = extract_from_text(content, user_id=user_id)
     entities = result.get("entities", [])
     relations = result.get("relations", [])
     kg.add_entities(entities, note_id=note_id)
