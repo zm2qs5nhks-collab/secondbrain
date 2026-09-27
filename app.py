@@ -10,6 +10,7 @@ sys.path.insert(0, os.path.dirname(__file__))
 import streamlit as st
 import streamlit.components.v1 as components
 import json
+import html
 import time
 from pathlib import Path
 
@@ -426,6 +427,7 @@ if _prev_page != page:
     st.session_state["_prev_page"] = page
     if _prev_page is not None:
         st.session_state["_enter_effect"] = "page"  # 切换模块：主内容淡入上浮
+        st.session_state["_review_open"] = None     # 离开页面时收起复习面板
         _page_tip(page)
 
 # 执行「进入」动效（登录=翻开笔记本 / 切页=淡入上浮），一次性消费
@@ -1373,6 +1375,11 @@ elif page == "学习路径":
     page_header("🎯", "个性化学习路径", "根据遗忘曲线和标签掌握度，推荐下一步学习方向")
     notebook_line()
 
+    _done = st.session_state.get("_review_done")
+    if _done:
+        st.success(_done)
+        st.session_state["_review_done"] = None
+
     from storage.learning_path import get_learning_path, get_weak_notes
 
     path_data = get_learning_path(user_id=USER_ID)
@@ -1410,12 +1417,40 @@ elif page == "学习路径":
                     color = "🟢" if ret > 0.7 else ("🟡" if ret > 0.4 else "🔴")
                     st.markdown(f"{color} {n['preview']}  — 保留率 {ret*100:.0f}%")
 
-                if urgency in ("high", "medium") and st.button(
-                    f"开始复习 {tag}", key=f"start_review_{tag}"
-                ):
-                    fc.record_access(rec["notes"][0]["id"], user_id=USER_ID)
-                    st.success(f"已记录对「{tag}」的复习，保留率已更新！")
-                    st.rerun()
+                if urgency in ("high", "medium"):
+                    if st.session_state.get("_review_open") != tag:
+                        if st.button(f"开始复习 {tag}", key=f"start_review_{tag}"):
+                            st.session_state["_review_open"] = tag
+                            st.rerun()
+                    else:
+                        with st.container():
+                            st.markdown('<span class="hb-flip"></span>', unsafe_allow_html=True)
+                            st.markdown(f"#### 📖 复习中 · {tag}")
+                            for n in rec["notes"]:
+                                _full = vector_store.get_note_full_content(
+                                    n["id"], user_id=USER_ID
+                                ) or n["preview"]
+                                st.markdown(
+                                    f'<div class="note-full-content">{html.escape(_full)}</div>',
+                                    unsafe_allow_html=True,
+                                )
+                            _done_col, _cancel_col = st.columns(2)
+                            if _done_col.button(
+                                "✅ 复习完成", key=f"done_review_{tag}",
+                                type="primary", use_container_width=True,
+                            ):
+                                for n in rec["notes"]:
+                                    fc.record_access(n["id"], user_id=USER_ID)
+                                st.session_state["_review_open"] = None
+                                st.session_state["_review_done"] = (
+                                    f"✅ 已完成「{tag}」的复习（{len(rec['notes'])} 条），保留率已更新！"
+                                )
+                                st.rerun()
+                            if _cancel_col.button(
+                                "取消", key=f"cancel_review_{tag}", use_container_width=True
+                            ):
+                                st.session_state["_review_open"] = None
+                                st.rerun()
 
     st.markdown("---")
     st.subheader("最急需复习的笔记")

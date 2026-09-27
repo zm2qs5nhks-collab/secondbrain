@@ -527,9 +527,29 @@ ANIM_CSS = r"""
 [data-testid="stTextInput"] input{transition:border-color .18s,box-shadow .18s,background .18s!important;}
 [data-testid="stTextInput"] input:focus{box-shadow:0 3px 0 rgba(47,93,143,.22)!important;}
 
+/* 11) 复习「翻开笔记」：点开始复习后，内容像翻页一样掀开浮现
+      只命中内层容器（它把 .hb-flip 作为第一个标记），避免外层卡片一起翻 */
+.hb-flip{display:none!important;}
+@keyframes hbFlipOpen{
+  from{opacity:0;transform-origin:left center;
+       transform:perspective(1600px) rotateY(-30deg) translateX(-8px);}
+  to{opacity:1;transform:none;}
+}
+[data-testid="stVerticalBlock"]:has(> [data-testid="stElementContainer"]:first-child .hb-flip){
+  animation:hbFlipOpen .55s cubic-bezier(.22,.61,.36,1) both;
+  background:#fffdf6!important;
+  border:2px solid var(--paper-edge)!important;
+  border-left:6px solid #d8c7a4!important;
+  border-radius:10px!important;
+  padding:.9rem 1rem .9rem 1.1rem!important;
+  margin-top:.5rem!important;
+  box-shadow:-16px 10px 30px rgba(90,70,40,.20)!important;
+}
+
 /* 无障碍：尊重系统「减少动态效果」 */
 @media (prefers-reduced-motion: reduce){
   .paper-card,.pz-item,.note-full-content,.sticky,.hb-skeleton,.block-container,
+  [data-testid="stVerticalBlock"]:has(> [data-testid="stElementContainer"]:first-child .hb-flip),
   [data-testid="stProgress"] div[role="progressbar"]>div{animation:none!important;}
 }
 </style>
