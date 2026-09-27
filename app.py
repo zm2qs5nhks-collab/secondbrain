@@ -428,6 +428,7 @@ if _prev_page != page:
     if _prev_page is not None:
         st.session_state["_enter_effect"] = "page"  # 切换模块：主内容淡入上浮
         st.session_state["_review_open"] = None     # 离开页面时收起复习面板
+        st.session_state["_reminder_open"] = None
         _page_tip(page)
 
 # 执行「进入」动效（登录=翻开笔记本 / 切页=淡入上浮），一次性消费
@@ -913,6 +914,11 @@ elif page == "复习提醒":
     page_header("⏰", "复习提醒", "基于遗忘曲线算法，智能追踪你的知识记忆状态")
     notebook_line()
 
+    _done = st.session_state.get("_reminder_done")
+    if _done:
+        st.success(_done)
+        st.session_state["_reminder_done"] = None
+
     tab_review, tab_curves = st.tabs(["待复习列表", "遗忘曲线分析"])
 
     with tab_review:
@@ -945,10 +951,35 @@ elif page == "复习提醒":
                     if tags:
                         st.caption(" ".join([f"`{t}`" for t in tags]))
 
-                    if st.button(f"标记已复习", key=f"review_{r['note_id']}"):
-                        fc.record_access(r["note_id"], user_id=USER_ID)
-                        st.success("已记录复习！保留率已更新。")
-                        st.rerun()
+                    if st.session_state.get("_reminder_open") != r["note_id"]:
+                        if st.button("开始复习", key=f"review_{r['note_id']}"):
+                            st.session_state["_reminder_open"] = r["note_id"]
+                            st.rerun()
+                    else:
+                        with st.container():
+                            st.markdown('<span class="hb-flip"></span>', unsafe_allow_html=True)
+                            st.markdown("#### 📖 复习中")
+                            _full = vector_store.get_note_full_content(
+                                r["note_id"], user_id=USER_ID
+                            ) or preview
+                            st.markdown(
+                                f'<div class="note-full-content">{html.escape(_full)}</div>',
+                                unsafe_allow_html=True,
+                            )
+                            _done_col, _cancel_col = st.columns(2)
+                            if _done_col.button(
+                                "✅ 复习完成", key=f"done_{r['note_id']}",
+                                type="primary", use_container_width=True,
+                            ):
+                                fc.record_access(r["note_id"], user_id=USER_ID)
+                                st.session_state["_reminder_open"] = None
+                                st.session_state["_reminder_done"] = "✅ 已完成复习，保留率已更新！"
+                                st.rerun()
+                            if _cancel_col.button(
+                                "取消", key=f"cancel_{r['note_id']}", use_container_width=True
+                            ):
+                                st.session_state["_reminder_open"] = None
+                                st.rerun()
 
     with tab_curves:
         st.subheader("遗忘曲线可视化")
