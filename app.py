@@ -237,6 +237,7 @@ if st.session_state.user_id is None:
                     if user:
                         st.session_state.user_id = str(user["id"])
                         st.session_state.user_email = user["email"]
+                        st.session_state["_enter_effect"] = "book"  # 登录进入：翻开笔记本
                         st.rerun()
                     else:
                         st.error("邮箱或密码错误")
@@ -298,7 +299,7 @@ set_user_settings(
 from storage import vector_store, metadata_store
 from scheduler import forgetting_curve as fc
 from tools import add_knowledge, search_knowledge, manage_knowledge, reminder
-from ui_theme import apply_main_theme, page_header, render_sticky, notebook_line
+from ui_theme import apply_main_theme, page_header, render_sticky, notebook_line, enter_effect
 
 # ── 全局手帐皮肤（含侧边栏牛皮纸 + 全部控件）──
 apply_main_theme()
@@ -424,7 +425,14 @@ _prev_page = st.session_state.get("_prev_page")
 if _prev_page != page:
     st.session_state["_prev_page"] = page
     if _prev_page is not None:
+        st.session_state["_enter_effect"] = "page"  # 切换模块：主内容淡入上浮
         _page_tip(page)
+
+# 执行「进入」动效（登录=翻开笔记本 / 切页=淡入上浮），一次性消费
+_enter = st.session_state.get("_enter_effect")
+if _enter:
+    del st.session_state["_enter_effect"]
+    enter_effect(_enter)
 
 st.sidebar.divider()
 stats_count = metadata_store.count(user_id=USER_ID)

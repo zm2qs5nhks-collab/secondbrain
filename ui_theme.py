@@ -529,7 +529,7 @@ ANIM_CSS = r"""
 
 /* 无障碍：尊重系统「减少动态效果」 */
 @media (prefers-reduced-motion: reduce){
-  .paper-card,.pz-item,.note-full-content,.sticky,.hb-skeleton,
+  .paper-card,.pz-item,.note-full-content,.sticky,.hb-skeleton,.block-container,
   [data-testid="stProgress"] div[role="progressbar"]>div{animation:none!important;}
 }
 </style>
@@ -551,6 +551,30 @@ def apply_main_theme():
     inject_fonts()
     st.markdown(MAIN_CSS, unsafe_allow_html=True)
     st.markdown(ANIM_CSS, unsafe_allow_html=True)
+
+
+def enter_effect(kind: str = "page"):
+    """页面/登录「进入」动效 —— 只在调用它的那一次 rerun 生效。
+
+    kind="page" —— 切换模块：主内容淡入上浮
+    kind="book" —— 登录成功：主内容如翻开笔记本般从左侧掀开
+    只作用于 .block-container（主内容区）；固定元素（菜单按钮/toast）挂在
+    body 上，不在该容器内，故不受位移影响。
+    """
+    if kind == "book":
+        css = (
+            "@keyframes hbBookOpen{"
+            "from{opacity:0;transform-origin:left center;"
+            "transform:perspective(1400px) rotateY(-16deg) translateX(-16px);}"
+            "to{opacity:1;transform:none;}}"
+            ".block-container{animation:hbBookOpen .62s cubic-bezier(.22,.61,.36,1) both;}"
+        )
+    else:
+        css = (
+            "@keyframes hbPageIn{from{opacity:0;translate:0 14px}to{opacity:1;translate:0 0}}"
+            ".block-container{animation:hbPageIn .42s cubic-bezier(.22,.61,.36,1) both;}"
+        )
+    st.markdown(f"<style>{css}</style>", unsafe_allow_html=True)
 
 
 def page_header(icon: str, title: str, subtitle: str = None):
