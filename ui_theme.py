@@ -450,9 +450,20 @@ ANIM_CSS = r"""
 @keyframes hbFadeUp{from{opacity:0;translate:0 8px}to{opacity:1;translate:0 0}}
 .paper-card,.pz-item,.note-full-content{animation:hbFadeUp .4s var(--ease-soft) both;}
 
+/* 1b) 主卡片容器（页面里 <span class="hb-card"> 的父容器）也淡入 + 悬停轻抬
+       —— 这是 app 里真正用到的卡片，务必覆盖 */
+[data-testid="stVerticalBlock"]:has(> [data-testid="stElementContainer"] .hb-card){
+  animation:hbFadeUp .45s var(--ease-soft) both;
+  transition:box-shadow .25s var(--ease-soft),transform .25s var(--ease-soft);}
+[data-testid="stVerticalBlock"]:has(> [data-testid="stElementContainer"] .hb-card):hover{
+  transform:translateY(-2px);box-shadow:0 8px 18px rgba(90,70,40,.16)!important;}
+/* 横格线卡片：内容区整体淡入（避免滚动条跳动，不加 hover 位移） */
+[data-testid="stVerticalBlock"]:has(> [data-testid="stElementContainer"] .hb-lines){
+  animation:hbFadeUp .45s var(--ease-soft) both;}
+
 /* 2) 便签飘动：用独立的 translate 属性，避免覆盖 .sticky 自身的 rotate 倾斜 */
-@keyframes hbFloat{0%,100%{translate:0 0}50%{translate:0 -3px}}
-.sticky{animation:hbFloat 5s ease-in-out infinite;}
+@keyframes hbFloat{0%,100%{translate:0 0}50%{translate:0 -4px}}
+.sticky{animation:hbFloat 4.6s ease-in-out infinite;}
 .sticky:nth-of-type(2n){animation-duration:6.2s;animation-delay:-1.4s;}
 .sticky:nth-of-type(3n){animation-duration:5.6s;animation-delay:-2.3s;}
 
