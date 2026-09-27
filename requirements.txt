@@ -14,7 +14,6 @@ beautifulsoup4
 certifi
 pydantic
 pandas
-sentence-transformers
 cryptography
 duckduckgo-search
 mcp>=1.30,<2
