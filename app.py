@@ -445,15 +445,38 @@ if st.sidebar.button("退出登录", use_container_width=True):
 
 
 def tts_button(text):
-    import json as _j
-    safe = _j.dumps(text[:200], ensure_ascii=False)
+    """语音朗读按钮。
+
+    st.markdown 会过滤掉 onclick / <script> 并把源码当纯文本显示，
+    因此必须用 components.html（iframe 内允许执行脚本）承载 Web Speech API。
+    """
+    safe = json.dumps((text or "").strip(), ensure_ascii=False)
     html = f"""
-    <button onclick="speak({safe})" style="background:none;border:1px solid #ccc;border-radius:8px;padding:2px 10px;cursor:pointer;font-size:13px;margin-top:4px">🔊 朗读</button>
+    <style>html,body{{margin:0;padding:0;background:transparent}}</style>
+    <button id="tts-btn" onclick="ttsToggle()"
+      style="background:#fbf5e9;border:1px solid #e9dcc3;border-radius:8px;
+             padding:3px 12px;cursor:pointer;font-size:13px;color:#7a6f5e;
+             font-family:'ZCOOL XiaoWei',serif;">🔊 朗读</button>
     <script>
-    function speak(t) {{ var u = new SpeechSynthesisUtterance(t); u.lang = 'zh-CN'; speechSynthesis.speak(u); }}
+    var TTS_TEXT = {safe};
+    var btn = document.getElementById('tts-btn');
+    function ttsToggle() {{
+      var synth = window.speechSynthesis;
+      if (!synth) {{ btn.textContent = '当前浏览器不支持朗读'; return; }}
+      if (synth.speaking || synth.pending) {{
+        synth.cancel(); btn.textContent = '🔊 朗读'; return;
+      }}
+      var u = new SpeechSynthesisUtterance(TTS_TEXT);
+      u.lang = 'zh-CN';
+      u.rate = 1.0;
+      u.onend = function() {{ btn.textContent = '🔊 朗读'; }};
+      u.onerror = function() {{ btn.textContent = '🔊 朗读'; }};
+      btn.textContent = '⏹ 停止';
+      synth.speak(u);
+    }}
     </script>
     """
-    st.markdown(html, unsafe_allow_html=True)
+    components.html(html, height=42, scrolling=False)
 
 
 # ═══════════════════════════════════════════
