@@ -437,6 +437,94 @@ a{color:var(--pen)!important;text-decoration-style:dashed;}
 """
 
 
+# ═══════════════════════════════════════════════════════════════
+#  手帐风微动效层（纯 CSS，无 JS）
+#  —— 在 LOGIN_CSS / MAIN_CSS 之后注入，靠后覆盖以叠加动效
+# ═══════════════════════════════════════════════════════════════
+ANIM_CSS = r"""
+<style>
+:root{ --ease-soft:cubic-bezier(.22,.61,.36,1); }
+
+/* 1) 淡入上浮：纸张卡 / 搜索条目 / 只读内容盒
+      用独立的 translate 属性承载上浮，避免与 hover 的 transform 抢占 */
+@keyframes hbFadeUp{from{opacity:0;translate:0 8px}to{opacity:1;translate:0 0}}
+.paper-card,.pz-item,.note-full-content{animation:hbFadeUp .4s var(--ease-soft) both;}
+
+/* 2) 便签飘动：用独立的 translate 属性，避免覆盖 .sticky 自身的 rotate 倾斜 */
+@keyframes hbFloat{0%,100%{translate:0 0}50%{translate:0 -3px}}
+.sticky{animation:hbFloat 5s ease-in-out infinite;}
+.sticky:nth-of-type(2n){animation-duration:6.2s;animation-delay:-1.4s;}
+.sticky:nth-of-type(3n){animation-duration:5.6s;animation-delay:-2.3s;}
+
+/* 3) 卡片 hover 抬起 + 投影；便签 hover 停住并扶正 */
+.paper-card,.pz-item,.sticky,.note-full-content{
+  transition:box-shadow .25s var(--ease-soft),transform .25s var(--ease-soft);}
+.paper-card:hover{transform:translateY(-3px);box-shadow:0 6px 0 rgba(90,70,40,.08),0 12px 24px rgba(90,70,40,.16);}
+.pz-item:hover{transform:translateY(-2px);box-shadow:0 10px 20px rgba(90,70,40,.16);}
+.sticky:hover{animation-play-state:paused;transform:rotate(0deg) translateY(-3px);
+  box-shadow:0 12px 20px rgba(80,60,20,.22);}
+.note-full-content:hover{box-shadow:inset 0 2px 6px rgba(90,70,40,.06),0 8px 18px rgba(90,70,40,.14);}
+
+/* 4) 按钮：主按钮渐变 + 悬停发光 + 按压回弹；次按钮轻抬 */
+[data-testid="stBaseButton-primary"],button[kind="primary"]{
+  background:linear-gradient(180deg,#3a6da3 0%,var(--pen) 55%,var(--pen-dark) 100%)!important;
+  transition:transform .12s var(--ease-soft),box-shadow .12s var(--ease-soft),filter .15s!important;}
+[data-testid="stBaseButton-primary"]:hover,button[kind="primary"]:hover{
+  filter:brightness(1.08) saturate(1.05)!important;
+  box-shadow:0 5px 12px rgba(34,69,102,.38)!important;}
+[data-testid="stBaseButton-primary"]:active,button[kind="primary"]:active{
+  transform:translateY(2px) rotate(-.4deg) scale(.985)!important;
+  box-shadow:0 0 0 rgba(0,0,0,.2)!important;}
+[data-testid="stBaseButton-secondary"],button[kind="secondary"]{
+  transition:transform .12s var(--ease-soft),box-shadow .15s,border-color .15s,color .15s!important;}
+[data-testid="stBaseButton-secondary"]:hover,button[kind="secondary"]:hover{
+  transform:translateY(-1px)!important;box-shadow:0 4px 9px rgba(90,70,40,.16)!important;}
+[data-testid="stBaseButton-secondary"]:active{
+  transform:translateY(1px) scale(.99)!important;box-shadow:0 1px 0 rgba(0,0,0,.12)!important;}
+
+/* 5) 指标卡 hover 轻抬 */
+[data-testid="stMetric"]{transition:transform .2s var(--ease-soft),box-shadow .2s var(--ease-soft);}
+[data-testid="stMetric"]:hover{transform:translateY(-2px);box-shadow:0 6px 14px rgba(90,70,40,.16)!important;}
+
+/* 6) 进度条：三色渐变 + 光泽流动 + 宽度平滑增长 */
+@keyframes hbFlow{from{background-position:0 0}to{background-position:200% 0}}
+[data-testid="stProgress"] div[role="progressbar"]>div{
+  background:linear-gradient(90deg,var(--pen),var(--pen-green),var(--pen))!important;
+  background-size:200% 100%!important;animation:hbFlow 2.4s linear infinite;
+  transition:width .5s var(--ease-soft)!important;}
+
+/* 7) 加载骨架：<span class="hb-skeleton [w60|w80]">
+      —— 供页面在等待时铺设占位条；同时美化原生 spinner */
+@keyframes hbShimmer{from{background-position:100% 0}to{background-position:0 0}}
+.hb-skeleton{display:block;height:14px;border-radius:7px;margin:.35rem 0;
+  background:linear-gradient(90deg,var(--paper-edge) 25%,#fff8e8 37%,var(--paper-edge) 63%);
+  background-size:400% 100%;animation:hbShimmer 1.3s ease-in-out infinite;}
+.hb-skeleton.w40{width:40%}.hb-skeleton.w60{width:60%}.hb-skeleton.w80{width:80%}
+[data-testid="stSpinner"] p{font-family:'Ma Shan Zheng',cursive!important;color:var(--ink-soft)!important;}
+[data-testid="stSpinner"] > div{border-top-color:var(--pen)!important;}
+
+/* 8) 侧边栏导航：悬停右移、选中项柔和过渡 */
+[data-testid="stSidebar"] [data-testid="stRadio"] label{
+  transition:transform .15s var(--ease-soft),background .15s,border-color .15s,color .15s;}
+[data-testid="stSidebar"] [data-testid="stRadio"] label:hover{transform:translateX(3px);}
+
+/* 9) 页签悬停轻抬 */
+[data-testid="stTabs"] button[data-baseweb="tab"]{transition:transform .15s var(--ease-soft),background .15s,color .15s;}
+[data-testid="stTabs"] button[data-baseweb="tab"]:hover{transform:translateY(-1px);}
+
+/* 10) 输入聚焦：下划线阴影渐显 */
+[data-testid="stTextInput"] input{transition:border-color .18s,box-shadow .18s,background .18s!important;}
+[data-testid="stTextInput"] input:focus{box-shadow:0 3px 0 rgba(47,93,143,.22)!important;}
+
+/* 无障碍：尊重系统「减少动态效果」 */
+@media (prefers-reduced-motion: reduce){
+  .paper-card,.pz-item,.note-full-content,.sticky,.hb-skeleton,
+  [data-testid="stProgress"] div[role="progressbar"]>div{animation:none!important;}
+}
+</style>
+"""
+
+
 def inject_fonts():
     st.markdown(FONT_LINK, unsafe_allow_html=True)
 
@@ -444,12 +532,14 @@ def inject_fonts():
 def apply_login_theme():
     """登录页皮肤（替换原深色玻璃）"""
     st.markdown(LOGIN_CSS, unsafe_allow_html=True)
+    st.markdown(ANIM_CSS, unsafe_allow_html=True)
 
 
 def apply_main_theme():
     """登录后全局皮肤（含侧边栏 + 全部模块）"""
     inject_fonts()
     st.markdown(MAIN_CSS, unsafe_allow_html=True)
+    st.markdown(ANIM_CSS, unsafe_allow_html=True)
 
 
 def page_header(icon: str, title: str, subtitle: str = None):
