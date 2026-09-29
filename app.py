@@ -851,15 +851,16 @@ elif page == "笔记管理":
 
     col1, col2 = st.columns([3, 1])
     with col2:
-        st.markdown("""
-        <div style="background:var(--sticky-p);border:2px solid #efc3d4;border-radius:12px;padding:.7rem .9rem;
-          box-shadow:0 2px 0 rgba(80,60,20,.08);transform:rotate(.4deg)">
-          <h3 style="font-family:'Ma Shan Zheng',cursive;color:var(--ink);margin:0 0 .4rem">🔍 筛选</h3>
-        """, unsafe_allow_html=True)
-        filter_tag = st.text_input("按标签筛选", placeholder="输入标签")
-        filter_imp = st.multiselect("按重要度", ["high", "normal", "low"])
-        sort_by = st.selectbox("排序", ["最新创建", "最近访问", "访问次数"])
-        st.markdown("</div>", unsafe_allow_html=True)
+        with st.container():
+            st.markdown('<span class="hb-filter"></span>', unsafe_allow_html=True)
+            st.markdown(
+                "<h3 style=\"font-family:'Ma Shan Zheng',cursive;color:var(--ink);"
+                "margin:0 0 .4rem\">🔍 筛选</h3>",
+                unsafe_allow_html=True,
+            )
+            filter_tag = st.text_input("按标签筛选", placeholder="输入标签")
+            filter_imp = st.multiselect("按重要度", ["high", "normal", "low"])
+            sort_by = st.selectbox("排序", ["最新创建", "最近访问", "访问次数"])
 
     if filter_tag:
         all_notes = [n for n in all_notes if filter_tag in n.get("tags", [])]
@@ -951,11 +952,11 @@ elif page == "复习提醒":
                     if tags:
                         st.caption(" ".join([f"`{t}`" for t in tags]))
 
-                    if st.session_state.get("_reminder_open") != r["note_id"]:
-                        if st.button("开始复习", key=f"review_{r['note_id']}"):
-                            st.session_state["_reminder_open"] = r["note_id"]
-                            st.rerun()
-                    else:
+                    _open = st.session_state.get("_reminder_open") == r["note_id"]
+                    if not _open and st.button("开始复习", key=f"review_{r['note_id']}"):
+                        st.session_state["_reminder_open"] = r["note_id"]
+                        _open = True  # 同一次运行内直接展开，避免额外 rerun 造成滚动跳位
+                    if _open:
                         with st.container():
                             st.markdown('<span class="hb-flip"></span>', unsafe_allow_html=True)
                             st.markdown("#### 📖 复习中")
@@ -1449,11 +1450,11 @@ elif page == "学习路径":
                     st.markdown(f"{color} {n['preview']}  — 保留率 {ret*100:.0f}%")
 
                 if urgency in ("high", "medium"):
-                    if st.session_state.get("_review_open") != tag:
-                        if st.button(f"开始复习 {tag}", key=f"start_review_{tag}"):
-                            st.session_state["_review_open"] = tag
-                            st.rerun()
-                    else:
+                    _open = st.session_state.get("_review_open") == tag
+                    if not _open and st.button(f"开始复习 {tag}", key=f"start_review_{tag}"):
+                        st.session_state["_review_open"] = tag
+                        _open = True  # 同一次运行内直接展开，避免额外 rerun 造成滚动跳位
+                    if _open:
                         with st.container():
                             st.markdown('<span class="hb-flip"></span>', unsafe_allow_html=True)
                             st.markdown(f"#### 📖 复习中 · {tag}")

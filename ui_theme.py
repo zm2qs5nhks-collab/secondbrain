@@ -360,7 +360,7 @@ MAIN_CSS = r"""
 [data-testid="stExpander"] summary{font-family:'Ma Shan Zheng',cursive!important;border-radius:12px;padding:.5rem .8rem!important;}
 
 /* 手帐卡片容器：在 st.container() 内放 <span class="hb-card"></span> 即可给整块套上纸卡框 */
-.hb-card,.hb-lines{display:none!important;}
+.hb-card,.hb-lines,.hb-filter{display:none!important;}
 [data-testid="stVerticalBlock"]:has(> [data-testid="stElementContainer"] .hb-card){
   background:var(--paper)!important;
   border:2px solid var(--paper-edge)!important;
@@ -382,6 +382,17 @@ MAIN_CSS = r"""
 }
 [data-testid="stVerticalBlock"]:has(> [data-testid="stElementContainer"] .hb-lines) [data-testid="stCaptionContainer"]{
   line-height:34px!important;margin:0!important;
+}
+/* 筛选卡：容器内放 <span class="hb-filter"> 即给整块套粉色便签框（替代无法跨容器的手写 div） */
+[data-testid="stVerticalBlock"]:has(> [data-testid="stElementContainer"]:first-child .hb-filter){
+  background:var(--sticky-p)!important;
+  border:2px solid #efc3d4!important;
+  border-radius:12px!important;
+  padding:.6rem .8rem!important;
+  box-shadow:0 2px 0 rgba(80,60,20,.08)!important;
+}
+[data-testid="stVerticalBlock"]:has(> [data-testid="stElementContainer"]:first-child .hb-filter) > [data-testid="stElementContainer"]:first-child{
+  display:none!important;
 }
 
 /* 指标 */
@@ -411,6 +422,13 @@ MAIN_CSS = r"""
 [data-testid="stChatInput"] textarea{
   background:transparent!important;border:none!important;border-radius:12px!important;
   font-family:'ZCOOL XiaoWei',serif!important;color:var(--ink)!important;box-shadow:none!important;}
+[data-testid="stChatInput"] textarea,
+[data-testid="stChatInput"] textarea:focus{
+  color:var(--ink)!important;-webkit-text-fill-color:var(--ink)!important;caret-color:var(--pen)!important;}
+[data-testid="stChatInput"] > div,
+[data-testid="stChatInput"] div[data-baseweb="base-input"],
+[data-testid="stChatInput"] div[data-baseweb="textarea"]{
+  background:transparent!important;border:none!important;box-shadow:none!important;}
 [data-testid="stChatInput"] textarea::placeholder{color:var(--ink-soft)!important;}
 [data-testid="stChatInputSubmitButton"] button, [data-testid="stChatInput"] button{
   background:var(--pen)!important;color:#fff!important;
