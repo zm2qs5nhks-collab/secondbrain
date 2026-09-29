@@ -2,10 +2,11 @@
 developmentMode = false
 
 [theme]
-primaryColor = "#6C63FF"
-backgroundColor = "#0E1117"
-secondaryBackgroundColor = "#1A1D23"
-textColor = "#FAFAFA"
+base = "light"
+primaryColor = "#2f5d8f"
+backgroundColor = "#fbf5e9"
+secondaryBackgroundColor = "#f6eeda"
+textColor = "#3b3226"
 font = "sans serif"
 
 [server]

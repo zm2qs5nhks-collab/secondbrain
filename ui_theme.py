@@ -396,10 +396,26 @@ MAIN_CSS = r"""
   box-shadow:0 2px 0 rgba(80,60,20,.08);}
 [data-testid="stChatMessage"]:has([data-testid="chatAvatarIcon-user"]) [data-testid="stMarkdownContainer"]{background:var(--sticky-b)!important;border:1.5px solid #9cc6ec;}
 [data-testid="stChatMessage"]:has([data-testid="chatAvatarIcon-assistant"]) [data-testid="stMarkdownContainer"]{background:var(--sticky-y)!important;border:1.5px solid #e6c87a;}
-[data-testid="stChatInput"] textarea{background:var(--paper)!important;border:2px solid var(--paper-edge)!important;
-  border-bottom:2px dashed var(--ink-faint)!important;border-radius:14px 14px 0 0!important;
-  font-family:'ZCOOL XiaoWei',serif!important;}
-[data-testid="stChatInput"] textarea:focus{border-bottom-style:solid!important;border-bottom-color:var(--pen)!important;}
+/* 聊天输入 = 手帐便签输入条（浅色底、整框圆角，去掉突兀的深色底栏） */
+[data-testid="stBottom"], [data-testid="stBottomBlockContainer"]{
+  background:var(--paper)!important;}
+[data-testid="stChatInput"]{
+  background:var(--paper)!important;
+  border:2px solid var(--paper-edge)!important;
+  border-radius:16px!important;
+  box-shadow:0 3px 0 rgba(90,70,40,.08)!important;
+  transition:border-color .18s cubic-bezier(.22,.61,.36,1),box-shadow .18s cubic-bezier(.22,.61,.36,1);}
+[data-testid="stChatInput"]:focus-within{
+  border-color:var(--pen)!important;
+  box-shadow:0 3px 0 rgba(47,93,143,.20)!important;}
+[data-testid="stChatInput"] textarea{
+  background:transparent!important;border:none!important;border-radius:12px!important;
+  font-family:'ZCOOL XiaoWei',serif!important;color:var(--ink)!important;box-shadow:none!important;}
+[data-testid="stChatInput"] textarea::placeholder{color:var(--ink-soft)!important;}
+[data-testid="stChatInputSubmitButton"] button, [data-testid="stChatInput"] button{
+  background:var(--pen)!important;color:#fff!important;
+  border:2px solid var(--pen-dark)!important;border-radius:12px!important;}
+[data-testid="stChatInputSubmitButton"] button:hover{filter:brightness(1.08)!important;}
 
 /* 进度条 */
 [data-testid="stProgress"] div[role="progressbar"]{background:var(--paper-edge)!important;border-radius:6px!important;}
