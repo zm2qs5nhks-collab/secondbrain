@@ -449,7 +449,23 @@ h1,h2,h3,h4{font-family:'Ma Shan Zheng',cursive!important;color:var(--ink)!impor
 p, li, [data-testid="stCaptionContainer"]{font-family:'ZCOOL XiaoWei',serif!important;color:var(--ink)!important;}
 hr{border-color:var(--paper-edge)!important;}
 a{color:var(--pen)!important;text-decoration-style:dashed;}
+[data-testid="stMarkdownContainer"]{color:var(--ink)!important;font-family:'ZCOOL XiaoWei',serif!important;}
 [data-testid="stMarkdownContainer"] p{color:var(--ink)!important;font-family:'ZCOOL XiaoWei',serif!important;}
+[data-testid="stMarkdownContainer"] span,
+[data-testid="stMarkdownContainer"] strong,
+[data-testid="stMarkdownContainer"] em,
+[data-testid="stMarkdownContainer"] del,
+[data-testid="stMarkdownContainer"] blockquote{color:var(--ink)!important;}
+/* 智能体常返回 Markdown 表格：文字改墨色，避免白字看不清 */
+[data-testid="stMarkdownContainer"] table{border-collapse:collapse!important;}
+[data-testid="stMarkdownContainer"] table th,
+[data-testid="stMarkdownContainer"] table td{
+  color:var(--ink)!important;border:1px solid var(--paper-edge)!important;padding:.35rem .6rem!important;}
+[data-testid="stMarkdownContainer"] table th{background:var(--paper-2)!important;font-family:'Ma Shan Zheng',cursive!important;}
+[data-testid="stMarkdownContainer"] table td{background:var(--paper)!important;}
+[data-testid="stMarkdownContainer"] table tr{background:transparent!important;}
+[data-testid="stMarkdownContainer"] code{
+  color:var(--pen-dark)!important;background:var(--paper-2)!important;border-radius:4px;padding:.05rem .3rem;}
 [data-testid="stSidebar"] [data-testid="stMarkdownContainer"] p{color:var(--ink)!important;}
 
 /* 上传 / 表格 */
