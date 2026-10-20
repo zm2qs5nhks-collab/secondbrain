@@ -12,8 +12,10 @@ font = "sans serif"
 [server]
 headless = true
 port = 8501
-enableCORS = false
-enableXsrfProtection = false
+# 公网部署必须开启：关闭 CORS/XSRF 后，配合「点一下就删除/清空」的按钮
+# 存在 CSRF 风险。反代场景下 Nginx 已透传 Host/Origin，不会有副作用。
+enableCORS = true
+enableXsrfProtection = true
 
 [browser]
 gatherUsageStats = false

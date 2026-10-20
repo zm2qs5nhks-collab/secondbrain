@@ -3,12 +3,13 @@
 """
 
 import os
-import ssl
 import certifi
 
+# 让 requests / urllib 使用 certifi 的 CA 包（企业内网自签证书可另配环境变量）
 os.environ["SSL_CERT_FILE"] = certifi.where()
 os.environ["REQUESTS_CA_BUNDLE"] = certifi.where()
-ssl._create_default_https_context = ssl._create_unverified_context
+# 注意：这里绝不能设置 ssl._create_unverified_context —— 那会全局关闭
+# HTTPS 证书校验，任何网络位置都能截获 LLM API Key。
 
 from pathlib import Path
 from dotenv import load_dotenv

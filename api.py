@@ -25,6 +25,8 @@ XIAOYI_SK = os.getenv("XIAOYI_SK", "")
 API_SECRET_KEY = os.getenv("API_SECRET_KEY", "")
 
 from storage.api_tokens import verify_token, create_token, list_tokens, revoke_token
+from storage.passwords import hash_password, verify_password
+from storage.rate_limit import check as rate_check, reset as rate_reset
 
 
 @asynccontextmanager
@@ -125,18 +127,46 @@ class TokenCreateRequest(BaseModel):
 
 
 @app.post("/api/auth/login")
-async def auth_login(req: LoginRequest):
+async def auth_login(req: LoginRequest, request: Request):
     """邮箱+密码换取 API Token（供 REST / MCP 客户端使用）"""
-    if not req.email or not req.password:
+    email = (req.email or "").strip().lower()
+    if not email or not req.password:
         raise HTTPException(status_code=400, detail="邮箱和密码不能为空")
-    pwd_hash = hashlib.sha256(req.password.encode()).hexdigest()
+
+    # 限流：同一 IP 10 分钟 20 次，同一邮箱 10 分钟 5 次
+    client_ip = request.client.host if request.client else "unknown"
+    ok_ip, wait_ip = rate_check(f"login:ip:{client_ip}", limit=20, window=600)
+    ok_mail, wait_mail = rate_check(f"login:email:{email}", limit=5, window=600)
+    if not ok_ip or not ok_mail:
+        raise HTTPException(
+            status_code=429,
+            detail=f"尝试过于频繁，请 {max(wait_ip, wait_mail)} 秒后再试",
+        )
+
     from storage.db import query_one
     user = query_one(
-        "SELECT id, email FROM users WHERE email = %s AND password_hash = %s",
-        (req.email, pwd_hash),
+        "SELECT id, email, password_hash FROM users WHERE lower(email) = lower(%s)",
+        (email,),
     )
-    if not user:
+
+    passed, needs_rehash = (False, False)
+    if user:
+        passed, needs_rehash = verify_password(req.password, user.get("password_hash"))
+    if not passed:
         raise HTTPException(status_code=401, detail="邮箱或密码错误")
+
+    # 老账号 sha256 -> bcrypt 无感升级
+    if needs_rehash:
+        try:
+            from storage.db import execute
+            execute(
+                "UPDATE users SET password_hash = %s WHERE id = %s",
+                (hash_password(req.password), user["id"]),
+            )
+        except Exception:
+            pass
+
+    rate_reset(f"login:email:{email}")
     token = create_token(str(user["id"]), name="login")
     return {"status": "success", "token": token, "user_id": str(user["id"]), "email": user["email"]}
 

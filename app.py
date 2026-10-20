@@ -12,7 +12,6 @@ import streamlit.components.v1 as components
 import json
 import html
 import time
-import hashlib
 from pathlib import Path
 
 st.set_page_config(
@@ -24,6 +23,8 @@ st.set_page_config(
 import config
 
 from storage.db import query_one, execute
+from storage.passwords import hash_password, verify_password
+from storage.rate_limit import check as rate_check, reset as rate_reset
 
 # ═══════════════════════════════════════════
 #  登录 / 注册 —— 品牌落地页（腾讯官网风格）
@@ -93,22 +94,42 @@ if st.session_state.user_id is None:
                         "登  录", type="primary", use_container_width=True
                     )
                 if do_login:
-                    if not login_email.strip() or not login_pwd:
+                    _email_key = login_email.strip().lower()
+                    if not _email_key or not login_pwd:
                         st.error("请输入邮箱和密码")
                     else:
-                        user = query_one(
-                            "SELECT id, email FROM users "
-                            "WHERE lower(email) = lower(%s) AND password_hash = %s",
-                            (login_email.strip(),
-                             hashlib.sha256(login_pwd.encode()).hexdigest()),
-                        )
-                        if user:
-                            st.session_state.user_id = str(user["id"])
-                            st.session_state.user_email = user["email"]
-                            st.session_state["_enter_effect"] = "book"  # 登录进入：翻开笔记本
-                            st.rerun()
+                        # 限流：同一邮箱 5 分钟内最多 5 次
+                        allowed, wait_s = rate_check(f"login:{_email_key}", limit=5, window=300)
+                        if not allowed:
+                            st.error(f"尝试次数过多，请 {wait_s} 秒后再试")
                         else:
-                            st.error("邮箱或密码错误")
+                            user = query_one(
+                                "SELECT id, email, password_hash FROM users "
+                                "WHERE lower(email) = lower(%s)",
+                                (_email_key,),
+                            )
+                            passed, needs_rehash = (False, False)
+                            if user:
+                                passed, needs_rehash = verify_password(
+                                    login_pwd, user.get("password_hash")
+                                )
+                            if passed:
+                                rate_reset(f"login:{_email_key}")
+                                # 老账号是无盐 sha256，登录成功后静默升级为 bcrypt
+                                if needs_rehash:
+                                    try:
+                                        execute(
+                                            "UPDATE users SET password_hash = %s WHERE id = %s",
+                                            (hash_password(login_pwd), user["id"]),
+                                        )
+                                    except Exception:
+                                        pass  # 升级失败不影响本次登录
+                                st.session_state.user_id = str(user["id"])
+                                st.session_state.user_email = user["email"]
+                                st.session_state["_enter_effect"] = "book"  # 登录进入：翻开笔记本
+                                st.rerun()
+                            else:
+                                st.error("邮箱或密码错误")
 
             else:
                 with st.form("register_form", clear_on_submit=False):
@@ -148,7 +169,7 @@ if st.session_state.user_id is None:
                         else:
                             execute(
                                 "INSERT INTO users (email, password_hash) VALUES (%s, %s)",
-                                (_email, hashlib.sha256(reg_pwd.encode()).hexdigest()),
+                                (_email, hash_password(reg_pwd)),
                             )
                             st.session_state.auth_mode = "login"
                             st.rerun()

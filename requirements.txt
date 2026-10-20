@@ -15,5 +15,6 @@ certifi
 pydantic
 pandas
 cryptography
+bcrypt>=4.0,<5
 duckduckgo-search
 mcp>=1.30,<2
