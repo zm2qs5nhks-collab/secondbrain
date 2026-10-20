@@ -12,6 +12,7 @@ import streamlit.components.v1 as components
 import json
 import html
 import time
+import hashlib
 from pathlib import Path
 
 st.set_page_config(
@@ -25,7 +26,7 @@ import config
 from storage.db import query_one, execute
 
 # ═══════════════════════════════════════════
-#  登录/注册页面
+#  登录 / 注册 —— 品牌落地页（腾讯官网风格）
 # ═══════════════════════════════════════════
 if "user_id" not in st.session_state:
     st.session_state.user_id = None
@@ -33,241 +34,133 @@ if "user_email" not in st.session_state:
     st.session_state.user_email = None
 
 if st.session_state.user_id is None:
-    # ── 登录页：手帐便利贴笔记本风 ──
-    from ui_theme import FONT_LINK
-    st.markdown(FONT_LINK, unsafe_allow_html=True)
-    st.markdown("""
-    <style>
-    :root{
-      --paper:#fbf5e9; --paper-2:#f6eeda; --paper-edge:#e9dcc3;
-      --ink:#3b3226; --ink-soft:#7a6f5e; --ink-faint:#b3a68e;
-      --sticky-y:#ffe9a8; --sticky-p:#ffd6e7; --sticky-b:#d9efff; --sticky-g:#d9f5dc;
-      --pen:#2f5d8f; --pen-dark:#224566; --pen-red:#c0504d; --pen-green:#4a7a4c; --pen-orange:#c07a3a;
-      --tape:rgba(255,255,255,.55);
-    }
-    .stApp {
-      background:
-        radial-gradient(circle at 15% 10%, rgba(200,180,140,.12), transparent 40%),
-        radial-gradient(circle at 85% 90%, rgba(200,180,140,.10), transparent 45%),
-        var(--paper) !important;
-      min-height: 100vh;
-      font-family:'ZCOOL XiaoWei',serif;
-      color: var(--ink);
-    }
-    .stApp::before{
-      content:'';position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.5;
-      background-image:radial-gradient(rgba(150,130,100,.35) .6px, transparent .6px);
-      background-size:3px 3px;
-    }
-    .block-container { max-width: 100% !important; padding-top: 1rem !important; }
-    [data-testid="stHeader"], [data-testid="stToolbar"] { display: none; }
-    [data-testid="stSidebar"] { display: none; }
+    from ui_login import (
+        render_scaffold, render_hero, render_features, render_footer,
+    )
 
-    /* 手绘纸张卡 */
-    .glass-card {
-      position: relative;
-      background: var(--paper);
-      border: 2px solid var(--paper-edge); border-radius: 16px;
-      padding: 2rem 1.8rem; margin-bottom: 1rem;
-      box-shadow: 0 3px 0 rgba(90,70,40,.08), 0 10px 22px rgba(90,70,40,.08);
-    }
-    .glass-card::before{content:'';position:absolute;top:-9px;left:50%;transform:translateX(-50%) rotate(-2deg);
-      width:100px;height:20px;background:var(--tape);box-shadow:0 1px 2px rgba(0,0,0,.08);}
-    .auth-title{font-family:'Ma Shan Zheng',cursive;font-size:2rem;color:var(--ink);}
-    .auth-subtitle{font-family:'Caveat',cursive;font-size:1.1rem;color:var(--ink-soft);}
+    render_scaffold()
 
-    /* 便利贴装饰卡 */
-    .sticky{
-      position:relative;border-radius:4px 4px 10px 10px;padding:1.1rem 1.2rem;
-      box-shadow:0 4px 8px rgba(80,60,20,.12);
-      font-family:'Ma Shan Zheng',cursive;font-size:1.15rem;
-      margin-bottom:1rem;
-    }
-    .sticky::before{content:'';position:absolute;top:-9px;left:14px;right:14px;height:16px;
-      background:var(--tape);transform:rotate(-1deg);}
-    .sticky.y{background:var(--sticky-y)}
-    .sticky.p{background:var(--sticky-p)}
-    .sticky.b{background:var(--sticky-b)}
-    .sticky.g{background:var(--sticky-g)}
-    .feature-title{font-family:'Ma Shan Zheng',cursive;font-size:1.15rem;color:var(--ink);margin:.2rem 0 .3rem}
-    .feature-desc{font-size:.9rem;color:var(--ink-soft);line-height:1.55}
-    .feature-icon{font-size:1.9rem}
+    hero_col, form_col = st.columns(
+        [1.08, 0.72], gap="large", vertical_alignment="center"
+    )
 
-    /* 输入 = 手写虚线 */
-    .stTextInput input {
-      background: #fffdf6 !important; border: 2px solid var(--paper-edge) !important;
-      border-bottom: 2px dashed var(--pen) !important; border-radius: 10px !important;
-      padding: .5rem .7rem !important;
-      font-family: 'ZCOOL XiaoWei', serif !important; font-size: 1.05rem !important;
-      color: var(--ink) !important; box-shadow: 0 2px 0 rgba(90,70,40,.06) !important;
-    }
-    .stTextInput input:focus { border-bottom-style: solid !important; border-bottom-color: var(--pen) !important; background: #fffef9 !important; }
-    .stTextInput input::placeholder { color: var(--ink-soft) !important; }
-    .stTextInput label { font-family: 'Ma Shan Zheng', cursive !important; color: var(--ink-soft) !important; font-size:.95rem!important; }
+    with hero_col:
+        render_hero()
 
-    /* 手绘按钮 */
-    .stButton > button[kind="primary"],
-    .stButton > button[data-testid="stBaseButton-primary"] {
-      background: var(--pen) !important; color: #fff !important;
-      border: 2px solid var(--pen-dark) !important;
-      border-radius: 12px 10px 13px 9px !important;
-      font-family: 'Ma Shan Zheng', cursive !important; font-size: 1.05rem !important;
-      font-weight: 400 !important; width: 100% !important;
-      box-shadow: 0 2px 0 rgba(0,0,0,.25) !important; letter-spacing: .08em;
-      transform: rotate(-.4deg) !important;
-    }
-    .stButton > button[kind="primary"]:hover,
-    .stButton > button[data-testid="stBaseButton-primary"]:hover { filter: brightness(1.06) !important; }
-    .stButton > button:not([kind="primary"]):not([data-testid="stBaseButton-primary"]) {
-      background: var(--paper) !important; color: var(--ink) !important;
-      border: 2px solid var(--ink-soft) !important;
-      border-radius: 12px 10px 13px 9px !important;
-      font-family: 'Ma Shan Zheng', cursive !important;
-      box-shadow: 0 2px 0 rgba(0,0,0,.12) !important;
-    }
-    .stButton > button:not([kind="primary"]):not([data-testid="stBaseButton-primary"]):hover {
-      border-color: var(--pen) !important; color: var(--pen) !important;
-    }
+    with form_col:
+        st.markdown('<span id="tv-login"></span>', unsafe_allow_html=True)
 
-    .auth-switch { text-align:center; font-size:.9rem; color:var(--ink-soft); margin-top:1.2rem;
-      font-family:'Caveat',cursive; }
-    .auth-switch span.hl { color:var(--pen); font-weight:600; cursor:pointer; }
+        with st.container(key="tLoginCard"):
+            st.markdown(
+                '<div class="tc-eyebrow">Welcome Back</div>'
+                '<div class="tc-title">进入你的知识空间</div>'
+                '<div class="tc-sub">登录后继续你的笔记、图谱与复习计划</div>',
+                unsafe_allow_html=True,
+            )
 
-    .stAlert { border-radius:12px !important; border-style:solid !important; border-width:2px !important;
-      box-shadow:0 2px 0 rgba(80,60,20,.08)!important; }
-    .stAlert p, .stAlert li { color: var(--ink) !important; }
-    .decor-pin { font-size: 1.6rem; filter: drop-shadow(0 1px 1px rgba(0,0,0,.2)); text-align:center; }
-    </style>
-    <div style="position:absolute;top:14px;left:22px;transform:rotate(-6deg)"><span style="font-size:1.9rem">🗒️</span></div>
-    <div style="position:absolute;bottom:16px;right:22px;transform:rotate(5deg)"><span style="font-size:1.9rem">📌</span></div>
-    """, unsafe_allow_html=True)
-
-    left_col, center_col, right_col = st.columns([1, 1.3, 1], gap="medium")
-
-    with left_col:
-        st.markdown("""
-        <div style="padding-top: 1rem;">
-            <div class="sticky y" style="--r:-1.5deg">
-                <div class="feature-icon">🤖</div>
-                <div class="feature-title">智能问答</div>
-                <div class="feature-desc">基于你的知识库，AI 实时检索并回答问题，每一条回答都有出处。</div>
-            </div>
-            <div class="sticky b" style="--r:1deg">
-                <div class="feature-icon">📐</div>
-                <div class="feature-title">语义搜索</div>
-                <div class="feature-desc">不只是关键词匹配，深度理解你的笔记含义，精准找到相关内容。</div>
-            </div>
-            <div class="sticky g" style="--r:-.8deg">
-                <div class="feature-icon">🔄</div>
-                <div class="feature-title">遗忘曲线</div>
-                <div class="feature-desc">基于艾宾浩斯遗忘曲线，智能安排复习节点，让知识长期保留。</div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    with right_col:
-        st.markdown("""
-        <div style="padding-top: 1rem;">
-            <div class="sticky p" style="--r:1.5deg">
-                <div class="feature-icon">🔒</div>
-                <div class="feature-title">数据私有</div>
-                <div class="feature-desc">所有数据存储在你自己的服务器上，完全掌控隐私，绝不上传第三方。</div>
-            </div>
-            <div class="sticky y" style="--r:-1deg">
-                <div class="feature-icon">⚡</div>
-                <div class="feature-title">多源导入</div>
-                <div class="feature-desc">支持文本、文件、网页 URL 一键导入，自动切片、向量化、入库。</div>
-            </div>
-            <div class="sticky b" style="--r:.8deg">
-                <div class="feature-icon">🔌</div>
-                <div class="feature-title">开放 API</div>
-                <div class="feature-desc">提供标准 RESTful API 接口，轻松接入第三方工具与自动化流程。</div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-    with center_col:
-        st.markdown("""
-        <div class="glass-card">
-            <div class="decor-pin">📌</div>
-            <div style="position:relative; z-index:1; text-align:center;">
-                <div style="font-size:2rem; margin-bottom:0.3rem;">🧠</div>
-                <div class="auth-title">第二大脑</div>
-                <div class="auth-subtitle">把每一个想法钉进记忆的笔记本</div>
-            </div>
-        </div>
-        """, unsafe_allow_html=True)
-
-        st.markdown('<div style="height: 0.3rem;"></div>', unsafe_allow_html=True)
-
-        if "auth_mode" not in st.session_state:
-            st.session_state.auth_mode = "login"
-
-        btn_cols = st.columns(2)
-        with btn_cols[0]:
-            login_active = st.session_state.auth_mode == "login"
-            login_btn = st.button("🔑 登录", key="mode_login", use_container_width=True,
-                                  type="primary" if login_active else "secondary")
-        with btn_cols[1]:
-            register_active = st.session_state.auth_mode == "register"
-            register_btn = st.button("📝 注册", key="mode_register", use_container_width=True,
-                                     type="primary" if register_active else "secondary")
-
-        if login_btn:
-            st.session_state.auth_mode = "login"
-            st.rerun()
-        if register_btn:
-            st.session_state.auth_mode = "register"
-            st.rerun()
-
-        st.markdown('<div style="height: 0.3rem;"></div>', unsafe_allow_html=True)
-
-        if st.session_state.auth_mode == "login":
-            login_email = st.text_input("邮箱", key="login_email", placeholder="your@email.com")
-            login_pwd = st.text_input("密码", type="password", key="login_pwd", placeholder="输入密码")
-            if st.button("登  录", type="primary", key="btn_login", use_container_width=True):
-                if not login_email or not login_pwd:
-                    st.error("请输入邮箱和密码")
-                else:
-                    import hashlib
-                    pwd_hash = hashlib.sha256(login_pwd.encode()).hexdigest()
-                    user = query_one(
-                        "SELECT id, email FROM users WHERE email = %s AND password_hash = %s",
-                        (login_email, pwd_hash),
-                    )
-                    if user:
-                        st.session_state.user_id = str(user["id"])
-                        st.session_state.user_email = user["email"]
-                        st.session_state["_enter_effect"] = "book"  # 登录进入：翻开笔记本
-                        st.rerun()
-                    else:
-                        st.error("邮箱或密码错误")
-
-        else:
-            reg_email = st.text_input("邮箱", key="reg_email", placeholder="your@email.com")
-            reg_pwd = st.text_input("密码", type="password", key="reg_pwd", placeholder="至少6位")
-            reg_pwd2 = st.text_input("确认密码", type="password", key="reg_pwd2", placeholder="再次输入密码")
-            if st.button("注  册", type="primary", key="btn_register", use_container_width=True):
-                if not reg_email or not reg_pwd:
-                    st.error("请输入邮箱和密码")
-                elif len(reg_pwd) < 6:
-                    st.error("密码至少需要6位")
-                elif reg_pwd != reg_pwd2:
-                    st.error("两次密码不一致")
-                else:
-                    existing = query_one("SELECT id FROM users WHERE email = %s", (reg_email,))
-                    if existing:
-                        st.error("该邮箱已注册")
-                    else:
-                        import hashlib
-                        pwd_hash = hashlib.sha256(reg_pwd.encode()).hexdigest()
-                        execute(
-                            "INSERT INTO users (email, password_hash) VALUES (%s, %s)",
-                            (reg_email, pwd_hash),
-                        )
-                        st.success("注册成功！")
+            with st.container(key="tSwitch"):
+                _sw_l, _sw_r = st.columns(2, gap="small")
+                with _sw_l:
+                    if st.button(
+                        "登录",
+                        key="mode_login",
+                        use_container_width=True,
+                        type="primary" if st.session_state.get("auth_mode", "login") == "login" else "secondary",
+                    ):
                         st.session_state.auth_mode = "login"
                         st.rerun()
+                with _sw_r:
+                    if st.button(
+                        "注册",
+                        key="mode_register",
+                        use_container_width=True,
+                        type="primary" if st.session_state.get("auth_mode") == "register" else "secondary",
+                    ):
+                        st.session_state.auth_mode = "register"
+                        st.rerun()
+
+            if st.session_state.get("auth_mode", "login") == "login":
+                with st.form("login_form", clear_on_submit=False):
+                    login_email = st.text_input(
+                        "邮箱", key="login_email", placeholder="邮箱地址",
+                        label_visibility="collapsed",
+                    )
+                    login_pwd = st.text_input(
+                        "密码", type="password", key="login_pwd", placeholder="密码",
+                        label_visibility="collapsed",
+                    )
+                    do_login = st.form_submit_button(
+                        "登  录", type="primary", use_container_width=True
+                    )
+                if do_login:
+                    if not login_email.strip() or not login_pwd:
+                        st.error("请输入邮箱和密码")
+                    else:
+                        user = query_one(
+                            "SELECT id, email FROM users "
+                            "WHERE lower(email) = lower(%s) AND password_hash = %s",
+                            (login_email.strip(),
+                             hashlib.sha256(login_pwd.encode()).hexdigest()),
+                        )
+                        if user:
+                            st.session_state.user_id = str(user["id"])
+                            st.session_state.user_email = user["email"]
+                            st.session_state["_enter_effect"] = "book"  # 登录进入：翻开笔记本
+                            st.rerun()
+                        else:
+                            st.error("邮箱或密码错误")
+
+            else:
+                with st.form("register_form", clear_on_submit=False):
+                    reg_email = st.text_input(
+                        "邮箱", key="reg_email", placeholder="邮箱地址",
+                        label_visibility="collapsed",
+                    )
+                    reg_pwd = st.text_input(
+                        "密码", type="password", key="reg_pwd",
+                        placeholder="设置密码（至少 6 位）",
+                        label_visibility="collapsed",
+                    )
+                    reg_pwd2 = st.text_input(
+                        "确认密码", type="password", key="reg_pwd2",
+                        placeholder="再次输入密码",
+                        label_visibility="collapsed",
+                    )
+                    do_register = st.form_submit_button(
+                        "创建账号", type="primary", use_container_width=True
+                    )
+                if do_register:
+                    _email = reg_email.strip()
+                    if not _email or not reg_pwd:
+                        st.error("请输入邮箱和密码")
+                    elif "@" not in _email or "." not in _email.split("@")[-1]:
+                        st.error("请输入有效的邮箱地址")
+                    elif len(reg_pwd) < 6:
+                        st.error("密码至少需要 6 位")
+                    elif reg_pwd != reg_pwd2:
+                        st.error("两次密码不一致")
+                    else:
+                        existing = query_one(
+                            "SELECT id FROM users WHERE lower(email) = lower(%s)", (_email,)
+                        )
+                        if existing:
+                            st.error("该邮箱已注册，请直接登录")
+                        else:
+                            execute(
+                                "INSERT INTO users (email, password_hash) VALUES (%s, %s)",
+                                (_email, hashlib.sha256(reg_pwd.encode()).hexdigest()),
+                            )
+                            st.session_state.auth_mode = "login"
+                            st.rerun()
+
+            st.markdown(
+                '<div class="tc-terms">登录即表示同意 '
+                '<a href="#tv-login">服务条款</a> 与 <a href="#tv-login">隐私政策</a></div>',
+                unsafe_allow_html=True,
+            )
+
+    render_features()
+    render_footer()
 
     # 未登录：清理可能残留的侧边栏切换按钮（退出登录后）
     components.html(

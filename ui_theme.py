@@ -21,7 +21,10 @@ FONT_LINK = (
 # ═══════════════════════════════════════════════════════════════
 #  登录页皮肤（深色玻璃 → 便利贴签到纸）
 # ═══════════════════════════════════════════════════════════════
-LOGIN_CSS = r"""
+# ⚠️ 已废弃：这里原本是「手帐风登录页」样式。
+# 登录页现已改为腾讯官网风格的独立模块 ui_login.py（LOGIN_CSS 在那里）。
+# 下面这段保留仅作回滚参考，运行时不再引用；下个版本可以直接删除。
+_LEGACY_LOGIN_CSS = r"""
 <style>
 :root{
   --paper:#fbf5e9; --paper-2:#f6eeda; --paper-edge:#e9dcc3;
@@ -608,12 +611,6 @@ ANIM_CSS = r"""
 
 def inject_fonts():
     st.markdown(FONT_LINK, unsafe_allow_html=True)
-
-
-def apply_login_theme():
-    """登录页皮肤（替换原深色玻璃）"""
-    st.markdown(LOGIN_CSS, unsafe_allow_html=True)
-    st.markdown(ANIM_CSS, unsafe_allow_html=True)
 
 
 def apply_main_theme():
