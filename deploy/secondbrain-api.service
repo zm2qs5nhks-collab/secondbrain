@@ -1,19 +1,28 @@
 [Unit]
-Description=Second Brain API + MCP Server (FastAPI + Streamable HTTP MCP)
-After=network.target postgresql.service
-Wants=postgresql.service
+Description=Second Brain - REST API + MCP Server
+After=network-online.target postgresql.service
+Wants=network-online.target postgresql.service
 
 [Service]
 Type=simple
 User=root
 WorkingDirectory=/root/secondbrain
-# 同时提供 REST(/api/*) 与 MCP(/mcp)
-ExecStart=/root/secondbrain/venv/bin/uvicorn api:app --host 0.0.0.0 --port 8000
+
+# 同 secondbrain.service：绑定参数改这里
+Environment=SB_API_BIND=127.0.0.1 SB_API_PORT=8000 PYTHONUNBUFFERED=1
+EnvironmentFile=-/etc/default/secondbrain
+
+# --proxy-headers + --forwarded-allow-ips：让限流拿到真实客户端 IP，
+# 否则所有请求看起来都来自 127.0.0.1，IP 限流会变成全局限流
+ExecStart=/root/secondbrain/venv/bin/uvicorn api:app \
+    --host ${SB_API_BIND} \
+    --port ${SB_API_PORT} \
+    --proxy-headers \
+    --forwarded-allow-ips 127.0.0.1
+
 Restart=on-failure
 RestartSec=5
-Environment=PYTHONUNBUFFERED=1
-# 如需显式加载环境变量（默认会读取 WorkingDirectory 下的 .env）：
-# EnvironmentFile=/root/secondbrain/.env
+TimeoutStopSec=20
 
 [Install]
 WantedBy=multi-user.target

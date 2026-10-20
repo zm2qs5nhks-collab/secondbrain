@@ -1,15 +1,30 @@
 [Unit]
-Description=Second Brain Streamlit App
-After=network.target postgresql.service
+Description=Second Brain - Streamlit Web UI
+After=network-online.target postgresql.service
+Wants=network-online.target
 
 [Service]
 Type=simple
 User=root
 WorkingDirectory=/root/secondbrain
-ExecStart=/root/secondbrain/venv/bin/streamlit run app.py --server.port 8501 --server.address 0.0.0.0
+
+# 绑定参数在这里改，改完 systemctl restart secondbrain 生效：
+#   SB_BIND=127.0.0.1  → 只允许本机 Nginx 访问（备案后推荐）
+#   SB_BIND=0.0.0.0    → 允许 http://<IP>:8501 直连（备案前临时用）
+Environment=SB_BIND=127.0.0.1 SB_PORT=8501 PYTHONUNBUFFERED=1
+EnvironmentFile=-/etc/default/secondbrain
+
+ExecStart=/root/secondbrain/venv/bin/streamlit run app.py \
+    --server.port ${SB_PORT} \
+    --server.address ${SB_BIND} \
+    --server.headless true \
+    --browser.gatherUsageStats false
+
 Restart=on-failure
 RestartSec=5
-Environment=PYTHONUNBUFFERED=1
+# Streamlit 收到 SIGINT 会正常收尾，避免重启时端口被占
+KillSignal=SIGINT
+TimeoutStopSec=20
 
 [Install]
 WantedBy=multi-user.target
