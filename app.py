@@ -80,7 +80,18 @@ if st.session_state.user_id is None:
                         st.session_state.auth_mode = "register"
                         st.rerun()
 
-            if st.session_state.get("auth_mode", "login") == "login":
+            _notice = st.session_state.pop("_login_notice", None)
+            if _notice:
+                st.success(_notice)
+
+            _auth_mode = st.session_state.get("auth_mode", "login")
+
+            if _auth_mode == "reset":
+                from ui_reset import render_reset_forms
+
+                render_reset_forms()
+
+            elif _auth_mode == "login":
                 with st.form("login_form", clear_on_submit=False):
                     login_email = st.text_input(
                         "邮箱", key="login_email", placeholder="邮箱地址",
@@ -130,6 +141,11 @@ if st.session_state.user_id is None:
                                 st.rerun()
                             else:
                                 st.error("邮箱或密码错误")
+
+                if st.button("忘记密码？", key="to_reset", type="tertiary"):
+                    st.session_state.auth_mode = "reset"
+                    st.session_state["reset_step"] = 0
+                    st.rerun()
 
             else:
                 with st.form("register_form", clear_on_submit=False):
@@ -337,7 +353,6 @@ PAGE_LABELS = {
     "笔记管理": "📚 我的笔记",
     "知识问答": "💬 智能问答",
     "复习提醒": "🔁 复习提醒",
-    "学习路径": "🧭 学习路径",
     "知识图谱": "🕸️ 知识图谱",
     "知识广场": "🌐 发现",
     "设置": "⚙️ 设置",
@@ -708,7 +723,7 @@ elif page == "复习提醒":
         st.success(_done)
         st.session_state["_reminder_done"] = None
 
-    tab_review, tab_curves = st.tabs(["待复习列表", "遗忘曲线分析"])
+    tab_review, tab_curves, tab_path = st.tabs(["待复习列表", "遗忘曲线分析", "学习路径"])
 
     with tab_review:
         reminders = fc.get_notes_for_review(threshold=0.6, user_id=USER_ID)
@@ -837,6 +852,11 @@ elif page == "复习提醒":
                         st.warning("📌 记忆正在衰退，建议尽快复习。")
                     else:
                         st.success("✅ 记忆状态良好，继续保持。")
+
+    with tab_path:
+        from ui_review import render_learning_path
+
+        render_learning_path(USER_ID)
 
 # ═══════════════════════════════════════════
 #  页面六：知识图谱
@@ -1191,112 +1211,37 @@ elif page == "知识图谱":
             st.bar_chart(df.set_index("name")["pagerank"])
 
 # ═══════════════════════════════════════════
-#  页面七：学习路径
-# ═══════════════════════════════════════════
-elif page == "学习路径":
-    page_header("🎯", "个性化学习路径", "根据遗忘曲线和标签掌握度，推荐下一步学习方向")
-    notebook_line()
-
-    _done = st.session_state.get("_review_done")
-    if _done:
-        st.success(_done)
-        st.session_state["_review_done"] = None
-
-    from storage.learning_path import get_learning_path, get_weak_notes
-
-    path_data = get_learning_path(user_id=USER_ID)
-
-    c1, c2, c3 = st.columns(3)
-    c1.metric("总笔记数", path_data["total_notes"])
-    c2.metric("标签维度", path_data["total_tags"])
-    c3.metric("整体保留率", f"{path_data['overall_retention']*100:.0f}%")
-
-    st.markdown("---")
-
-    recommendations = path_data["recommendations"]
-    if not recommendations:
-        st.info("数据不足，添加更多笔记后即可生成个性化学习路径。")
-    else:
-        st.subheader("学习建议")
-
-        for rec in recommendations:
-            tag = rec["tag"]
-            reason = rec["reason"]
-            urgency = rec["urgency"]
-            total = rec["total_notes"]
-
-            icon = {"high": "🔴", "medium": "🟡", "explore": "🟢"}.get(urgency, "⚪")
-            label = {"high": "紧急复习", "medium": "建议复习", "explore": "拓展深入"}.get(urgency, "一般")
-
-            with st.container():
-                st.markdown('<span class="hb-card"></span>', unsafe_allow_html=True)
-                st.markdown(f"### {icon} **{tag}** — {label}")
-                st.markdown(f"💡 {reason}")
-                st.caption(f"涉及 {total} 条笔记")
-
-                for n in rec["notes"]:
-                    ret = n["retention"]
-                    color = "🟢" if ret > 0.7 else ("🟡" if ret > 0.4 else "🔴")
-                    st.markdown(f"{color} {n['preview']}  — 保留率 {ret*100:.0f}%")
-
-                if urgency in ("high", "medium"):
-                    _open = st.session_state.get("_review_open") == tag
-                    if not _open and st.button(f"开始复习 {tag}", key=f"start_review_{tag}"):
-                        st.session_state["_review_open"] = tag
-                        _open = True  # 同一次运行内直接展开，避免额外 rerun 造成滚动跳位
-                    if _open:
-                        with st.container():
-                            st.markdown('<span class="hb-flip"></span>', unsafe_allow_html=True)
-                            st.markdown(f"#### 📖 复习中 · {tag}")
-                            for n in rec["notes"]:
-                                _full = vector_store.get_note_full_content(
-                                    n["id"], user_id=USER_ID
-                                ) or n["preview"]
-                                st.markdown(
-                                    f'<div class="note-full-content">{html.escape(_full)}</div>',
-                                    unsafe_allow_html=True,
-                                )
-                            _done_col, _cancel_col = st.columns(2)
-                            if _done_col.button(
-                                "✅ 复习完成", key=f"done_review_{tag}",
-                                type="primary", use_container_width=True,
-                            ):
-                                for n in rec["notes"]:
-                                    fc.record_access(n["id"], user_id=USER_ID)
-                                st.session_state["_review_open"] = None
-                                st.session_state["_review_done"] = (
-                                    f"✅ 已完成「{tag}」的复习（{len(rec['notes'])} 条），保留率已更新！"
-                                )
-                                st.rerun()
-                            if _cancel_col.button(
-                                "取消", key=f"cancel_review_{tag}", use_container_width=True
-                            ):
-                                st.session_state["_review_open"] = None
-                                st.rerun()
-
-    st.markdown("---")
-    st.subheader("最急需复习的笔记")
-    weak_notes = get_weak_notes(5, user_id=USER_ID)
-    if weak_notes:
-        for wn in weak_notes:
-            ret = wn["retention"]
-            tags_str = " ".join([f"`{t}`" for t in wn["tags"]])
-            with st.container():
-                st.markdown('<span class="hb-card"></span>', unsafe_allow_html=True)
-                st.markdown(
-                    f"🔴 **{wn['preview']}** — 保留率 {ret*100:.0f}%"
-                )
-                if tags_str:
-                    st.caption(tags_str)
-    else:
-        st.success("没有需要紧急复习的笔记，表现优秀！")
-
-# ═══════════════════════════════════════════
 #  页面八：知识广场
 # ═══════════════════════════════════════════
 elif page == "知识广场":
-    page_header("🌐", "知识广场", "去外面搜集知识，剪下来贴进你的笔记本")
+    page_header("🌐", "发现", "去外面搜集知识，一键收进你的知识库")
     notebook_line()
+
+    def _clip(url: str, tags: list, importance: str = "normal", title_hint: str = "") -> dict:
+        """抓网页 → 走统一入库入口（和「添加内容」同一条链路）。"""
+        from storage.notes_service import create_note
+        from tools.web_search import fetch_url_content
+
+        try:
+            page_data = fetch_url_content(url)
+        except Exception as exc:  # noqa: BLE001
+            return {"ok": False, "error": f"抓取失败：{type(exc).__name__}: {exc}"}
+
+        content = (page_data.get("content") or "").strip()
+        if not content:
+            return {"ok": False, "error": "没有抓到正文（可能是登录墙或反爬）"}
+
+        title = (page_data.get("title") or title_hint or url)[:80]
+        body = f"[来源: {page_data.get('title') or url}]({url})\n\n{content}"
+        try:
+            res = create_note(
+                user_id=USER_ID, title=title, content=body,
+                tags=tags, importance=importance, source="web",
+            )
+        except Exception as exc:  # noqa: BLE001
+            return {"ok": False, "error": f"入库失败：{type(exc).__name__}: {exc}"}
+
+        return {"ok": True, "note_id": res["note_id"], "chunks": res["chunks"], "title": title}
 
     tab_search, tab收藏 = st.tabs(["在线搜索", "收藏网页"])
 
@@ -1365,49 +1310,16 @@ elif page == "知识广场":
                 with col_r:
                     if st.button("📥 收藏", key=f"kg_save_res_{i}", use_container_width=True):
                         tags = list({save_tags_default, "网页收藏"})
-                        with st.spinner("抓取网页并入库..."):
-                            try:
-                                page_data = fetch_url_content(r["url"])
-                                full_content = f"[来源: {page_data['title'] or r['url']}]({r['url']})\n\n{page_data['content']}"
-                                from tools.add_knowledge import execute as add_exec
-                                add_result = json.loads(add_exec({
-                                    "content": full_content,
-                                    "tags": tags,
-                                    "importance": "normal",
-                                }, user_id=USER_ID))
-                                if add_result.get("note_id"):
-                                    st.success(f"已收藏！{page_data['title']}")
-                                else:
-                                    st.error(f"入库失败: {add_result.get('error', '未知错误')}")
-                            except Exception as e:
-                                st.error(f"抓取失败: {e}")
+                        with st.spinner("抓取并入库..."):
+                            res = _clip(r["url"], tags, "normal", title_hint=r.get("title", ""))
+                        if res["ok"]:
+                            st.success(f"已收藏！{res['title']}")
+                        else:
+                            st.error(res["error"])
                 st.markdown("</div>", unsafe_allow_html=True)
 
         st.markdown("---")
-        st.markdown("**或者手动粘贴链接一键入库：**")
-        save_url = st.text_input("网页链接", placeholder="https://...", key="kg_save_url")
-        save_tags = st.text_input("标签", value="网页收藏", key="kg_save_tags", placeholder="标签，逗号分隔")
-
-        if st.button("收藏到知识库", type="primary", key="kg_save_btn"):
-            if save_url.strip():
-                tags = [t.strip() for t in save_tags.split(",") if t.strip()]
-                with st.spinner("正在抓取网页并入库..."):
-                    try:
-                        page_data = fetch_url_content(save_url)
-                        full_content = f"[来源: {page_data['title'] or save_url}]({save_url})\n\n{page_data['content']}"
-                        add_result = json.loads(add_exec({
-                            "content": full_content,
-                            "tags": tags,
-                            "importance": "normal",
-                        }, user_id=USER_ID))
-                        if add_result.get("note_id"):
-                            st.success(f"已收藏！{page_data['title']}（{add_result.get('chunks_stored', 0)} 个分块）")
-                        else:
-                            st.error(f"入库失败: {add_result.get('error', '未知错误')}")
-                    except Exception as e:
-                        st.error(f"抓取失败: {e}")
-            else:
-                st.warning("请输入网页链接")
+        st.caption("也可以切到「收藏网页」标签，直接粘贴链接入库。")
 
     with tab收藏:
         st.markdown("直接输入网页地址，抓取正文保存到知识库")
@@ -1415,27 +1327,16 @@ elif page == "知识广场":
         tags2 = st.text_input("标签", value="网页收藏", key="kg_tab2_tags")
         imp2 = st.selectbox("重要度", ["normal", "high", "low"], key="kg_tab2_imp")
         if st.button("抓取并入库", type="primary", key="kg_tab2_btn"):
-            if url2.strip():
-                tags_list = [t.strip() for t in tags2.split(",") if t.strip()]
-                with st.spinner("正在抓取..."):
-                    from tools.web_search import fetch_url_content
-                    from tools.add_knowledge import execute as add_exec
-                    try:
-                        data = fetch_url_content(url2)
-                        full = f"[来源: {data['title'] or data['url']}]\n\n{data['content']}"
-                        result = json.loads(add_exec({
-                            "content": full,
-                            "tags": tags_list,
-                            "importance": imp2,
-                        }, user_id=USER_ID))
-                        if result.get("note_id"):
-                            st.success(f"已入库！{data['title']}（{result.get('chunks_stored', 0)} 个分块）")
-                        else:
-                            st.error(f"入库失败: {result.get('error', '未知错误')}")
-                    except Exception as e:
-                        st.error(f"抓取失败: {e}")
-            else:
+            if not url2.strip():
                 st.warning("请输入网页地址")
+            else:
+                tags_list = [t.strip() for t in tags2.split(",") if t.strip()]
+                with st.spinner("正在抓取并入库..."):
+                    res = _clip(url2.strip(), tags_list, imp2)
+                if res["ok"]:
+                    st.success(f"已入库：{res['title']}（{res['chunks']} 个分块）")
+                else:
+                    st.error(res["error"])
 
 # ═══════════════════════════════════════════
 #  页面九：设置
