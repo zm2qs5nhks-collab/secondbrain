@@ -40,6 +40,17 @@ DB_PASSWORD = os.getenv("DB_PASSWORD", "123456")
 # 对外暴露的 API/MCP 基地址（用于在网页里展示给用户接入智能体），如 http://39.96.27.17:8000
 PUBLIC_BASE_URL = os.getenv("PUBLIC_BASE_URL", "").rstrip("/")
 
+# ── 邮件（找回密码验证码）─────────────────────────────
+# QQ 邮箱：SMTP_HOST=smtp.qq.com SMTP_PORT=465，SMTP_PASS 填「授权码」不是登录密码
+# 未配置时找回密码会提示"邮件服务未配置"，其它功能不受影响
+SMTP_HOST = os.getenv("SMTP_HOST", "")
+SMTP_PORT = int(os.getenv("SMTP_PORT", "465"))
+SMTP_USER = os.getenv("SMTP_USER", "")
+SMTP_PASS = os.getenv("SMTP_PASS", "")
+SMTP_FROM = os.getenv("SMTP_FROM", "") or SMTP_USER
+# 验证码有效期（秒）
+RESET_CODE_TTL = int(os.getenv("RESET_CODE_TTL", "600"))
+
 AGENT_MAX_ITERATIONS = 5
 RAG_CHUNK_SIZE = 500
 RAG_CHUNK_OVERLAP = 50
