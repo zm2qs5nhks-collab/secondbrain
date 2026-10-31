@@ -211,7 +211,7 @@ set_user_settings(
     embedding_model=long_term.get_preference("embedding_model", config.EMBEDDING_MODEL, user_id=USER_ID),
 )
 
-from storage import vector_store, metadata_store
+from storage import vector_store, metadata_store, notes_service
 from scheduler import forgetting_curve as fc
 from tools import add_knowledge, search_knowledge, manage_knowledge, reminder
 from ui_theme import apply_main_theme, page_header, render_sticky, notebook_line, enter_effect
@@ -329,10 +329,25 @@ st.sidebar.markdown("""
 """, unsafe_allow_html=True)
 st.sidebar.caption(f"已登录: {st.session_state.user_email}")
 
+# 侧边栏：按「记录 → 整理 → 使用」排序，显示名与内部 key 解耦
+# （key 保持原样，页面分支不用动；只改 label 就换了个说法）
+PAGE_LABELS = {
+    "仪表盘": "📊 仪表盘",
+    "导入笔记": "➕ 添加内容",
+    "笔记管理": "📚 我的笔记",
+    "知识问答": "💬 智能问答",
+    "复习提醒": "🔁 复习提醒",
+    "学习路径": "🧭 学习路径",
+    "知识图谱": "🕸️ 知识图谱",
+    "知识广场": "🌐 发现",
+    "设置": "⚙️ 设置",
+}
+
 page = st.sidebar.radio(
     "导航",
-    ["仪表盘", "知识问答", "导入笔记", "笔记管理", "复习提醒", "知识图谱", "学习路径", "知识广场", "设置"],
+    list(PAGE_LABELS),
     index=0,
+    format_func=lambda p: PAGE_LABELS.get(p, p),
 )
 
 # 检测模块切换 → 触发数据驱动提醒（首次进入不弹，避免与登录提醒重复）
@@ -505,7 +520,8 @@ if page == "仪表盘":
                 when = _rel_time(note.get("created_at"))
                 with st.container():
                     st.markdown('<span class="hb-card hb-lines"></span>', unsafe_allow_html=True)
-                    st.markdown(f"{imp} {icon} **{note['id']}** — {note['preview']}")
+                    _t = (note.get("title") or note.get("preview") or "未命名笔记").strip()
+                    st.markdown(f"{imp} {icon} **{_t[:50]}**")
                     _meta = "　".join(x for x in [tags_str, when] if x)
                     if _meta:
                         st.caption(_meta)
@@ -579,180 +595,12 @@ elif page == "知识问答":
             st.rerun()
 
 # ═══════════════════════════════════════════
-#  页面三：导入笔记
+#  页面三：添加内容（标题 + 正文 + 附件）
 # ═══════════════════════════════════════════
 elif page == "导入笔记":
-    page_header("📥", "导入笔记", "从本地文件、手动输入、网页 URL、多媒体四种方式收进来")
-    notebook_line()
+    from ui_add_note import render_add_note
 
-    tab_file, tab_text, tab_url, tab_media = st.tabs(["本地文件", "手动输入", "网页抓取", "多媒体"])
-
-    with tab_file:
-        st.subheader("上传文件")
-        st.caption("支持 .txt, .md 格式")
-        uploaded_files = st.file_uploader(
-            "选择文件",
-            type=["txt", "md"],
-            accept_multiple_files=True,
-        )
-
-        file_tags = st.text_input("文件标签（逗号分隔）", key="file_tags",
-                                   placeholder="如：Python, 笔记, 课程")
-        file_importance = st.selectbox("重要程度", ["normal", "high", "low"],
-                                        key="file_imp")
-
-        if uploaded_files and st.button("开始导入文件", type="primary"):
-            tags = [t.strip() for t in file_tags.split(",") if t.strip()]
-            success_count = 0
-            for f in uploaded_files:
-                content = f.read().decode("utf-8", errors="ignore")
-                if content.strip():
-                    result = json.loads(add_knowledge.execute({
-                        "content": content,
-                        "tags": tags if tags else ["文件导入"],
-                        "importance": file_importance,
-                    }, user_id=USER_ID))
-                    if result.get("status") == "success":
-                        success_count += 1
-            st.success(f"成功导入 {success_count}/{len(uploaded_files)} 个文件！")
-
-    with tab_text:
-        st.subheader("手动输入笔记")
-        note_content = st.text_area(
-            "笔记内容",
-            height=200,
-            placeholder="在这里输入你想保存的知识内容...\n\n例如：TCP三次握手：SYN → SYN+ACK → ACK",
-        )
-        note_tags = st.text_input("标签（逗号分隔）", key="note_tags",
-                                   placeholder="如：TCP, 网络, 面试")
-        note_importance = st.selectbox("重要程度", ["normal", "high", "low"],
-                                        key="note_imp")
-
-        if st.button("保存笔记", type="primary") and note_content.strip():
-            tags = [t.strip() for t in note_tags.split(",") if t.strip()]
-            result = json.loads(add_knowledge.execute({
-                "content": note_content,
-                "tags": tags if tags else ["手动输入"],
-                "importance": note_importance,
-            }, user_id=USER_ID))
-            if result.get("status") == "success":
-                st.success(f"笔记已保存！ID: {result['note_id']}")
-                st.balloons()
-            else:
-                st.error(result.get("error", "保存失败"))
-
-    with tab_url:
-        st.subheader("从网页导入知识")
-        st.caption("输入文章URL，自动提取正文内容并保存到知识库")
-
-        url_input = st.text_input(
-            "网页URL",
-            placeholder="https://example.com/article",
-        )
-        url_tags = st.text_input("标签（逗号分隔）", key="url_tags",
-                                  placeholder="如：技术博客, 架构设计")
-
-        if st.button("抓取并保存", type="primary") and url_input.strip():
-            with st.spinner("正在抓取网页内容..."):
-                try:
-                    from tools.fetch_web import fetch_url
-                    fetched = fetch_url(url_input)
-                    st.session_state["fetched"] = fetched
-                except Exception as e:
-                    st.error(f"抓取失败: {e}")
-                    st.stop()
-
-        fetched = st.session_state.get("fetched")
-        if fetched and fetched.get("content"):
-            st.success(f"抓取成功！标题: {fetched.get('title', '无标题')}")
-            st.caption(f"内容长度: {fetched['length']} 字符")
-
-            with st.expander("预览内容", expanded=False):
-                st.text(fetched["content"][:2000])
-
-            tags = [t.strip() for t in url_tags.split(",") if t.strip()]
-            if st.button("确认保存到知识库", type="primary"):
-                with st.spinner("正在保存..."):
-                    save_result = json.loads(add_knowledge.execute({
-                        "content": f"[来源: {fetched.get('title', fetched['url'])}]\n\n{fetched['content']}",
-                        "tags": tags if tags else ["网页收藏"],
-                        "importance": "normal",
-                    }, user_id=USER_ID))
-                if save_result.get("note_id"):
-                    st.success(f"已保存！ID: {save_result['note_id']}")
-                    st.balloons()
-                else:
-                    st.error(f"保存失败: {save_result.get('error', '未知错误')}")
-
-    with tab_media:
-        st.subheader("上传图片 / 音频 / 视频")
-        st.caption("文件直接存储到知识库，可随时查看和管理")
-
-        media_files = st.file_uploader(
-            "选择文件",
-            type=["jpg", "jpeg", "png", "gif", "bmp", "webp",
-                  "mp3", "wav", "ogg", "flac", "aac", "m4a",
-                  "mp4", "avi", "mov", "mkv", "flv", "wmv", "webm"],
-            accept_multiple_files=True,
-            key="media_upload",
-        )
-        media_tags = st.text_input("标签（逗号分隔）", key="media_tags",
-                                    placeholder="如：课程截图, 讲义录音")
-        media_desc = st.text_input("描述（可选）", key="media_desc",
-                                    placeholder="简单描述这个文件的内容")
-
-        if media_files and st.button("上传并入库", type="primary", key="media_upload_btn"):
-            from storage.file_store import save_file
-            tags = [t.strip() for t in media_tags.split(",") if t.strip()]
-            ok = 0
-            for f in media_files:
-                try:
-                    save_file(
-                        user_id=USER_ID,
-                        file_name=f.name,
-                        file_bytes=f.read(),
-                        tags=tags if tags else ["多媒体"],
-                        description=media_desc,
-                    )
-                    ok += 1
-                except Exception as e:
-                    st.error(f"{f.name} 上传失败: {e}")
-            if ok:
-                st.success(f"成功上传 {ok}/{len(media_files)} 个文件")
-                st.balloons()
-
-        st.markdown("---")
-        st.subheader("已上传的文件")
-        from storage.file_store import list_files, delete_file, count
-        media_count = count(user_id=USER_ID)
-        st.caption(f"共 {media_count} 个文件")
-        type_filter = st.radio("类型", ["全部", "图片", "音频", "视频"],
-                                horizontal=True, key="media_type_filter")
-        type_map = {"全部": None, "图片": "image", "音频": "audio", "视频": "video"}
-        files = list_files(user_id=USER_ID, media_type=type_map[type_filter])
-        if files:
-            for f in files:
-                with st.container(border=True):
-                    c1, c2 = st.columns([4, 1])
-                    with c1:
-                        icon = {"image": "🖼️", "audio": "🎵", "video": "🎬"}.get(f["media_type"], "📄")
-                        st.markdown(f"**{icon} {f['original_name']}**")
-                        st.caption(f"{f['media_type']} | {f['file_size']//1024}KB | 标签: {f.get('tags', [])}")
-                        if f.get("description"):
-                            st.caption(f"描述: {f['description']}")
-                        if f["media_type"] == "image" and os.path.exists(f["file_path"]):
-                            st.image(f["file_path"], width=300)
-                        elif f["media_type"] == "audio" and os.path.exists(f["file_path"]):
-                            st.audio(f["file_path"])
-                        elif f["media_type"] == "video" and os.path.exists(f["file_path"]):
-                            st.video(f["file_path"])
-                    with c2:
-                        if st.button("删除", key=f"del_{f['file_id']}"):
-                            delete_file(f["file_id"], user_id=USER_ID)
-                            st.success("已删除")
-                            st.rerun()
-        else:
-            st.info("暂无文件")
+    render_add_note(USER_ID)
 
 # ═══════════════════════════════════════════
 #  页面四：笔记管理
@@ -787,39 +635,65 @@ elif page == "笔记管理":
 
     with col1:
         st.subheader(f"共 {len(all_notes)} 条笔记")
+        if not all_notes:
+            st.info("还没有笔记。去左侧「➕ 添加内容」记第一条吧。")
+
+        try:
+            from storage import file_store as _fs
+            _att_counts = _fs.count_files_for_notes([n["id"] for n in all_notes], USER_ID)
+        except Exception:
+            _att_counts = {}
+
         for note in all_notes:
             tags_str = " ".join([f"`{t}`" for t in note.get("tags", [])])
             imp_icon = {"high": "🔴", "normal": "🔵", "low": "⚪"}.get(
                 note.get("importance", "normal"), "🔵"
             )
+            _title = (note.get("title") or note.get("preview") or "未命名笔记").strip()
+            _n_att = _att_counts.get(note["id"], 0)
+            _badge = f" · 📎{_n_att}" if _n_att else ""
 
-            with st.expander(f"{imp_icon} {note['preview'][:60]}"):
+            with st.expander(f"{imp_icon} {_title[:60]}{_badge}"):
                 st.markdown(f"**ID:** `{note['id']}`")
                 st.markdown(f"**标签:** {tags_str or '无'}")
                 st.markdown(f"**重要度:** {note.get('importance', 'normal')}")
                 st.markdown(f"**创建时间:** {time.strftime('%Y-%m-%d %H:%M', time.localtime(note['created_at']))}")
-                st.markdown(f"**访问次数:** {note.get('access_count', 0)}")
 
                 retention = fc.calculate_retention(note["id"], user_id=USER_ID)
                 st.progress(retention)
                 st.caption(f"记忆保留率: {retention*100:.0f}%")
 
-                from storage.vector_store import get_note_full_content
-                import html as _html
-                full_content = get_note_full_content(note["id"], user_id=USER_ID)
-                if full_content:
+                detail = notes_service.get_note_detail(note["id"], USER_ID) or {}
+                body = (detail.get("body") or "").strip()
+                if body:
                     st.markdown("---")
-                    st.markdown("**完整内容：**")
+                    st.markdown("**正文：**")
                     st.markdown(
-                        f'<div class="note-full-content">{_html.escape(full_content)}</div>',
+                        f'<div class="note-full-content">{html.escape(body)}</div>',
                         unsafe_allow_html=True,
                     )
-                else:
-                    st.info("完整内容未找到（可能是旧数据，重新添加笔记即可）")
+                elif not _n_att:
+                    st.info("这条笔记没有正文（可能是旧数据，重新添加即可）")
 
-                if st.button(f"删除", key=f"del_{note['id']}"):
-                    metadata_store.delete_note(note["id"], user_id=USER_ID)
-                    st.warning(f"已删除 {note['id']}")
+                files = detail.get("files") or []
+                if files:
+                    st.markdown("**附件：**")
+                    _cols = st.columns(min(3, len(files)))
+                    for _i, _f in enumerate(files):
+                        _path = _f.get("file_path") or ""
+                        with _cols[_i % len(_cols)]:
+                            if _f.get("media_type") == "image" and os.path.exists(_path):
+                                st.image(_path, use_container_width=True)
+                            elif _f.get("media_type") == "audio" and os.path.exists(_path):
+                                st.audio(_path)
+                            elif _f.get("media_type") == "video" and os.path.exists(_path):
+                                st.video(_path)
+                            else:
+                                st.markdown(f"📄 `{_f.get('original_name', '文件')}`")
+                            st.caption(_f.get("original_name", ""))
+
+                if st.button("删除", key=f"del_{note['id']}"):
+                    notes_service.delete_note(note["id"], USER_ID)
                     st.rerun()
 
 # ═══════════════════════════════════════════
@@ -846,7 +720,9 @@ elif page == "复习提醒":
 
             for r in reminders:
                 note = metadata_store.get_note(r["note_id"], user_id=USER_ID)
-                preview = note["preview"] if note else "未知内容"
+                preview = (
+                    (note.get("title") or note.get("preview") or "").strip() if note else ""
+                ) or "未知内容"
                 tags = note.get("tags", []) if note else []
 
                 urgency_color = {"紧急": "🔴", "重要": "🟡", "一般": "🟢"}.get(
