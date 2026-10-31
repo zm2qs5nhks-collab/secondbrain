@@ -8,15 +8,33 @@ import uuid
 from storage.db import query_one, query_all, execute
 
 
-def add_note(content_preview: str, tags: list[str] = None,
+def _first_line(text: str, limit: int = 80) -> str:
+    for line in (text or "").replace("\r", "").split("\n"):
+        line = line.strip()
+        if line:
+            return line[:limit]
+    return ""
+
+
+def add_note(content_preview: str = None, tags: list[str] = None,
              source: str = "user_input", importance: str = "normal",
-             user_id: str = None) -> str:
+             user_id: str = None, title: str = None, content: str = None) -> str:
+    """新建一条笔记。
+
+    v2：新增 title / content 两个字段。
+    兼容旧调用——只传 content_preview 时，把它当作正文处理。
+    """
+    body = (content if content is not None else content_preview) or ""
+    body = body.strip()
+    title = (title or "").strip() or _first_line(body) or "未命名笔记"
+
     note_id = f"note_{uuid.uuid4().hex[:8]}"
     execute(
-        """INSERT INTO notes (id, preview, tags, source, importance, user_id, created_at, last_accessed, access_count)
-           VALUES (%s, %s, %s::jsonb, %s, %s, %s, %s, %s, %s)""",
-        (note_id, content_preview[:200], json.dumps(tags or [], ensure_ascii=False), source, importance,
-         user_id, time.time(), time.time(), 0),
+        """INSERT INTO notes (id, preview, tags, source, importance, user_id,
+                              created_at, last_accessed, access_count, title, content)
+           VALUES (%s, %s, %s::jsonb, %s, %s, %s, %s, %s, %s, %s, %s)""",
+        (note_id, body[:200], json.dumps(tags or [], ensure_ascii=False), source, importance,
+         user_id, time.time(), time.time(), 0, title, body),
     )
     return note_id
 

@@ -3,7 +3,7 @@
 """
 
 import json
-from storage import metadata_store
+from storage import metadata_store, notes_service
 
 
 def get_schema() -> dict:
@@ -55,7 +55,7 @@ def execute(arguments: dict, user_id: str = None) -> str:
     elif action == "delete":
         if not note_id:
             return json.dumps({"error": "需要提供 note_id"}, ensure_ascii=False)
-        ok = metadata_store.delete_note(note_id, user_id=user_id)
+        ok = notes_service.delete_note(note_id, user_id=user_id)
         if ok:
             return json.dumps({"status": "success", "message": f"已删除 {note_id}"}, ensure_ascii=False)
         return json.dumps({"error": f"未找到 {note_id}"}, ensure_ascii=False)
