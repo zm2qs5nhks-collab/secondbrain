@@ -56,6 +56,11 @@ def main(argv: list[str]) -> int:
     conn = get_conn()
     try:
         with conn.cursor() as cur:
+            # 应用侧（Streamlit）的全局连接可能是 idle in transaction 状态，
+            # 会握着 notes 表的共享锁，导致 ALTER TABLE 无限等待。
+            # 这里设锁超时：拿不到锁 10 秒就报错退出，而不是挂死。
+            cur.execute("SET lock_timeout = '10s'")
+            cur.execute("SET statement_timeout = '600s'")
             for f in files:
                 print(f"[apply] {f.name}")
                 cur.execute(f.read_text(encoding="utf-8"))
@@ -64,7 +69,15 @@ def main(argv: list[str]) -> int:
         return 0
     except Exception as exc:  # noqa: BLE001
         conn.rollback()
-        print(f"[fail] {type(exc).__name__}: {exc}")
+        msg = str(exc)
+        print(f"[fail] {type(exc).__name__}: {msg}")
+        if "lock" in msg.lower() and "timeout" in msg.lower():
+            print("")
+            print("  等锁超时：应用还开着，可能握着 notes/media_files 的事务锁。")
+            print("  按顺序执行：")
+            print("    1) systemctl stop secondbrain        # 或 pkill -f 'streamlit run app.py'")
+            print("    2) venv/bin/python migrations/apply.py")
+            print("    3) systemctl start secondbrain")
         return 1
     finally:
         conn.close()
