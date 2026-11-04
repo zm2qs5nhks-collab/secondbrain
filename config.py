@@ -40,6 +40,18 @@ DB_PASSWORD = os.getenv("DB_PASSWORD", "123456")
 # 对外暴露的 API/MCP 基地址（用于在网页里展示给用户接入智能体），如 http://39.96.27.17:8000
 PUBLIC_BASE_URL = os.getenv("PUBLIC_BASE_URL", "").rstrip("/")
 
+# ── 站点形态 ──────────────────────────────────────────
+# 是否允许公开注册。默认关闭：本站定位为「个人知识库，内容私有，仅本人登录使用」，
+# 与备案时填写的"仅本人使用、不对外开放注册"保持一致。
+ALLOW_SIGNUP = os.getenv("ALLOW_SIGNUP", "false").strip().lower() in ("1", "true", "yes", "on")
+
+# 页脚备案号，如 京ICP备2026000000号-1；留空则不渲染
+SITE_ICP = os.getenv("SITE_ICP", "")
+# 页脚联系方式（邮箱/主页）；留空则不渲染
+SITE_CONTACT = os.getenv("SITE_CONTACT", "")
+# 站点名（页脚、邮件里用）
+SITE_NAME = os.getenv("SITE_NAME", "第二大脑")
+
 # ── 邮件（找回密码验证码）─────────────────────────────
 # QQ 邮箱：SMTP_HOST=smtp.qq.com SMTP_PORT=465，SMTP_PASS 填「授权码」不是登录密码
 # 未配置时找回密码会提示"邮件服务未配置"，其它功能不受影响

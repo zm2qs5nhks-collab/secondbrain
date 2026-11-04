@@ -302,6 +302,20 @@ html, body, .stApp{background:#ffffff!important;}
 .tv-footer .tv-flinks{display:flex; gap:22px;}
 .tv-footer a{color:var(--tv-ink-3); text-decoration:none; transition:color .15s;}
 .tv-footer a:hover{color:var(--tv-blue);}
+/* 备案号 / 联系方式 */
+.tv-legal{
+  margin:-16px 0 30px; font-size:12px; color:var(--tv-ink-3);
+  display:flex; gap:14px; flex-wrap:wrap; align-items:center;
+}
+.tv-legal a{color:var(--tv-ink-3); text-decoration:none;}
+.tv-legal a:hover{color:var(--tv-blue); text-decoration:underline;}
+
+/* 关闭注册时的私有提示 */
+.tc-private{
+  margin:2px 0 10px; padding:9px 12px; border-radius:8px;
+  background:var(--tv-bg-2); color:var(--tv-ink-2);
+  font-size:12.5px; line-height:1.5;
+}
 
 /* 无障碍 */
 @media (prefers-reduced-motion: reduce){
@@ -455,3 +469,20 @@ def render_features():
 
 def render_footer():
     st.markdown(FOOTER_HTML, unsafe_allow_html=True)
+
+    # 备案号与联系方式：备案审核会看，配置了才渲染
+    import html as _html
+
+    import config
+
+    bits = []
+    if getattr(config, "SITE_ICP", ""):
+        bits.append(
+            f'<a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">'
+            f'{_html.escape(config.SITE_ICP)}</a>'
+        )
+    if getattr(config, "SITE_CONTACT", ""):
+        bits.append(f"<span>联系方式：{_html.escape(config.SITE_CONTACT)}</span>")
+    bits.append("<span>本站为个人知识库，内容不对外公开</span>")
+
+    st.markdown('<div class="tv-legal">' + " · ".join(bits) + "</div>", unsafe_allow_html=True)

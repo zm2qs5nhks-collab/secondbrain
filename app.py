@@ -59,26 +59,36 @@ if st.session_state.user_id is None:
                 unsafe_allow_html=True,
             )
 
-            with st.container(key="tSwitch"):
-                _sw_l, _sw_r = st.columns(2, gap="small")
-                with _sw_l:
-                    if st.button(
-                        "登录",
-                        key="mode_login",
-                        use_container_width=True,
-                        type="primary" if st.session_state.get("auth_mode", "login") == "login" else "secondary",
-                    ):
-                        st.session_state.auth_mode = "login"
-                        st.rerun()
-                with _sw_r:
-                    if st.button(
-                        "注册",
-                        key="mode_register",
-                        use_container_width=True,
-                        type="primary" if st.session_state.get("auth_mode") == "register" else "secondary",
-                    ):
-                        st.session_state.auth_mode = "register"
-                        st.rerun()
+            # 关闭注册时，把可能残留的 register 模式强制切回登录
+            if not config.ALLOW_SIGNUP and st.session_state.get("auth_mode") == "register":
+                st.session_state.auth_mode = "login"
+
+            if config.ALLOW_SIGNUP:
+                with st.container(key="tSwitch"):
+                    _sw_l, _sw_r = st.columns(2, gap="small")
+                    with _sw_l:
+                        if st.button(
+                            "登录",
+                            key="mode_login",
+                            use_container_width=True,
+                            type="primary" if st.session_state.get("auth_mode", "login") == "login" else "secondary",
+                        ):
+                            st.session_state.auth_mode = "login"
+                            st.rerun()
+                    with _sw_r:
+                        if st.button(
+                            "注册",
+                            key="mode_register",
+                            use_container_width=True,
+                            type="primary" if st.session_state.get("auth_mode") == "register" else "secondary",
+                        ):
+                            st.session_state.auth_mode = "register"
+                            st.rerun()
+            else:
+                st.markdown(
+                    '<div class="tc-private">🔒 个人知识库 · 内容私有，仅本站主人登录后可见</div>',
+                    unsafe_allow_html=True,
+                )
 
             _notice = st.session_state.pop("_login_notice", None)
             if _notice:
@@ -147,7 +157,7 @@ if st.session_state.user_id is None:
                     st.session_state["reset_step"] = 0
                     st.rerun()
 
-            else:
+            elif _auth_mode == "register" and config.ALLOW_SIGNUP:
                 with st.form("register_form", clear_on_submit=False):
                     reg_email = st.text_input(
                         "邮箱", key="reg_email", placeholder="邮箱地址",
