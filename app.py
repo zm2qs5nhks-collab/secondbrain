@@ -356,17 +356,20 @@ st.sidebar.markdown("""
 st.sidebar.caption(f"已登录: {st.session_state.user_email}")
 
 # 侧边栏：按「记录 → 整理 → 使用」排序，显示名与内部 key 解耦
-# （key 保持原样，页面分支不用动；只改 label 就换了个说法）
+# 哪些模块出现在导航里由 .env 控制（ENABLE_CHAT / ENABLE_SETTINGS），
+# 下线只是"不显示 + 分支不可达"，代码和数据都保留，改配置即可恢复。
 PAGE_LABELS = {
     "仪表盘": "📊 仪表盘",
     "导入笔记": "➕ 添加内容",
     "笔记管理": "📚 我的笔记",
-    "知识问答": "💬 智能问答",
-    "复习提醒": "🔁 复习提醒",
-    "知识图谱": "🕸️ 知识图谱",
-    "知识广场": "🌐 发现",
-    "设置": "⚙️ 设置",
 }
+if getattr(config, "ENABLE_CHAT", False):
+    PAGE_LABELS["知识问答"] = "💬 智能问答"
+PAGE_LABELS["复习提醒"] = "🔁 复习提醒"
+PAGE_LABELS["知识图谱"] = "🕸️ 知识图谱"
+PAGE_LABELS["知识广场"] = "🌐 发现"
+if getattr(config, "ENABLE_SETTINGS", False):
+    PAGE_LABELS["设置"] = "⚙️ 设置"
 
 page = st.sidebar.radio(
     "导航",
@@ -374,6 +377,10 @@ page = st.sidebar.radio(
     index=0,
     format_func=lambda p: PAGE_LABELS.get(p, p),
 )
+
+# 万一会话里残留了已下线的页面，回退到仪表盘
+if page not in PAGE_LABELS:
+    page = "仪表盘"
 
 # 检测模块切换 → 触发数据驱动提醒（首次进入不弹，避免与登录提醒重复）
 _prev_page = st.session_state.get("_prev_page")
@@ -1351,7 +1358,7 @@ elif page == "知识广场":
 # ═══════════════════════════════════════════
 #  页面九：设置
 # ═══════════════════════════════════════════
-else:  # 页面九：设置
+elif page == "设置" and getattr(config, "ENABLE_SETTINGS", False):
     page_header("⚙️", "笔记本偏好", "配置你的第二大脑 API 与数据")
     notebook_line()
 
@@ -1472,3 +1479,7 @@ else:  # 页面九：设置
         st.metric("元数据笔记数", metadata_store.count(user_id=USER_ID))
 
     st.markdown("</div>", unsafe_allow_html=True)
+
+else:
+    # 兜底：导航里没有的页面（理论上到不了这里）
+    st.info("该模块当前未开放。")

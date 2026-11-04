@@ -52,6 +52,18 @@ SITE_CONTACT = os.getenv("SITE_CONTACT", "")
 # 站点名（页脚、邮件里用）
 SITE_NAME = os.getenv("SITE_NAME", "第二大脑")
 
+# ── 功能开关（下线不等于删代码，改 true 重启即恢复）──────────
+def _flag(name: str, default: bool = False) -> bool:
+    return os.getenv(name, "true" if default else "false").strip().lower() in (
+        "1", "true", "yes", "on",
+    )
+
+
+# 智能问答（接入大模型对话）。暂时下线：既减少 AI 对外服务的合规面，也省 token
+ENABLE_CHAT = _flag("ENABLE_CHAT", False)
+# 设置页（API Key 配置、Token 生成、清空知识库）。暂时下线：不对外开放管理入口
+ENABLE_SETTINGS = _flag("ENABLE_SETTINGS", False)
+
 # ── 邮件（找回密码验证码）─────────────────────────────
 # QQ 邮箱：SMTP_HOST=smtp.qq.com SMTP_PORT=465，SMTP_PASS 填「授权码」不是登录密码
 # 未配置时找回密码会提示"邮件服务未配置"，其它功能不受影响
