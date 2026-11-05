@@ -45,12 +45,14 @@ PUBLIC_BASE_URL = os.getenv("PUBLIC_BASE_URL", "").rstrip("/")
 # 与备案时填写的"仅本人使用、不对外开放注册"保持一致。
 ALLOW_SIGNUP = os.getenv("ALLOW_SIGNUP", "false").strip().lower() in ("1", "true", "yes", "on")
 
-# 页脚备案号（备案已通过，写进默认值；.env 里设了就覆盖，设为空字符串则不显示）
-# ICP 号在阿里云备案控制台；如果控制台显示带 -1 后缀（如 鲁ICP备2026066331号-1），
-# 在 .env 里写完整的那个即可。
+# 页脚备案号
+# ICP（工信部）：已通过，写进默认值；.env 里设了就覆盖，设为空字符串用默认值
+# 如果阿里云控制台显示带 -1 后缀（如 鲁ICP备2026066331号-1），在 .env 里写完整的那个
 SITE_ICP = os.getenv("SITE_ICP", "").strip() or "鲁ICP备2026066331号"
-# 公安备案号（公安备案系统「网站基本情况」里抄的完整串）
-SITE_POLICE = os.getenv("SITE_POLICE", "").strip() or "鲁公网安备37069302889349号"
+# 公安备案号：2026-11-05 已被属地网安注销，默认清空（不再展示已失效的号）。
+# 在济南（学校属地）重新备案拿到新号后，写进 .env：
+#   SITE_POLICE=鲁公网安备xxxxxxxxxxxxxx号
+SITE_POLICE = os.getenv("SITE_POLICE", "").strip()
 # 页脚联系方式（邮箱/主页）；留空则不渲染
 SITE_CONTACT = os.getenv("SITE_CONTACT", "")
 # 站点名（页脚、邮件里用）
