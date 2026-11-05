@@ -481,6 +481,16 @@ def render_footer():
             f'<a href="https://beian.miit.gov.cn/" target="_blank" rel="noopener">'
             f'{_html.escape(config.SITE_ICP)}</a>'
         )
+    if getattr(config, "SITE_POLICE", ""):
+        _code = config.SITE_POLICE
+        _digits = "".join(ch for ch in _code if ch.isdigit())
+        _href = (
+            f"http://www.beian.gov.cn/portal/registerSystemInfo?recordcode={_digits}"
+            if _digits else "https://www.beian.gov.cn/"
+        )
+        bits.append(
+            f'<a href="{_href}" target="_blank" rel="noopener">{_html.escape(_code)}</a>'
+        )
     if getattr(config, "SITE_CONTACT", ""):
         bits.append(f"<span>联系方式：{_html.escape(config.SITE_CONTACT)}</span>")
     bits.append("<span>本站为个人知识库，内容不对外公开</span>")

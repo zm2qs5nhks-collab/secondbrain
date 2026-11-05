@@ -415,6 +415,17 @@ if st.sidebar.button("退出登录", use_container_width=True):
     st.session_state["_prev_page"] = None
     st.rerun()
 
+# 侧边栏常驻展示备案号（每个页面都可见，抽查会看）
+_legal = [x for x in (getattr(config, "SITE_ICP", ""), getattr(config, "SITE_POLICE", "")) if x]
+if _legal:
+    st.sidebar.caption(" · ".join(_legal))
+    if getattr(config, "SITE_POLICE", ""):
+        _digits = "".join(ch for ch in config.SITE_POLICE if ch.isdigit())
+        if _digits:
+            st.sidebar.caption(
+                f"[公安备案](http://www.beian.gov.cn/portal/registerSystemInfo?recordcode={_digits})"
+            )
+
 
 def tts_button(text):
     """语音朗读按钮。
