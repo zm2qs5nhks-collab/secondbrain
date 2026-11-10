@@ -36,7 +36,10 @@ SERVICE = "secondbrain"
 def read_env(path: pathlib.Path) -> list[str]:
     if not path.exists():
         return []
-    return path.read_text(encoding="utf-8").splitlines()
+    # lstrip("\ufeff")：Windows 编辑器保存的 UTF-8 可能带 BOM，
+    # 不清掉的话首行会变成 "\ufeffENABLE_CHAT=..."，去重时匹配不到，导致重复键
+    text = path.read_text(encoding="utf-8").lstrip("\ufeff")
+    return text.splitlines()
 
 
 def write_env(path: pathlib.Path, lines: list[str]) -> None:
@@ -117,7 +120,21 @@ def cmd_toggle(env_path: pathlib.Path, target: str, enable: bool, do_restart: bo
 
 
 def main(argv: list[str]) -> int:
-    parser = argparse.ArgumentParser(description="开关知识问答 / 设置页")
+    # 兼容两种写法：`on all`（标准）和 `all on`（顺口但参数顺序反了）
+    argv = list(argv)
+    targets = [*FEATURES, "all"]
+    i = 0
+    while i < len(argv) - 1:
+        if argv[i] in targets and argv[i + 1] in ("on", "off"):
+            argv[i], argv[i + 1] = argv[i + 1], argv[i]
+            i += 2
+            continue
+        i += 1
+
+    parser = argparse.ArgumentParser(
+        description="开关知识问答 / 设置页",
+        epilog="例：on all ｜ off settings ｜ status",
+    )
     parser.add_argument("--env-file", default=str(DEFAULT_ENV), help="默认项目根目录下的 .env")
     sub = parser.add_subparsers(dest="cmd", required=True)
 
@@ -126,12 +143,12 @@ def main(argv: list[str]) -> int:
     )
 
     p_on = sub.add_parser("on", help="开启（chat / settings / all）")
-    p_on.add_argument("target", choices=[*FEATURES, "all"])
+    p_on.add_argument("target", choices=targets)
     p_on.add_argument("--no-restart", action="store_true")
     p_on.set_defaults(func=lambda a: cmd_toggle(pathlib.Path(a.env_file), a.target, True, not a.no_restart))
 
     p_off = sub.add_parser("off", help="关闭（chat / settings / all）")
-    p_off.add_argument("target", choices=[*FEATURES, "all"])
+    p_off.add_argument("target", choices=targets)
     p_off.add_argument("--no-restart", action="store_true")
     p_off.set_defaults(func=lambda a: cmd_toggle(pathlib.Path(a.env_file), a.target, False, not a.no_restart))
 
